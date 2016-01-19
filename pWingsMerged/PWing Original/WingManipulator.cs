@@ -58,6 +58,10 @@ namespace ProceduralWings
 
         [KSPField(isPersistant = true)]
         public Vector3 tipScale = Vector3.one;
+        public override double tipThickness
+        {
+            get { return 0.2 * tipScale.z; }
+        }
 
         [KSPField(isPersistant = true)]
         public Vector3 tipPosition = Vector3.zero;
@@ -67,6 +71,10 @@ namespace ProceduralWings
 
         [KSPField(isPersistant = true)]
         public Vector3 rootScale = Vector3.one;
+        public override double rootThickness
+        {
+            get { return 0.2 * rootScale.z; }
+        }
 
         [KSPField(isPersistant = true)]
         public bool IgnoreSnapping = false;

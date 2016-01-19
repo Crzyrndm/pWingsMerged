@@ -182,11 +182,19 @@ namespace ProceduralWings
         public float sharedBaseThicknessRoot = 0.24f;
         public float sharedBaseThicknessRootCached = 0.24f;
         public static Vector4 sharedBaseThicknessRootDefaults = new Vector4 (0.24f, 0.24f, 0.24f, 0.24f);
+        public override double rootThickness
+        {
+            get { return sharedBaseThicknessRoot; }
+        }
 
         [KSPField (isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thickness (tip)", guiFormat = "F3")]
         public float sharedBaseThicknessTip = 0.24f;
         public float sharedBaseThicknessTipCached = 0.24f;
         public static Vector4 sharedBaseThicknessTipDefaults = new Vector4 (0.24f, 0.24f, 0.24f, 0.24f);
+        public override double tipThickness
+        {
+            get { return sharedBaseThicknessTip; }
+        }
 
         #endregion
 

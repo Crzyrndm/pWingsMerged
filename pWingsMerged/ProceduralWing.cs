@@ -39,7 +39,8 @@ namespace ProceduralWings
         public double aspectRatio;
         public double ArSweepScale;
 
-        public double tipThickness, rootThickness;
+        public abstract double tipThickness { get; }
+        public abstract double rootThickness { get; }
 
         public float liftFudgeNumber = 0.0775f;
         public float massFudgeNumber = 0.015f;
