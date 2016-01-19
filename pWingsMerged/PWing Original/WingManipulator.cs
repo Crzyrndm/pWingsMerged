@@ -15,6 +15,10 @@ namespace ProceduralWings
 
         [KSPField]
         public float modelControlSurfaceFraction = 1f;
+        public override float ctrlFraction
+        {
+            get { return modelControlSurfaceFraction; }
+        }
 
         [KSPField]
         public float modelMinimumSpan = 0.05f;
@@ -53,12 +57,6 @@ namespace ProceduralWings
 
         [KSPField]
         public float connectionMinimum = 50f;
-
-        [KSPField]
-        public float costDensity = 5300f;
-
-        [KSPField]
-        public float costDensityControl = 6500f;
 
         // Commong config
         public static bool loadedConfig;
@@ -203,11 +201,7 @@ namespace ProceduralWings
 
             connectionForce = Math.Round(Math.Max(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum), 0);
 
-            // Values always set
-            if (isWing)
-                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * costDensity, 1);
-            else // ctrl surfaces
-                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - modelControlSurfaceFraction) + costDensityControl * modelControlSurfaceFraction), 1);
+            updateCost();
 
             // should really do something about the joint torque here, not just its limits
             part.breakingForce = Mathf.Round((float)connectionForce);

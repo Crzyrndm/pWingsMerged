@@ -44,8 +44,12 @@ namespace ProceduralWings
         public int fuelSelectedTankSetup = -1;
         public double aeroStatVolume;
 
-        // interface variables
+        // module cost variables
         public float wingCost;
+        public float costDensity = 5300f;
+        public float costDensityControl = 6500f;
+
+        public abstract float ctrlFraction { get; }
 
         #region Fuel configuration switching
         // Has to be situated here as this KSPEvent is not correctly added Part.Events otherwise
@@ -237,6 +241,15 @@ namespace ProceduralWings
                 if (Parent != null)
                     Parent.GatherChildrenCl();
             }
+        }
+
+        public void updateCost()
+        {
+            // Values always set
+            if (!isCtrlSrf)
+                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * costDensity, 1);
+            else // ctrl surfaces
+                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
         }
 
         #region Interfaces

@@ -1744,6 +1744,11 @@ namespace ProceduralWings
         [KSPField] public float aeroConstCostDensityControl = 6500f;
         [KSPField] public float aeroConstControlSurfaceFraction = 1f;
 
+        public override float ctrlFraction
+        {
+            get { return aeroConstControlSurfaceFraction; }
+        }
+
         [KSPField (guiActiveEditor = false, guiName = "Coefficient of drag", guiFormat = "F3")]
         public float aeroUICd;
 
@@ -1879,19 +1884,12 @@ namespace ProceduralWings
 
             // Shared parameters
 
+            updateCost();
             if (!isCtrlSrf)
-            {
-                aeroUICost = (float) aeroStatMass * (1f + (float) aeroStatAspectRatioSweepScale / 4f) * aeroConstCostDensity;
-                aeroUICost = Mathf.Round (aeroUICost / 5f) * 5f;
                 part.CoMOffset = new Vector3 (sharedBaseLength / 2f, -sharedBaseOffsetTip / 2f, 0f);
-            }
             else
-            {
-                aeroUICost = (float) aeroStatMass * (1f + (float) aeroStatAspectRatioSweepScale / 4f) * aeroConstCostDensity * (1f - aeroConstControlSurfaceFraction);
-                aeroUICost += (float) aeroStatMass * (1f + (float) aeroStatAspectRatioSweepScale / 4f) * aeroConstCostDensityControl * aeroConstControlSurfaceFraction;
-                aeroUICost = Mathf.Round (aeroUICost / 5f) * 5f;
                 part.CoMOffset = new Vector3 (0f, -(sharedWidthRootSum + sharedWidthTipSum) / 4f, 0f);
-            }
+
             part.breakingForce = Mathf.Round ((float) aeroStatConnectionForce);
             part.breakingTorque = Mathf.Round ((float) aeroStatConnectionForce);
             if (WPDebug.logCAV)
