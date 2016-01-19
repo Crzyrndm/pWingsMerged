@@ -1734,20 +1734,7 @@ namespace ProceduralWings
         // Aerodynamics value calculation
         // More or less lifted from pWings, so credit goes to DYJ and Taverius
 
-        [KSPField] public float aeroConstLiftFudgeNumber = 0.0775f;
-        [KSPField] public float aeroConstMassFudgeNumber = 0.015f;
-        [KSPField] public float aeroConstDragBaseValue = 0.6f;
-        [KSPField] public float aeroConstDragMultiplier = 3.3939f;
-        [KSPField] public float aeroConstConnectionFactor = 150f;
-        [KSPField] public float aeroConstConnectionMinimum = 50f; 
-        [KSPField] public float aeroConstCostDensity = 5300f;
-        [KSPField] public float aeroConstCostDensityControl = 6500f;
-        [KSPField] public float aeroConstControlSurfaceFraction = 1f;
 
-        public override float ctrlFraction
-        {
-            get { return aeroConstControlSurfaceFraction; }
-        }
 
         [KSPField (guiActiveEditor = false, guiName = "Coefficient of drag", guiFormat = "F3")]
         public float aeroUICd;
@@ -1779,29 +1766,16 @@ namespace ProceduralWings
         [KSPField (guiActiveEditor = false, guiName = "Aspect ratio", guiFormat = "F3")]
         public float aeroUIAspectRatio;
 
-        public double aeroStatCd;
-        public double aeroStatCl;
-        public double aeroStatClChildren;
-        public double aeroStatMass;
-        public double aeroStatConnectionForce;
-
-        public double aeroStatMeanAerodynamicChord;
-        public double aeroStatSemispan;
-        public double aeroStatMidChordSweep;
         public Vector3d aeroStatRootMidChordOffsetFromOrigin;
-        public double aeroStatTaperRatio;
-        public double aeroStatSurfaceArea;
-        public double aeroStatAspectRatio;
-        public double aeroStatAspectRatioSweepScale;
-
+        
         private PartModule aeroFARModuleReference;
         private Type       aeroFARModuleType;
 
         private FieldInfo  aeroFARFieldInfoSemispan;
-        private FieldInfo aeroFARFieldInfoSemispan_Actual; // to handle tweakscale, wings have semispan (unscaled) and semispan_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
+        private FieldInfo  aeroFARFieldInfoSemispan_Actual; // to handle tweakscale, wings have semispan (unscaled) and semispan_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
         private FieldInfo  aeroFARFieldInfoMAC;
         private FieldInfo  aeroFARFieldInfoMAC_Actual; //  to handle tweakscale, wings have MAC (unscaled) and MAC_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
-        private FieldInfo aeroFARFieldInfoSurfaceArea; // calculated internally from b_2_actual and MAC_actual
+        private FieldInfo  aeroFARFieldInfoSurfaceArea; // calculated internally from b_2_actual and MAC_actual
         private FieldInfo  aeroFARFieldInfoMidChordSweep;
         private FieldInfo  aeroFARFieldInfoTaperRatio;
         private FieldInfo  aeroFARFieldInfoControlSurfaceFraction;
@@ -1850,35 +1824,35 @@ namespace ProceduralWings
 
             if (!isCtrlSrf)
             {
-                aeroStatSemispan = (double) sharedBaseLength;
-                aeroStatTaperRatio = (double) sharedWidthTipSum / (double) sharedWidthRootSum;
-                aeroStatMeanAerodynamicChord = (double) (sharedWidthTipSum + sharedWidthRootSum) / 2.0;
-                aeroStatMidChordSweep = Math.Atan ((double) sharedBaseOffsetTip / (double) sharedBaseLength) * Rad2Deg;
+                b_2 = (double) sharedBaseLength;
+                taperRatio = (double) sharedWidthTipSum / (double) sharedWidthRootSum;
+                MAC = (double) (sharedWidthTipSum + sharedWidthRootSum) / 2.0;
+                midChordSweep = Math.Atan ((double) sharedBaseOffsetTip / (double) sharedBaseLength) * Rad2Deg;
             }
             else
             {
-                aeroStatSemispan = (double) sharedBaseLength;
-                aeroStatTaperRatio = (double) (sharedBaseLength + sharedWidthTipSum * ctrlOffsetTipClamped - sharedWidthRootSum * ctrlOffsetRootClamped) / (double) sharedBaseLength;
-                aeroStatMeanAerodynamicChord = (double) (sharedWidthTipSum + sharedWidthRootSum) / 2.0;
-                aeroStatMidChordSweep = Math.Atan ((double) Mathf.Abs (sharedWidthRootSum - sharedWidthTipSum) / (double) sharedBaseLength) * Rad2Deg;
+                b_2 = (double) sharedBaseLength;
+                taperRatio = (double) (sharedBaseLength + sharedWidthTipSum * ctrlOffsetTipClamped - sharedWidthRootSum * ctrlOffsetRootClamped) / (double) sharedBaseLength;
+                MAC = (double) (sharedWidthTipSum + sharedWidthRootSum) / 2.0;
+                midChordSweep = Math.Atan ((double) Mathf.Abs (sharedWidthRootSum - sharedWidthTipSum) / (double) sharedBaseLength) * Rad2Deg;
             }
             if (WPDebug.logCAV)
                 DebugLogWithID ("CalculateAerodynamicValues", "Passed B2/TR/MAC/MCS");
 
             // Derived values
 
-            aeroStatSurfaceArea = aeroStatMeanAerodynamicChord * aeroStatSemispan;
-            aeroStatAspectRatio = 2.0f * aeroStatSemispan / aeroStatMeanAerodynamicChord;
+            surfaceArea = MAC * b_2;
+            aspectRatio = 2.0f * b_2 / MAC;
 
-            aeroStatAspectRatioSweepScale = Math.Pow (aeroStatAspectRatio / Math.Cos (Deg2Rad * aeroStatMidChordSweep), 2.0f) + 4.0f;
-            aeroStatAspectRatioSweepScale = 2.0f + Math.Sqrt (aeroStatAspectRatioSweepScale);
-            aeroStatAspectRatioSweepScale = (2.0f * Math.PI) / aeroStatAspectRatioSweepScale * aeroStatAspectRatio;
+            ArSweepScale = Math.Pow (aspectRatio / Math.Cos (Deg2Rad * midChordSweep), 2.0f) + 4.0f;
+            ArSweepScale = 2.0f + Math.Sqrt (ArSweepScale);
+            ArSweepScale = (2.0f * Math.PI) / ArSweepScale * aspectRatio;
 
-            aeroStatMass = Clamp (aeroConstMassFudgeNumber * aeroStatSurfaceArea * ((aeroStatAspectRatioSweepScale * 2.0) / (3.0 + aeroStatAspectRatioSweepScale)) * ((1.0 + aeroStatTaperRatio) / 2), 0.01, double.MaxValue);
-            aeroStatCd = aeroConstDragBaseValue / aeroStatAspectRatioSweepScale * aeroConstDragMultiplier;
-            aeroStatCl = aeroConstLiftFudgeNumber * aeroStatSurfaceArea * aeroStatAspectRatioSweepScale;
+            wingMass = Clamp (massFudgeNumber * surfaceArea * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2), 0.01, double.MaxValue);
+            Cd = dragBaseValue / ArSweepScale * dragMultiplier;
+            Cl = liftFudgeNumber * surfaceArea * ArSweepScale;
             GatherChildrenCl();
-            aeroStatConnectionForce = Math.Round (Clamp(Math.Sqrt (aeroStatCl + aeroStatClChildren) * (double) aeroConstConnectionFactor, (double) aeroConstConnectionMinimum, double.MaxValue));
+            connectionForce = Math.Round (Clamp(Math.Sqrt (Cl + ChildrenCl) * (double) connectionFactor, (double) connectionMinimum, double.MaxValue));
             if (WPDebug.logCAV)
                 DebugLogWithID ("CalculateAerodynamicValues", "Passed SR/AR/ARSS/mass/Cl/Cd/connection");
 
@@ -1890,15 +1864,15 @@ namespace ProceduralWings
             else
                 part.CoMOffset = new Vector3 (0f, -(sharedWidthRootSum + sharedWidthTipSum) / 4f, 0f);
 
-            part.breakingForce = Mathf.Round ((float) aeroStatConnectionForce);
-            part.breakingTorque = Mathf.Round ((float) aeroStatConnectionForce);
+            part.breakingForce = Mathf.Round ((float) connectionForce);
+            part.breakingTorque = Mathf.Round ((float) connectionForce);
             if (WPDebug.logCAV)
                 DebugLogWithID ("CalculateAerodynamicValues", "Passed cost/force/torque");
 
             // Stock-only values
             if (!FARactive)
             {
-                float stockLiftCoefficient = (float)aeroStatSurfaceArea / 3.52f;
+                float stockLiftCoefficient = (float)surfaceArea / 3.52f;
                 if (!isCtrlSrf && !isWingAsCtrlSrf)
                 {
                     if (WPDebug.logCAV)
@@ -1912,7 +1886,7 @@ namespace ProceduralWings
                         DebugLogWithID ("CalculateAerodynamicValues", "FAR/NEAR is inactive, calculating stock control surface module values");
                     ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface> ().FirstOrDefault ();
                     mCtrlSrf.deflectionLiftCoeff = (float)Math.Round(stockLiftCoefficient, 2);
-                    mCtrlSrf.ctrlSurfaceArea = aeroConstControlSurfaceFraction;
+                    mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
                     part.mass = stockLiftCoefficient * (1 + mCtrlSrf.ctrlSurfaceArea) * 0.1f;
                 }
             }
@@ -1976,15 +1950,15 @@ namespace ProceduralWings
                         {
                             if (WPDebug.logCAV)
                                 DebugLogWithID ("CalculateAerodynamicValues", "FAR/NEAR | Method info present");
-                            aeroFARFieldInfoSemispan.SetValue (aeroFARModuleReference, aeroStatSemispan);
-                            aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, aeroStatSemispan);
-                            aeroFARFieldInfoMAC.SetValue (aeroFARModuleReference, aeroStatMeanAerodynamicChord);
-                            aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, aeroStatMeanAerodynamicChord);
+                            aeroFARFieldInfoSemispan.SetValue (aeroFARModuleReference, b_2);
+                            aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, b_2);
+                            aeroFARFieldInfoMAC.SetValue (aeroFARModuleReference, MAC);
+                            aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, MAC);
                             //aeroFARFieldInfoSurfaceArea.SetValue (aeroFARModuleReference, aeroStatSurfaceArea);
-                            aeroFARFieldInfoMidChordSweep.SetValue (aeroFARModuleReference, aeroStatMidChordSweep);
-                            aeroFARFieldInfoTaperRatio.SetValue (aeroFARModuleReference, aeroStatTaperRatio);
+                            aeroFARFieldInfoMidChordSweep.SetValue (aeroFARModuleReference, midChordSweep);
+                            aeroFARFieldInfoTaperRatio.SetValue (aeroFARModuleReference, taperRatio);
                             if (isCtrlSrf)
-                                aeroFARFieldInfoControlSurfaceFraction.SetValue (aeroFARModuleReference, aeroConstControlSurfaceFraction);
+                                aeroFARFieldInfoControlSurfaceFraction.SetValue (aeroFARModuleReference, ctrlFraction);
                             else
                                 aeroFARFieldInfoRootChordOffset.SetValue(aeroFARModuleReference, (Vector3)aeroStatRootMidChordOffsetFromOrigin);
 
@@ -2002,17 +1976,17 @@ namespace ProceduralWings
 
             if (!FARactive)
             {
-                aeroUICd = (float)Math.Round(aeroStatCd, 2);
-                aeroUICl = (float)Math.Round(aeroStatCl, 2);
+                aeroUICd = (float)Math.Round(Cd, 2);
+                aeroUICl = (float)Math.Round(Cl, 2);
                 aeroUIMass = part.mass;
             }                
 
-            aeroUIMeanAerodynamicChord = (float) aeroStatMeanAerodynamicChord;
-            aeroUISemispan = (float) aeroStatSemispan;
-            aeroUIMidChordSweep = (float) aeroStatMidChordSweep;
-            aeroUITaperRatio = (float) aeroStatTaperRatio;
-            aeroUISurfaceArea = (float) aeroStatSurfaceArea;
-            aeroUIAspectRatio = (float) aeroStatAspectRatio;
+            aeroUIMeanAerodynamicChord = (float) MAC;
+            aeroUISemispan = (float) b_2;
+            aeroUIMidChordSweep = (float) midChordSweep;
+            aeroUITaperRatio = (float) taperRatio;
+            aeroUISurfaceArea = (float) surfaceArea;
+            aeroUIAspectRatio = (float) aspectRatio;
 
             if (WPDebug.logCAV)
                 DebugLogWithID ("CalculateAerodynamicValues", "Finished");

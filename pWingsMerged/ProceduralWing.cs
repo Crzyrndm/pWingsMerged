@@ -16,6 +16,8 @@ namespace ProceduralWings
         public bool isWing = true;
         [KSPField]
         public bool isCtrlSrf = false;
+        [KSPField]
+        public float ctrlFraction = 1f;
 
         // active assemblies
         public static bool assembliesChecked;
@@ -39,6 +41,14 @@ namespace ProceduralWings
 
         public double tipThickness, rootThickness;
 
+        public float liftFudgeNumber = 0.0775f;
+        public float massFudgeNumber = 0.015f;
+        public float dragBaseValue = 0.6f;
+        public float dragMultiplier = 3.3939f;
+        public float connectionFactor = 150f;
+        public float connectionMinimum = 50f;
+        
+
         // fuel parameters
         [KSPField(isPersistant = true)]
         public int fuelSelectedTankSetup = -1;
@@ -48,8 +58,6 @@ namespace ProceduralWings
         public float wingCost;
         public float costDensity = 5300f;
         public float costDensityControl = 6500f;
-
-        public abstract float ctrlFraction { get; }
 
         #region Fuel configuration switching
         // Has to be situated here as this KSPEvent is not correctly added Part.Events otherwise

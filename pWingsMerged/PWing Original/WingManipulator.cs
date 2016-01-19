@@ -14,13 +14,6 @@ namespace ProceduralWings
         public float modelChordLenght = 2f;
 
         [KSPField]
-        public float modelControlSurfaceFraction = 1f;
-        public override float ctrlFraction
-        {
-            get { return modelControlSurfaceFraction; }
-        }
-
-        [KSPField]
         public float modelMinimumSpan = 0.05f;
 
         [KSPField]
@@ -40,23 +33,6 @@ namespace ProceduralWings
         public bool relativeThicknessScaling = true;
 
         // PartModule Tuning parameters
-        [KSPField]
-        public float liftFudgeNumber = 0.0775f;
-
-        [KSPField]
-        public float massFudgeNumber = 0.015f;
-
-        [KSPField]
-        public float dragBaseValue = 0.6f;
-
-        [KSPField]
-        public float dragMultiplier = 3.3939f;
-
-        [KSPField]
-        public float connectionFactor = 150f;
-
-        [KSPField]
-        public float connectionMinimum = 50f;
 
         // Commong config
         public static bool loadedConfig;
@@ -225,8 +201,8 @@ namespace ProceduralWings
                     if (mCtrlSrf != null)
                     {
                         mCtrlSrf.deflectionLiftCoeff = stockLiftCoefficient;
-                        mCtrlSrf.ctrlSurfaceArea = modelControlSurfaceFraction;
-                        part.mass = stockLiftCoefficient * (1 + modelControlSurfaceFraction) * 0.1f;
+                        mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
+                        part.mass = stockLiftCoefficient * (1 + ctrlFraction) * 0.1f;
                     }
                 }
                 guiCd = (float)Math.Round(Cd, 2);
@@ -246,7 +222,7 @@ namespace ProceduralWings
                     FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
                     FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
                     FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-                    FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, modelControlSurfaceFraction);
+                    FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
                     //print("Set fields");
 
                 }
