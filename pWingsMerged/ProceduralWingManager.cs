@@ -88,76 +88,72 @@ namespace ProceduralWings
         public static void ConfigureStyles ()
         {
             if (uiFont == null)
-            {
                 uiFont = Resources.GetBuiltinResource (typeof (Font), "Arial.ttf") as Font;
-            }
-            if (uiFont != null)
-            {
-                uiStyleWindow = new GUIStyle (HighLogic.Skin.window);
-                uiStyleWindow.fixedWidth = 300f;
-                uiStyleWindow.wordWrap = true;
-                uiStyleWindow.normal.textColor = Color.white;
-                uiStyleWindow.font = uiFont;
-                uiStyleWindow.fontStyle = FontStyle.Normal;
-                uiStyleWindow.fontSize = 13;
-                uiStyleWindow.alignment = TextAnchor.UpperLeft;
 
-                uiStyleLabelMedium = new GUIStyle (HighLogic.Skin.label);
-                uiStyleLabelMedium.stretchWidth = true;
-                uiStyleLabelMedium.font = uiFont;
-                uiStyleLabelMedium.fontStyle = FontStyle.Normal;
-                uiStyleLabelMedium.fontSize = 13;
-                uiStyleLabelMedium.normal.textColor = Color.white;
+            uiStyleWindow = new GUIStyle (HighLogic.Skin.window);
+            uiStyleWindow.fixedWidth = 300f;
+            uiStyleWindow.wordWrap = true;
+            uiStyleWindow.normal.textColor = Color.white;
+            uiStyleWindow.font = uiFont;
+            uiStyleWindow.fontStyle = FontStyle.Normal;
+            uiStyleWindow.fontSize = 13;
+            uiStyleWindow.alignment = TextAnchor.UpperLeft;
 
-                uiStyleLabelHint = new GUIStyle (HighLogic.Skin.label);
-                uiStyleLabelHint.stretchWidth = true;
-                uiStyleLabelHint.font = uiFont;
-                uiStyleLabelHint.fontStyle = FontStyle.Normal;
-                uiStyleLabelHint.fontSize = 11;
-                uiStyleLabelHint.normal.textColor = Color.white;
+            uiStyleLabelMedium = new GUIStyle (HighLogic.Skin.label);
+            uiStyleLabelMedium.stretchWidth = true;
+            uiStyleLabelMedium.font = uiFont;
+            uiStyleLabelMedium.fontStyle = FontStyle.Normal;
+            uiStyleLabelMedium.fontSize = 13;
+            uiStyleLabelMedium.normal.textColor = Color.white;
 
-                uiStyleButton = new GUIStyle (HighLogic.Skin.button);
-                AssignTexturesToStyle (uiStyleButton);
-                uiStyleButton.padding = new RectOffset (0, 0, 0, 0);
-                uiStyleButton.overflow = new RectOffset (0, 0, 0, 0);
-                uiStyleButton.font = uiFont;
-                uiStyleButton.fontStyle = FontStyle.Normal;
-                uiStyleButton.fontSize = 11;
-                uiStyleButton.fixedHeight = 16;
+            uiStyleLabelHint = new GUIStyle (HighLogic.Skin.label);
+            uiStyleLabelHint.stretchWidth = true;
+            uiStyleLabelHint.font = uiFont;
+            uiStyleLabelHint.fontStyle = FontStyle.Normal;
+            uiStyleLabelHint.fontSize = 11;
+            uiStyleLabelHint.normal.textColor = Color.white;
 
-                uiStyleSlider = new GUIStyle (HighLogic.Skin.horizontalSlider);
-                AssignTexturesToStyle (uiStyleSlider);
-                uiStyleSlider.border = new RectOffset (0, 0, 0, 0);
-                uiStyleSlider.margin = new RectOffset (4, 4, 4, 4);
-                uiStyleSlider.padding = new RectOffset (0, 0, 0, 0);
-                uiStyleSlider.overflow = new RectOffset (0, 0, 0, 0);
-                uiStyleSlider.fixedHeight = 16;
+            uiStyleButton = new GUIStyle (HighLogic.Skin.button);
+            AssignTexturesToStyle (uiStyleButton);
+            uiStyleButton.padding = new RectOffset (0, 0, 0, 0);
+            uiStyleButton.overflow = new RectOffset (0, 0, 0, 0);
+            uiStyleButton.font = uiFont;
+            uiStyleButton.fontStyle = FontStyle.Normal;
+            uiStyleButton.fontSize = 11;
+            uiStyleButton.fixedHeight = 16;
 
-                uiStyleSliderThumb = new GUIStyle (HighLogic.Skin.horizontalSliderThumb);
-                AssignTexturesToStyle (uiStyleSlider);
-                uiStyleSliderThumb.border = new RectOffset (0, 0, 0, 0);
-                uiStyleSliderThumb.margin = new RectOffset (4, 4, 4, 4);
-                uiStyleSliderThumb.padding = new RectOffset (0, 0, 0, 0);
-                uiStyleSliderThumb.overflow = new RectOffset (0, 0, 0, 0);
-                uiStyleSliderThumb.normal.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.hover.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.active.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.onNormal.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.onHover.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.onActive.background = Color.black.WithAlpha (0).GetTexture2D ();
-                uiStyleSliderThumb.fixedWidth = 0f;
-                uiStyleSliderThumb.fixedHeight = 16;
+            uiStyleSlider = new GUIStyle (HighLogic.Skin.horizontalSlider);
+            AssignTexturesToStyle (uiStyleSlider);
+            uiStyleSlider.border = new RectOffset (0, 0, 0, 0);
+            uiStyleSlider.margin = new RectOffset (4, 4, 4, 4);
+            uiStyleSlider.padding = new RectOffset (0, 0, 0, 0);
+            uiStyleSlider.overflow = new RectOffset (0, 0, 0, 0);
+            uiStyleSlider.fixedHeight = 16;
 
-                uiStyleToggle = new GUIStyle (HighLogic.Skin.toggle);
-                uiStyleToggle.font = uiFont;
-                uiStyleToggle.fontStyle = FontStyle.Normal;
-                uiStyleToggle.fontSize = 11;
-                uiStyleToggle.normal.textColor = Color.white;
-                uiStyleToggle.padding = new RectOffset (4, 4, 4, 4);
-                uiStyleToggle.margin = new RectOffset (4, 4, 4, 4);
+            uiStyleSliderThumb = new GUIStyle (HighLogic.Skin.horizontalSliderThumb);
+            AssignTexturesToStyle (uiStyleSlider);
+            uiStyleSliderThumb.border = new RectOffset (0, 0, 0, 0);
+            uiStyleSliderThumb.margin = new RectOffset (4, 4, 4, 4);
+            uiStyleSliderThumb.padding = new RectOffset (0, 0, 0, 0);
+            uiStyleSliderThumb.overflow = new RectOffset (0, 0, 0, 0);
+            uiStyleSliderThumb.normal.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.hover.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.active.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.onNormal.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.onHover.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.onActive.background = Color.black.WithAlpha (0).GetTexture2D ();
+            uiStyleSliderThumb.fixedWidth = 0f;
+            uiStyleSliderThumb.fixedHeight = 16;
 
-                uiStyleConfigured = true;
-            }
+            uiStyleToggle = new GUIStyle (HighLogic.Skin.toggle);
+            uiStyleToggle.font = uiFont;
+            uiStyleToggle.fontStyle = FontStyle.Normal;
+            uiStyleToggle.fontSize = 11;
+            uiStyleToggle.normal.textColor = Color.white;
+            uiStyleToggle.padding = new RectOffset (4, 4, 4, 4);
+            uiStyleToggle.margin = new RectOffset (4, 4, 4, 4);
+
+            uiStyleConfigured = true;
         }
 
         private static void AssignTexturesToStyle (GUIStyle s)
@@ -178,28 +174,25 @@ namespace ProceduralWings
         public void OnGUI ()
         {
             GUI.skin = HighLogic.Skin;
-            if (!uiStyleConfigured) ConfigureStyles ();
-            if (uiStyleConfigured)
+            if (!uiStyleConfigured)
+                ConfigureStyles ();
+                
+            if (windowOpen)
             {
-                if (windowOpen)
+                uiRectWindowDebug = GUILayout.Window ("WingProceduralManagerWindow".GetHashCode (), uiRectWindowDebug, debugWindow, "B9 Procedural Part Options", GUILayout.ExpandWidth (true), GUILayout.ExpandHeight (true));
+                if (!inputLocked != uiRectWindowDebug.Contains (UIUtility.GetMousePos ()))
                 {
-                    uiRectWindowDebug = GUILayout.Window ("WingProceduralManagerWindow".GetHashCode (), uiRectWindowDebug, debugWindow, "B9 Procedural Part Options", GUILayout.ExpandWidth (true), GUILayout.ExpandHeight (true));
-                    if (!inputLocked && uiRectWindowDebug.Contains (UIUtility.GetMousePos ()))
-                    {
+                    if (!inputLocked)
                         InputLockManager.SetControlLock (ControlTypes.KSC_ALL, "WingProceduralManagerLock");
-                        inputLocked = true;
-                    }
-                    else if (inputLocked && !uiRectWindowDebug.Contains (UIUtility.GetMousePos ()))
-                    {
-                        InputLockManager.RemoveControlLock ("WingProceduralManagerLock");
-                        inputLocked = false;
-                    }
+                    else
+                        InputLockManager.RemoveControlLock("WingProceduralManagerLock");
+                    inputLocked = !inputLocked;
                 }
-                else if (inputLocked)
-                {
-                    InputLockManager.RemoveControlLock ("WingProceduralManagerLock");
-                    inputLocked = false;
-                }
+            }
+            else if (inputLocked)
+            {
+                InputLockManager.RemoveControlLock ("WingProceduralManagerLock");
+                inputLocked = false;
             }
         }
 
@@ -285,21 +278,21 @@ namespace ProceduralWings
                 return;
 
             if (node.HasValue("keyTranslation"))
-                WingManipulator.keyTranslation = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTranslation"), true);
+                ProceduralWing.keyTranslation = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTranslation"), true);
 
             if (node.HasValue("keyTipScale"))
-                WingManipulator.keyTipScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTipScale"), true);
+                ProceduralWing.keyTipScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTipScale"), true);
 
             if (node.HasValue("keyRootScale"))
-                WingManipulator.keyRootScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyRootScale"), true);
+                ProceduralWing.keyRootScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyRootScale"), true);
 
             if (node.HasValue("moveSpeed"))
-                float.TryParse(node.GetValue("moveSpeed"), out WingManipulator.moveSpeed);
+                float.TryParse(node.GetValue("moveSpeed"), out ProceduralWing.moveSpeed);
 
             if (node.HasValue("scaleSpeed"))
-                float.TryParse(node.GetValue("scaleSpeed"), out WingManipulator.scaleSpeed);
+                float.TryParse(node.GetValue("scaleSpeed"), out ProceduralWing.scaleSpeed);
 
-            WingManipulator.loadedConfig = true;
+            ProceduralWing.loadedConfig = true;
         }
 
         public static void SaveConfigs ()

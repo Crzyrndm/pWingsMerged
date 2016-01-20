@@ -11,13 +11,18 @@ namespace ProceduralWings
     /// </summary>
     abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
-        // Part module parameters
-        [KSPField]
-        public bool isWing = true;
-        [KSPField]
-        public bool isCtrlSrf = false;
-        [KSPField]
-        public float ctrlFraction = 1f;
+        // Properties for aero calcs
+        public abstract Vector3 tipPos { get; set; }
+        public abstract double tipWidth { get; set; }
+        public abstract double tipThickness { get; set; }
+        #warning nullrefs...
+        public virtual Vector3 rootPos
+        {
+            get { return part.attachJoint.transform.position; }
+        }
+        public abstract double rootWidth { get; set; }
+        public abstract double rootThickness { get; set; }
+        public abstract double minSpan { get; }
 
         // active assemblies
         public static bool assembliesChecked;
@@ -38,17 +43,22 @@ namespace ProceduralWings
         public double surfaceArea;
         public double aspectRatio;
         public double ArSweepScale;
+        public Vector3d midChordOffsetFromOrigin = Vector3.zero; // used to calculate the impact of edges on the wing center
 
-        public abstract double tipThickness { get; }
-        public abstract double rootThickness { get; }
+        public const float liftFudgeNumber = 0.0775f;
+        public const float massFudgeNumber = 0.015f;
+        public const float dragBaseValue = 0.6f;
+        public const float dragMultiplier = 3.3939f;
+        public const float connectionFactor = 150f;
+        public const float connectionMinimum = 50f;
 
-        public float liftFudgeNumber = 0.0775f;
-        public float massFudgeNumber = 0.015f;
-        public float dragBaseValue = 0.6f;
-        public float dragMultiplier = 3.3939f;
-        public float connectionFactor = 150f;
-        public float connectionMinimum = 50f;
-        
+        // config vars
+        public static bool loadedConfig;
+        public static KeyCode keyTranslation = KeyCode.G;
+        public static KeyCode keyTipScale = KeyCode.T;
+        public static KeyCode keyRootScale = KeyCode.B; // was r, stock uses r now though
+        public static float moveSpeed = 5.0f;
+        public static float scaleSpeed = 0.25f;        
 
         // fuel parameters
         [KSPField(isPersistant = true)]
@@ -57,8 +67,213 @@ namespace ProceduralWings
 
         // module cost variables
         public float wingCost;
-        public float costDensity = 5300f;
-        public float costDensityControl = 6500f;
+        public const float costDensity = 5300f;
+
+        public bool isStarted; // helper bool that prevents anything running when the start sequence hasn't fired yet
+        public bool isAttached;
+
+        #region entry points
+        /// <summary>
+        /// runs only in the editor scene
+        /// </summary>
+        public virtual void Start()
+        {
+            if (!HighLogic.LoadedSceneIsEditor)
+                return;
+            Setup();
+
+            part.OnEditorAttach += new Callback(OnAttach);
+            part.OnEditorDetach += new Callback(OnDetach);
+
+            isStarted = true;
+        }
+
+        /// <summary>
+        /// runs only in the flight scene
+        /// </summary>
+        /// <param name="state"></param>
+        public override void OnStart(PartModule.StartState state)
+        {
+            base.OnStart(state);
+
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+            Setup();
+            StartCoroutine(flightAeroSetup());
+
+            isStarted = true;
+        }
+
+        public virtual void Update()
+        {
+            if (!HighLogic.LoadedSceneIsEditor)
+                return;
+            UpdateUI();
+            DeformWing();
+            if (CheckForGeometryChanges())
+                UpdateGeometry();
+        }
+
+        public virtual void OnDestroy()
+        { }
+        #endregion
+
+        #region Setting up
+
+        public static void CheckAssemblies()
+        {
+            if (!assembliesChecked)
+            {
+                FARactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("FerramAerospaceResearch", StringComparison.InvariantCultureIgnoreCase));
+                RFactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("RealFuels", StringComparison.InvariantCultureIgnoreCase));
+                MFTactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("modularFuelTanks", StringComparison.InvariantCultureIgnoreCase));
+                assembliesChecked = true;
+            }
+        }
+
+        public virtual void Setup()
+        {
+            CheckAssemblies();
+            SetupGeometryAndAppearance();
+            RefreshGeometry();
+
+            if (fuelSelectedTankSetup < 0)
+            {
+                fuelSelectedTankSetup = 0;
+                FuelTankTypeChanged();
+            }
+        }
+
+        public virtual void SetupUI() { }
+        public abstract void SetupGeometryAndAppearance();
+        #endregion
+
+        /// <summary>
+        /// handles any UI changes if neccesary
+        /// </summary>
+        public virtual void UpdateUI() { }
+
+        /// <summary>
+        /// makes all the neccesary geometry alterations and then updates the aerodynamics to match
+        /// </summary>
+        public abstract void UpdateGeometry();
+
+        public virtual void OnAttach()
+        {
+            isAttached = true;
+            UpdateGeometry();
+        }
+
+        public virtual void OnDetach()
+        {
+            isAttached = false;
+            ProceduralWing parentWing = part.parent.Modules.OfType<ProceduralWing>().FirstOrDefault();
+            if (parentWing != null)
+            {
+                parentWing.FuelUpdateVolume(); // why am I doing this...?
+                parentWing.CalculateAerodynamicValues();
+            }
+        }
+
+        /// <summary>
+        /// pass all changes to sym counterparts
+        /// </summary>
+        public abstract void UpdateCounterparts();
+
+        public class VesselStatus
+        {
+            public Vessel vessel = null;
+            public bool isUpdated = false;
+
+            public VesselStatus(Vessel v, bool state)
+            {
+                vessel = v;
+                isUpdated = state;
+            }
+        }
+        public static List<VesselStatus> vesselList;
+
+        /// <summary>
+        /// setup the wing ready for flight
+        /// </summary>
+        /// <returns></returns>
+        public virtual IEnumerator flightAeroSetup()
+        {
+            if (vesselList == null)
+                vesselList = new List<VesselStatus>();
+            // First we need to determine whether the vessel this part is attached to is included into the status list
+            // If it's included, we need to fetch it's index in that list
+
+            bool vesselListInclusive = false;
+            int vesselID = vessel.GetInstanceID();
+            int vesselStatusIndex = 0;
+            int vesselListCount = vesselList.Count;
+            for (int i = 0; i < vesselListCount; ++i)
+            {
+                if (vesselList[i].vessel.GetInstanceID() == vesselID)
+                {
+                    if (WPDebug.logFlightSetup)
+                        DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " found in the status list");
+                    vesselListInclusive = true;
+                    vesselStatusIndex = i;
+                }
+            }
+
+            // If it was not included, we add it to the list
+            // Correct index is then fairly obvious
+
+            if (!vesselListInclusive)
+            {
+                if (WPDebug.logFlightSetup)
+                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " was not found in the status list, adding it");
+                vesselList.Add(new VesselStatus(vessel, false));
+                vesselStatusIndex = vesselList.Count - 1;
+            }
+
+            // Using the index for the status list we obtained, we check whether it was updated yet
+            // So that only one part can run the following part
+
+            if (!vesselList[vesselStatusIndex].isUpdated)
+            {
+                if (WPDebug.logFlightSetup)
+                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " was not updated yet (this message should only appear once)");
+                vesselList[vesselStatusIndex].isUpdated = true;
+                List<ProceduralWing> moduleList = new List<ProceduralWing>();
+
+                // First we get a list of all relevant parts in the vessel
+                // Found modules are added to a list
+                for (int i = 0; i < vessel.parts.Count; ++i)
+                    moduleList.AddRange(vessel.parts[i].Modules.OfType<ProceduralWing>());
+
+                // After that we make two separate runs through that list
+                // First one setting up all geometry and second one setting up aerodynamic values
+                for (int i = 0; i < moduleList.Count; ++i)
+                    moduleList[i].Setup();
+
+                yield return new WaitForFixedUpdate();
+                yield return new WaitForFixedUpdate();
+
+                if (WPDebug.logFlightSetup)
+                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " waited for updates, starting aero value calculation");
+                for (int i = 0; i < moduleList.Count; ++i)
+                    moduleList[i].CalculateAerodynamicValues();
+            }
+        }
+
+        /// <summary>
+        /// check if the wing shape/appearance has changed since last update
+        /// </summary>
+        /// <returns></returns>
+        public abstract bool CheckForGeometryChanges();
+
+        /// <summary>
+        /// call during setup and when updating sym counterparts
+        /// </summary>
+        public virtual void RefreshGeometry()
+        {
+            UpdateGeometry();
+            UpdateUI();
+        }
 
         #region Fuel configuration switching
         // Has to be situated here as this KSPEvent is not correctly added Part.Events otherwise
@@ -150,15 +365,15 @@ namespace ProceduralWings
             }
         }
 
-        public bool canBeFueled
+        public virtual bool canBeFueled
         {
             get
             {
-                return !isCtrlSrf && ProceduralWingManager.wingTankConfigurations.Count > 0;
+                return ProceduralWingManager.wingTankConfigurations.Count > 0;
             }
         }
 
-        public bool useStockFuel
+        public virtual bool useStockFuel
         {
             get
             {
@@ -166,7 +381,7 @@ namespace ProceduralWings
             }
         }
 
-        public float FuelGetAddedCost()
+        public virtual float FuelGetAddedCost()
         {
             float result = 0f;
             foreach (KeyValuePair<string, WingTankResource> kvp in ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].resources)
@@ -177,12 +392,81 @@ namespace ProceduralWings
         }
         #endregion
 
+        #region aero stuff
+        /// <summary>
+        /// all wings need to be able to calc aero values but implementations are all different. Use a blank method for panels
+        /// </summary>
+        public virtual void CalculateAerodynamicValues()
+        {
+            // Calculate intemediate values
+            //print(part.name + ": Calc Aero values");
+            b_2 = tipPos.z - rootPos.z;
+            MAC = (tipWidth + rootWidth);
+            midChordSweep = (Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / b_2));
+            taperRatio = tipWidth / rootWidth;
+            surfaceArea = MAC * b_2;
+            aspectRatio = 2.0 * b_2 / MAC;
+
+            ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Deg2Rad * midChordSweep), 2.0) + 4.0;
+            ArSweepScale = 2.0 + Math.Sqrt(ArSweepScale);
+            ArSweepScale = (2.0 * Math.PI) / ArSweepScale * aspectRatio;
+
+            wingMass = Math.Max(0.01, massFudgeNumber * surfaceArea * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
+
+            Cd = dragBaseValue / ArSweepScale * dragMultiplier;
+            Cl = liftFudgeNumber * surfaceArea * ArSweepScale;
+            GatherChildrenCl();
+
+            connectionForce = Math.Round(Math.Max(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum), 0);
+
+            updateCost();
+
+            // should really do something about the joint torque here, not just its limits
+            part.breakingForce = Mathf.Round((float)connectionForce);
+            part.breakingTorque = Mathf.Round((float)connectionForce);
+
+            // Stock-only values
+            if (!FARactive)
+                SetStockModuleParams();
+            else
+                setFARModuleParams();
+
+            StartCoroutine(updateAeroDelayed());
+        }
+
+        public virtual void setFARModuleParams()
+        {
+            if (part.Modules.Contains("FARWingAerodynamicModel"))
+            {
+                PartModule FARmodule = part.Modules["FARWingAerodynamicModel"];
+                Type FARtype = FARmodule.GetType();
+                FARtype.GetField("b_2").SetValue(FARmodule, b_2);
+                FARtype.GetField("b_2_actual").SetValue(FARmodule, b_2);
+                FARtype.GetField("MAC").SetValue(FARmodule, MAC);
+                FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
+                FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
+                FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
+                FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
+                FARtype.GetField("rootMidChordOffsetFromOrig").SetValue(FARmodule, (Vector3)midChordOffsetFromOrigin);
+            }
+        }
+
+        public virtual void SetStockModuleParams()
+        {
+            // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
+            float stockLiftCoefficient = (float)(surfaceArea / 3.52);
+            // CoL/P matches CoM unless otherwise specified
+            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0);
+            part.Modules.GetModules<ModuleLiftingSurface>().FirstOrDefault().deflectionLiftCoeff = stockLiftCoefficient;
+            part.mass = stockLiftCoefficient * 0.1f;
+        }
+
         float updateTimeDelay = 0;
         /// <summary>
         /// Handle all the really expensive stuff once we are no longer actively modifying the wing. Doing it continuously causes lag spikes for lots of people
         /// </summary>
         /// <returns></returns>
-        public IEnumerator updateAeroDelayed()
+        public virtual IEnumerator updateAeroDelayed()
         {
             bool running = updateTimeDelay > 0;
             updateTimeDelay = 0.5f;
@@ -217,18 +501,7 @@ namespace ProceduralWings
             updateTimeDelay = 0;
         }
 
-        public void CheckAssemblies()
-        {
-            if (!assembliesChecked)
-            {
-                FARactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("FerramAerospaceResearch", StringComparison.InvariantCultureIgnoreCase));
-                RFactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("RealFuels", StringComparison.InvariantCultureIgnoreCase));
-                MFTactive = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name.Equals("modularFuelTanks", StringComparison.InvariantCultureIgnoreCase));
-                assembliesChecked = true;
-            }
-        }
-
-        public void GatherChildrenCl()
+        public virtual void GatherChildrenCl()
         {
             ChildrenCl = 0;
 
@@ -252,19 +525,92 @@ namespace ProceduralWings
             }
         }
 
-        public void updateCost()
+        public Vector3 lastMousePos;
+        public int state = 0; // 0 == nothing, 1 == translate, 2 == tipScale, 3 == rootScale
+        public Vector3 tempVec = Vector3.zero;
+        public virtual void OnMouseOver()
         {
-            // Values always set
-            if (!isCtrlSrf)
-                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * costDensity, 1);
-            else // ctrl surfaces
-                wingCost = (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
+            DebugValues();
+            if (!HighLogic.LoadedSceneIsEditor || state != 0)
+                return;
+
+            lastMousePos = Input.mousePosition;
+            if (Input.GetKeyDown(keyTranslation))
+                state = 1;
+            else if (Input.GetKeyDown(keyTipScale))
+                state = 2;
+            else if (Input.GetKeyDown(keyRootScale))
+                state = 3;
         }
 
+        /// <summary>
+        /// respond to key/mouse input used to shape the wing
+        /// </summary>
+        public virtual void DeformWing()
+        {
+            if (this.part.parent == null || state == 0)
+                return;
+
+            float depth = EditorCamera.Instance.camera.WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
+            Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
+            lastMousePos = Input.mousePosition;
+
+            switch (state)
+            {
+                case 1: // translation
+                    if (!Input.GetKey(keyTranslation))
+                    {
+                        state = 0;
+                        return;
+                    }
+                    tempVec = tipPos;
+                    tempVec.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.up);
+                    tempVec.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
+                    tempVec.z = Mathf.Max(tempVec.z, (float)minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+                    tempVec.y = 0;
+                    tipPos = tempVec;
+                    break;
+                case 2: // tip
+                    if (!Input.GetKey(keyTipScale))
+                    {
+                        state = 0;
+                        return;
+                    }
+                    tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+                    tipWidth = Math.Max(tipWidth, 0.01);
+                    tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+                    tipThickness = Math.Max(tipThickness, 0.01);
+                    break;
+                case 3: // root
+                    if (part.parent.Modules.OfType<ProceduralWing>().Any())
+                        break;
+                    // Root scaling
+                    // only if the root part is not a pWing, in which case the root will snap to the parent tip
+                    if (!Input.GetKey(keyRootScale))
+                    {
+                        state = 0;
+                        return;
+                    }
+                    rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+                    rootWidth = Math.Max(rootWidth, 0.01);
+                    rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+                    rootThickness = Math.Max(rootThickness, 0.01);
+                    break;
+            }
+        }
+
+        #endregion
+
         #region Interfaces
+        public virtual float updateCost()
+        {
+            // Values always set
+            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * costDensity, 1);
+        }
+
         public float GetModuleCost(float defaultCost)
         {
-            return wingCost;
+            return updateCost();
         }
 
         public float GetModuleMass(float defaultMass)
@@ -278,8 +624,9 @@ namespace ProceduralWings
         }
         #endregion
 
-        public const double Deg2Rad = Math.PI / 180;
-        public const double Rad2Deg = 180 / Math.PI;
+        #region Utils
+        public const double Deg2Rad = Math.PI / 180.0;
+        public const double Rad2Deg = 180.0 / Math.PI;
 
         public static T Clamp<T>(T val, T min, T max) where T : IComparable
         {
@@ -289,5 +636,79 @@ namespace ProceduralWings
                 return max;
             return val;
         }
+
+        #endregion
+
+        #region debug
+        public struct DebugMessage
+        {
+            public string message;
+            public string interval;
+
+            public DebugMessage(string m, string i)
+            {
+                message = m;
+                interval = i;
+            }
+        }
+
+        public DateTime debugTime;
+        public DateTime debugTimeLast;
+        public List<DebugMessage> debugMessageList = new List<DebugMessage>();
+        
+        /// <summary>
+        /// Print debug values when 'O' is pressed.
+        /// </summary>
+        public void DebugValues()
+        {
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                print("tipScaleModified " + tipWidth);
+                print("rootScaleModified " + rootWidth);
+                print("Mass " + wingMass);
+                print("ConnectionForce " + connectionForce);
+                print("DeflectionLift " + Cl);
+                print("ChildrenDeflectionLift " + ChildrenCl);
+                print("DeflectionDrag " + Cd);
+                print("Aspectratio " + aspectRatio);
+                print("ArSweepScale " + ArSweepScale);
+                print("Surfacearea " + surfaceArea);
+                print("taperRatio " + taperRatio);
+                print("MidChordSweep " + midChordSweep);
+                print("MAC " + MAC);
+                print("b_2 " + b_2);
+                print("FARactive " + FARactive);
+            }
+        }
+
+        public void DebugLogWithID(string method, string message)
+        {
+            debugTime = DateTime.UtcNow;
+            string m = "WP | ID: " + part.gameObject.GetInstanceID() + " | " + method + " | " + message;
+            string i = (debugTime - debugTimeLast).TotalMilliseconds + " ms.";
+            if (debugMessageList.Count <= 150)
+                debugMessageList.Add(new DebugMessage(m, i));
+            debugTimeLast = DateTime.UtcNow;
+            Debug.Log(m);
+        }
+
+        ArrowPointer pointer;
+        void DrawArrow(Vector3 dir)
+        {
+            if (pointer == null)
+                pointer = ArrowPointer.Create(part.partTransform, Vector3.zero, dir, 30, Color.red, true);
+            else
+                pointer.Direction = dir;
+        }
+
+        void destroyArrow()
+        {
+            if (pointer != null)
+            {
+                Destroy(pointer);
+                pointer = null;
+            }
+        }
+        #endregion
     }
 }
