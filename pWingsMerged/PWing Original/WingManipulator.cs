@@ -27,6 +27,12 @@ namespace ProceduralWings
             set { tipPosition = value; }
         }
 
+        public override double tipOffset
+        {
+            get { return -tipPosition.x; }
+            set { tipPosition.x = (float)-value; }
+        }
+
         public override double rootThickness
         {
             get { return 0.2 * rootScale.z; }
@@ -89,7 +95,7 @@ namespace ProceduralWings
             WingManipulator parentWing = part.parent.Modules.OfType<WingManipulator>().FirstOrDefault();
             if (parentWing == null)
                 return;
-            Vector3 changeTipScale = (float)(b_2 / parentWing.b_2) * (parentWing.tipScale - parentWing.rootScale);
+            Vector3 changeTipScale = (float)(length / parentWing.length) * (parentWing.tipScale - parentWing.rootScale);
 
             // Scale the tip
             tipScale.Set(
@@ -169,18 +175,19 @@ namespace ProceduralWings
             meshCol.sharedMesh = baked;
             meshCol.convex = true;
             if (FARactive)
+                TriggerFARColliderUpdate();
+        }
+
+        public override void TriggerFARColliderUpdate()
+        {
+            CalculateAerodynamicValues();
+            PartModule FARmodule = null;
+            if (part.Modules.Contains("FARWingAerodynamicModel"))
+                FARmodule = part.Modules["FARWingAerodynamicModel"];
+            if (FARmodule != null)
             {
-                CalculateAerodynamicValues();
-                PartModule FARmodule = null;
-                if (part.Modules.Contains("FARControllableSurface"))
-                    FARmodule = part.Modules["FARControllableSurface"];
-                else if (part.Modules.Contains("FARWingAerodynamicModel"))
-                    FARmodule = part.Modules["FARWingAerodynamicModel"];
-                if (FARmodule != null)
-                {
-                    Type FARtype = FARmodule.GetType();
-                    FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
-                }
+                Type FARtype = FARmodule.GetType();
+                FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
             }
         }
 
@@ -206,8 +213,6 @@ namespace ProceduralWings
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
                 //rootScale = Parent.tipScale;
             }
-
-            tipPosition.y = Root.localPosition.y;
         }
 
         public override void UpdateCounterparts()
@@ -289,75 +294,6 @@ namespace ProceduralWings
             if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<ProceduralWing>().Any())
                 Events["MatchTaperEvent"].guiActiveEditor = true;
         }
-
-
-        //public override void DeformWing()
-        //{
-        //    if (this.part.parent == null || !IsAttached || state == 0)
-        //        return;
-
-        //    float depth = EditorCamera.Instance.camera.WorldToScreenPoint(state != 3 ? Tip.position : Root.position).z; // distance of tip transform from camera
-        //    Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
-        //    lastMousePos = Input.mousePosition;
-
-        //    // Translation
-        //    if (state == 1)
-        //    {
-        //        if (!Input.GetKey(keyTranslation))
-        //        {
-        //            state = 0;
-        //            return;
-        //        }
-
-        //        if (symmetricMovement == true)
-        //        { // Symmetric movement (for wing edge control surfaces)
-        //            tipPosition.z -= diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
-        //            tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-        //            tipPosition.x = tipPosition.y = 0;
-
-        //            rootPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
-        //            rootPosition.z = Mathf.Max(rootPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-        //            rootPosition.x = rootPosition.y = 0;
-        //        }
-        //        else
-        //        { // Normal, only tip moves
-        //            tipPosition.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.up);
-        //            tipPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
-        //            tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan - TipSpawnOffset.z); // Clamp z to modelMinimumSpan to prevent turning the model inside-out
-        //            tipPosition.y = 0;
-        //        }
-        //    }
-        //    // Tip scaling
-        //    else if (state == 2)
-        //    {
-        //        if (!Input.GetKey(keyTipScale))
-        //        {
-        //            state = 0;
-        //            return;
-        //        }
-        //        tipScale.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
-        //        tipScale.y = tipScale.x = Mathf.Max(tipScale.x, 0.01f);
-        //        tipScale.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
-        //        tipScale.z = Mathf.Max(tipScale.z, 0.01f);
-        //    }
-        //    // Root scaling
-        //    // only if the root part is not a pWing,
-        //    // or we were told to ignore snapping,
-        //    // or the part is set to ignore snapping (wing edge control surfaces, tipically)
-        //    else if (state == 3 && (!this.part.parent.Modules.Contains("WingManipulator") || IgnoreSnapping || doNotParticipateInParentSnapping))
-        //    {
-        //        if (!Input.GetKey(keyRootScale))
-        //        {
-        //            state = 0;
-        //            return;
-        //        }
-        //        rootScale.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
-        //        rootScale.y = rootScale.x = Mathf.Max(rootScale.x, 0.01f);
-        //        rootScale.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
-        //        rootScale.z = Mathf.Max(rootScale.z, 0.01f);
-        //    }
-        //   UpdateAllCopies(true);
-        //}
         #endregion
     }
 }

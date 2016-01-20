@@ -11,14 +11,20 @@ namespace ProceduralWings
     /// </summary>
     abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
+        public virtual bool isCtrlSrf
+        {
+            get { return false; }
+        }
+
         // Properties for aero calcs
         public abstract Vector3 tipPos { get; set; }
         public abstract double tipWidth { get; set; }
         public abstract double tipThickness { get; set; }
-        #warning nullrefs...
+        public abstract double tipOffset { get; set; }
+        #warning nullrefs and incorrect positions
         public virtual Vector3 rootPos
         {
-            get { return part.attachJoint.transform.position; }
+            get { return isAttached ? part.attachJoint.transform.position : part.transform.position; }
         }
         public abstract double rootWidth { get; set; }
         public abstract double rootThickness { get; set; }
@@ -31,7 +37,7 @@ namespace ProceduralWings
         public static bool MFTactive;
 
         // aero parameters
-        public double b_2;
+        public double length;
         public double MAC;
         public double midChordSweep;
         public double Cd;
@@ -78,6 +84,8 @@ namespace ProceduralWings
         /// </summary>
         public virtual void Start()
         {
+            GameEvents.onGameSceneLoadRequested.Add(OnSceneSwitch);
+
             if (!HighLogic.LoadedSceneIsEditor)
                 return;
             Setup();
@@ -111,11 +119,38 @@ namespace ProceduralWings
             UpdateUI();
             DeformWing();
             if (CheckForGeometryChanges())
+            {
                 UpdateGeometry();
+                UpdateCounterparts();
+            }
         }
 
         public virtual void OnDestroy()
-        { }
+        {
+            GameEvents.onGameSceneLoadRequested.Remove(OnSceneSwitch);
+        }
+
+        // unnecesary save/load. config is static so it will be initialised as you pass through the space center, and there is no way to change options in the editor scene
+        // may resolve errors reported by Hodo
+        public override void OnSave(ConfigNode node)
+        {
+            if (WPDebug.logEvents)
+                DebugLogWithID("OnSave", "Invoked");
+            try
+            {
+                vesselList.FirstOrDefault(vs => vs.vessel == vessel).isUpdated = false;
+                ProceduralWingManager.SaveConfigs();
+            }
+            catch
+            {
+                Debug.Log("B9 PWings - Failed to save settings");
+            }
+        }
+
+        public void OnSceneSwitch(GameScenes scene)
+        {
+            isStarted = false; // fixes annoying nullrefs when switching scenes and things haven't been destroyed yet
+        }
         #endregion
 
         #region Setting up
@@ -291,7 +326,7 @@ namespace ProceduralWings
             if (!canBeFueled || !HighLogic.LoadedSceneIsEditor)
                 return;
 
-            aeroStatVolume = b_2 * MAC * (rootThickness + tipThickness) / 2;
+            aeroStatVolume = length * MAC * (rootThickness + tipThickness) / 2;
 
             for (int i = 0; i < part.Resources.Count; ++i)
             {
@@ -400,12 +435,12 @@ namespace ProceduralWings
         {
             // Calculate intemediate values
             //print(part.name + ": Calc Aero values");
-            b_2 = tipPos.z - rootPos.z;
+            length = tipPos.z - rootPos.z;
             MAC = (tipWidth + rootWidth);
-            midChordSweep = (Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / b_2));
+            midChordSweep = (Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length));
             taperRatio = tipWidth / rootWidth;
-            surfaceArea = MAC * b_2;
-            aspectRatio = 2.0 * b_2 / MAC;
+            surfaceArea = MAC * length;
+            aspectRatio = 2.0 * length / MAC;
 
             ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Deg2Rad * midChordSweep), 2.0) + 4.0;
             ArSweepScale = 2.0 + Math.Sqrt(ArSweepScale);
@@ -440,8 +475,8 @@ namespace ProceduralWings
             {
                 PartModule FARmodule = part.Modules["FARWingAerodynamicModel"];
                 Type FARtype = FARmodule.GetType();
-                FARtype.GetField("b_2").SetValue(FARmodule, b_2);
-                FARtype.GetField("b_2_actual").SetValue(FARmodule, b_2);
+                FARtype.GetField("b_2").SetValue(FARmodule, length);
+                FARtype.GetField("b_2_actual").SetValue(FARmodule, length);
                 FARtype.GetField("MAC").SetValue(FARmodule, MAC);
                 FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
                 FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
@@ -455,11 +490,12 @@ namespace ProceduralWings
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
             float stockLiftCoefficient = (float)(surfaceArea / 3.52);
-            // CoL/P matches CoM unless otherwise specified
-            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0);
+            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // CoL/P matches CoM unless otherwise specified
             part.Modules.GetModules<ModuleLiftingSurface>().FirstOrDefault().deflectionLiftCoeff = stockLiftCoefficient;
             part.mass = stockLiftCoefficient * 0.1f;
         }
+
+        public virtual void TriggerFARColliderUpdate() { }
 
         float updateTimeDelay = 0;
         /// <summary>
@@ -548,7 +584,7 @@ namespace ProceduralWings
         /// </summary>
         public virtual void DeformWing()
         {
-            if (this.part.parent == null || state == 0)
+            if (isAttached || state == 0)
                 return;
 
             float depth = EditorCamera.Instance.camera.WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
@@ -676,7 +712,7 @@ namespace ProceduralWings
                 print("taperRatio " + taperRatio);
                 print("MidChordSweep " + midChordSweep);
                 print("MAC " + MAC);
-                print("b_2 " + b_2);
+                print("b_2 " + length);
                 print("FARactive " + FARactive);
             }
         }
@@ -709,6 +745,25 @@ namespace ProceduralWings
                 pointer = null;
             }
         }
+        #endregion
+
+        #region Parent matching
+
+        public virtual void inheritShape(ProceduralWing parent)
+        {
+            inheritBase(parent);
+
+            tipWidth = rootWidth + ((parent.tipWidth - parent.rootWidth) / (parent.length)) * length;
+            tipOffset = length / parent.length * parent.tipOffset;
+            tipThickness = rootThickness + ((parent.tipThickness - parent.rootThickness) / parent.length) * length;
+        }
+
+        public virtual void inheritBase(ProceduralWing parent)
+        {
+            rootWidth = parent.tipWidth;
+            rootThickness = parent.tipThickness;
+        }
+
         #endregion
     }
 }
