@@ -50,6 +50,14 @@ namespace ProceduralWings
             get { return modelMinimumSpan; }
         }
 
+        public override Vector3 rootPos
+        {
+            get
+            {
+                return Root.position;
+            }
+        }
+
         // PartModule Dimensions
         [KSPField]
         public float modelChordLength = 2f;
@@ -182,8 +190,8 @@ namespace ProceduralWings
         {
             CalculateAerodynamicValues();
             PartModule FARmodule = null;
-            if (part.Modules.Contains("FARWingAerodynamicModel"))
-                FARmodule = part.Modules["FARWingAerodynamicModel"];
+            if (part.Modules.Contains(FarModuleName))
+                FARmodule = part.Modules[FarModuleName];
             if (FARmodule != null)
             {
                 Type FARtype = FARmodule.GetType();
@@ -191,9 +199,51 @@ namespace ProceduralWings
             }
         }
 
-        #warning yea, this ain't implemented...
+        //public virtual string UpdateTooltipText(int fieldID)
+        //{
+        //    switch (fieldID)
+        //    {
+        //        case 7: // sharedEdgeTypeTrailing))
+        //            return "Shape of the trailing edge cross \nsection (round/biconvex/sharp)";
+        //        case 8: // sharedEdgeWidthTrailingRoot))
+        //            return "Longitudinal measurement of the trailing \nedge cross section at wing root";
+        //        case 9: // sharedEdgeWidthTrailingTip))
+        //            return "Longitudinal measurement of the trailing \nedge cross section at wing tip";
+        //        case 10: // sharedEdgeTypeLeading))
+        //            return "Shape of the leading edge cross \nsection (round/biconvex/sharp)";
+        //        case 11: // sharedEdgeWidthLeadingRoot))
+        //            return "Longitudinal measurement of the leading \nedge cross section at wing root";
+        //        case 12: // sharedEdgeWidthLeadingTip))
+        //            return "Longitudinal measurement of the leading \nedge cross section at with tip";
+        //        case 13:
+        //            return "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)";
+        //        case 14:
+        //            return "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1";
+        //        case 15:
+        //            return "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle";
+        //        case 16:
+        //            return "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1";
+        //        case 17:
+        //            return "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5";
+        //        default:
+        //            return "Unknown field\n";
+        //    }
+        //}
+
+        bool geometryChanging = true;
         public override bool CheckForGeometryChanges()
         {
+            if (state > 0)
+            {
+                geometryChanging = true;
+                return true;
+            }
+            
+            if (geometryChanging)
+            {
+                geometryChanging = false;
+                return true;
+            }
             return false;
         }
 
@@ -213,6 +263,8 @@ namespace ProceduralWings
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
                 //rootScale = Parent.tipScale;
             }
+            //Sets the skinned meshrenderer to update even when culled for being outside the screen
+            //wingSMR.updateWhenOffscreen = true;
         }
 
         public override void UpdateCounterparts()

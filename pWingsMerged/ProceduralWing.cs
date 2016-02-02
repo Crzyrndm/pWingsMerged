@@ -4,16 +4,24 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
+using ProceduralWings.UI;
+
 namespace ProceduralWings
 {
     /// <summary>
     /// methods and properties common to both wing variants. Some implementations will be specific to the wing type
     /// </summary>
-    abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
+    abstract public class ProceduralWing : PartModule, IPartCostModifier, /*IPartMassModifier, */IPartSizeModifier
     {
+        public Dictionary<string, UIDragField> wingVars = new Dictionary<string, UIDragField>();
         public virtual bool isCtrlSrf
         {
             get { return false; }
+        }
+
+        public override string GetInfo()
+        {
+            return "this is a PWing";
         }
 
         // Properties for aero calcs
@@ -21,7 +29,7 @@ namespace ProceduralWings
         public abstract double tipWidth { get; set; }
         public abstract double tipThickness { get; set; }
         public abstract double tipOffset { get; set; }
-        #warning nullrefs and incorrect positions
+        #warning nullrefs and incorrect positions...
         public virtual Vector3 rootPos
         {
             get { return isAttached ? part.attachJoint.transform.position : part.transform.position; }
@@ -76,7 +84,12 @@ namespace ProceduralWings
         public const float costDensity = 5300f;
 
         public bool isStarted; // helper bool that prevents anything running when the start sequence hasn't fired yet
-        public bool isAttached;
+        public bool isAttached
+        {
+            get { return part.isAttached; }
+        }
+
+        List<UIFieldGroup> UIGroups;
 
         #region entry points
         /// <summary>
@@ -92,6 +105,8 @@ namespace ProceduralWings
 
             part.OnEditorAttach += new Callback(OnAttach);
             part.OnEditorDetach += new Callback(OnDetach);
+
+            SetupUI();
 
             isStarted = true;
         }
@@ -179,7 +194,23 @@ namespace ProceduralWings
             }
         }
 
-        public virtual void SetupUI() { }
+        public virtual void SetupUI() 
+        {
+            UIGroups = new List<UIFieldGroup>(); // only need to init this in the editor
+
+            UIFieldGroup baseGroup = new UIFieldGroup();
+            baseGroup.Label = "Base";
+
+            baseGroup.fieldsToDraw.Add(new UIDragField("Length", "Lateral measurement of the wing, \nalso referred to as semispan", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+            baseGroup.fieldsToDraw.Add(new UIDragField("Width (root)", "Longitudinal measurement of the wing \nat the root cross section", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+            baseGroup.fieldsToDraw.Add(new UIDragField("Width (tip)", "Longitudinal measurement of the wing \nat the tip cross section", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+            baseGroup.fieldsToDraw.Add(new UIDragField("Offset (tip)", "Distance between midpoints of the cross \nsections on the longitudinal axis", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+            baseGroup.fieldsToDraw.Add(new UIDragField("Thickness (root)", "Thickness at the root cross section \nUsually kept proportional to edge width", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+            baseGroup.fieldsToDraw.Add(new UIDragField("Thickness (tip)", "Thickness at the tip cross section \nUsually kept proportional to edge width", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
+
+            UIGroups.Add(baseGroup);
+        }
+
         public abstract void SetupGeometryAndAppearance();
         #endregion
 
@@ -195,13 +226,11 @@ namespace ProceduralWings
 
         public virtual void OnAttach()
         {
-            isAttached = true;
             UpdateGeometry();
         }
 
         public virtual void OnDetach()
         {
-            isAttached = false;
             ProceduralWing parentWing = part.parent.Modules.OfType<ProceduralWing>().FirstOrDefault();
             if (parentWing != null)
             {
@@ -437,12 +466,12 @@ namespace ProceduralWings
             //print(part.name + ": Calc Aero values");
             length = tipPos.z - rootPos.z;
             MAC = (tipWidth + rootWidth);
-            midChordSweep = (Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length));
+            midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length));
             taperRatio = tipWidth / rootWidth;
             surfaceArea = MAC * length;
             aspectRatio = 2.0 * length / MAC;
 
-            ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Deg2Rad * midChordSweep), 2.0) + 4.0;
+            ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0) + 4.0;
             ArSweepScale = 2.0 + Math.Sqrt(ArSweepScale);
             ArSweepScale = (2.0 * Math.PI) / ArSweepScale * aspectRatio;
 
@@ -561,22 +590,50 @@ namespace ProceduralWings
             }
         }
 
+        #endregion
+
+        #region Wing deformation
+
         public Vector3 lastMousePos;
         public int state = 0; // 0 == nothing, 1 == translate, 2 == tipScale, 3 == rootScale
         public Vector3 tempVec = Vector3.zero;
         public virtual void OnMouseOver()
         {
             DebugValues();
-            if (!HighLogic.LoadedSceneIsEditor || state != 0)
+            
+
+            if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
 
-            lastMousePos = Input.mousePosition;
-            if (Input.GetKeyDown(keyTranslation))
-                state = 1;
-            else if (Input.GetKeyDown(keyTipScale))
-                state = 2;
-            else if (Input.GetKeyDown(keyRootScale))
-                state = 3;
+            if (!uiEditModeTimeout)
+            {
+                if (uiEditMode && Input.GetKeyDown(KeyCode.Mouse1))
+                {
+                    uiEditMode = false;
+                    uiEditModeTimeout = true;
+                }
+                else if (Input.GetKeyDown(uiKeyCodeEdit))
+                {
+                    uiInstanceIDTarget = part.GetInstanceID();
+                    uiEditMode = true;
+                    uiEditModeTimeout = true;
+                    uiAdjustWindow = true;
+                    uiWindowActive = true;
+                    //stockButton.SetTrue(false);
+                    // inheritance update
+                }
+            }
+            
+            if (state == 0)
+            {
+                lastMousePos = Input.mousePosition;
+                if (Input.GetKeyDown(keyTranslation))
+                    state = 1;
+                else if (Input.GetKeyDown(keyTipScale))
+                    state = 2;
+                else if (Input.GetKeyDown(keyRootScale))
+                    state = 3;
+            }
         }
 
         /// <summary>
@@ -584,7 +641,7 @@ namespace ProceduralWings
         /// </summary>
         public virtual void DeformWing()
         {
-            if (isAttached || state == 0)
+            if (!isAttached || state == 0)
                 return;
 
             float depth = EditorCamera.Instance.camera.WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
@@ -594,45 +651,60 @@ namespace ProceduralWings
             switch (state)
             {
                 case 1: // translation
-                    if (!Input.GetKey(keyTranslation))
-                    {
-                        state = 0;
-                        return;
-                    }
-                    tempVec = tipPos;
-                    tempVec.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.up);
-                    tempVec.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
-                    tempVec.z = Mathf.Max(tempVec.z, (float)minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
-                    tempVec.y = 0;
-                    tipPos = tempVec;
+                    translateTip(diff);
                     break;
                 case 2: // tip
-                    if (!Input.GetKey(keyTipScale))
-                    {
-                        state = 0;
-                        return;
-                    }
-                    tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
-                    tipWidth = Math.Max(tipWidth, 0.01);
-                    tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
-                    tipThickness = Math.Max(tipThickness, 0.01);
+                    scaleTip(diff);
                     break;
                 case 3: // root
-                    if (part.parent.Modules.OfType<ProceduralWing>().Any())
-                        break;
-                    // Root scaling
-                    // only if the root part is not a pWing, in which case the root will snap to the parent tip
-                    if (!Input.GetKey(keyRootScale))
-                    {
-                        state = 0;
-                        return;
-                    }
-                    rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
-                    rootWidth = Math.Max(rootWidth, 0.01);
-                    rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
-                    rootThickness = Math.Max(rootThickness, 0.01);
+                    scaleRoot(diff);
                     break;
             }
+        }
+
+        public virtual void translateTip(Vector3 diff)
+        {
+            if (!Input.GetKey(keyTranslation))
+            {
+                state = 0;
+                return;
+            }
+            tempVec = tipPos;
+            tempVec.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.up);
+            tempVec.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
+            tempVec.z = Mathf.Max(tempVec.z, (float)minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+            tempVec.y = 0;
+            tipPos = tempVec;
+        }
+
+        public virtual void scaleTip(Vector3 diff)
+        {
+            if (!Input.GetKey(keyTipScale))
+            {
+                state = 0;
+                return;
+            }
+            tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+            tipWidth = Math.Max(tipWidth, 0.01);
+            tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+            tipThickness = Math.Max(tipThickness, 0.01);
+        }
+
+        public virtual void scaleRoot(Vector3 diff)
+        {
+            if (part.parent.Modules.OfType<ProceduralWing>().Any())
+                return;
+            // Root scaling
+            // only if the root part is not a pWing, in which case the root will snap to the parent tip
+            if (!Input.GetKey(keyRootScale))
+            {
+                state = 0;
+                return;
+            }
+            rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+            rootWidth = Math.Max(rootWidth, 0.01);
+            rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+            rootThickness = Math.Max(rootThickness, 0.01);
         }
 
         #endregion
@@ -649,30 +721,16 @@ namespace ProceduralWings
             return updateCost();
         }
 
-        public float GetModuleMass(float defaultMass)
-        {
-            return part.mass - part.partInfo.partPrefab.mass;
-        }
+        // is this doing silly stuff just for FAR or in stock as well? Need to spend some time investigating
+        //public float GetModuleMass(float defaultMass)
+        //{
+        //    return part.mass - part.partInfo.partPrefab.mass;
+        //}
 
         public Vector3 GetModuleSize(Vector3 defaultSize)
         {
             return Vector3.zero; // should do this properly at some point
         }
-        #endregion
-
-        #region Utils
-        public const double Deg2Rad = Math.PI / 180.0;
-        public const double Rad2Deg = 180.0 / Math.PI;
-
-        public static T Clamp<T>(T val, T min, T max) where T : IComparable
-        {
-            if (val.CompareTo(min) < 0) // val less than min
-                return min;
-            if (val.CompareTo(max) > 0) // val greater than max
-                return max;
-            return val;
-        }
-
         #endregion
 
         #region debug
@@ -763,6 +821,240 @@ namespace ProceduralWings
             rootWidth = parent.tipWidth;
             rootThickness = parent.tipThickness;
         }
+
+        #endregion
+
+        #region UI stuff
+        public bool isSetToDefaultValues = false;
+        public static bool uiAdjustWindow = true;
+        public virtual double SetupFieldValue(double value, Vector2d limits, double defaultValue)
+        {
+            if (!isSetToDefaultValues)
+                return defaultValue;
+            else
+                return Utils.Clamp(value, limits.x, limits.y);
+        }
+
+        public static string uiLastFieldName = "";
+        public static string uiLastFieldTooltip = "Additional info on edited \nproperties is displayed here";
+
+
+
+        public static Vector2 GetVertexUV2(float selectedLayer)
+        {
+            if (selectedLayer == 0)
+                return new Vector2(0f, 1f);
+            else
+                return new Vector2((selectedLayer - 1f) / 3f, 0f);
+        }
+
+
+
+        public virtual bool CheckFieldValue(float fieldValue, ref float fieldCache)
+        {
+            if (fieldValue != fieldCache)
+            {
+                if (WPDebug.logUpdate)
+                    DebugLogWithID("Update", "Detected value change");
+                fieldCache = fieldValue;
+                return true;
+            }
+
+            return false;
+        }
+
+        public virtual void OnGUI()
+        {
+            if (!isStarted || !HighLogic.LoadedSceneIsEditor || !uiWindowActive)
+                return;
+
+            if (uiInstanceIDLocal == 0)
+                uiInstanceIDLocal = part.GetInstanceID();
+            if (uiInstanceIDTarget == uiInstanceIDLocal || uiInstanceIDTarget == 0)
+            {
+                if (!ProceduralWingManager.uiStyleConfigured)
+                    ProceduralWingManager.ConfigureStyles();
+
+                if (uiAdjustWindow)
+                {
+                    uiAdjustWindow = false;
+                    if (WPDebug.logPropertyWindow)
+                        DebugLogWithID("OnGUI", "Window forced to adjust");
+                    ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow, GUILayout.Height(0));
+                }
+                else
+                    ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow);
+
+                // Thanks to ferram4
+                // Following section lock the editor, preventing window clickthrough
+
+                if (ProceduralWingManager.uiRectWindowEditor.Contains(UIUtility.GetMousePos()))
+                {
+                    EditorLogic.fetch.Lock(false, false, false, "WingProceduralWindow");
+                    EditorTooltip.Instance.HideToolTip();
+                }
+                else
+                    EditorLogic.fetch.Unlock("WingProceduralWindow");
+            }
+        }
+
+        public virtual string GetWindowTitle()
+        {
+            return "Wing";
+        }
+
+        public static bool uiEditModeTimeout = false;
+        public static bool uiEditMode = false;
+        public float uiEditModeTimeoutDuration = 0.25f;
+        public float uiEditModeTimer = 0f;
+        public KeyCode uiKeyCodeEdit = KeyCode.J;
+
+        public virtual void StopWindowTimeout()
+        {
+            uiAdjustWindow = true;
+            uiEditModeTimeout = false;
+            uiEditModeTimer = 0.0f;
+
+        }
+
+        public virtual void ExitEditMode()
+        {
+            uiEditMode = false;
+            uiEditModeTimeout = true;
+            uiAdjustWindow = true;
+        }
+
+        public static bool uiWindowActive = true;
+        public static bool displayDimensions;
+        public virtual void OnWindow(int window)
+        {
+            if (uiEditMode)
+            {
+                bool returnEarly = false;
+                GUILayout.BeginHorizontal();
+                GUILayout.BeginVertical();
+                if (uiLastFieldName.Length > 0)
+                    GUILayout.Label("Last: " + uiLastFieldName, ProceduralWingManager.uiStyleLabelMedium);
+                else
+                    GUILayout.Label("Property editor", ProceduralWingManager.uiStyleLabelMedium);
+                if (uiLastFieldTooltip.Length > 0)
+                    GUILayout.Label(uiLastFieldTooltip + "\n_________________________", ProceduralWingManager.uiStyleLabelHint, GUILayout.MaxHeight(44f), GUILayout.MinHeight(44f)); // 58f for four lines
+                GUILayout.EndVertical();
+                if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
+                {
+                    EditorLogic.fetch.Unlock("WingProceduralWindow");
+                    uiWindowActive = false;
+                    stockButton.SetFalse(false);
+                    returnEarly = true;
+                }
+                GUILayout.EndHorizontal();
+                if (returnEarly)
+                    return;
+
+                drawEditFields();
+
+                GUILayout.Label("_________________________\n\nPress J to exit edit mode\nOptions below allow you to change default values", ProceduralWingManager.uiStyleLabelHint);
+                if (canBeFueled && useStockFuel)
+                {
+                    if (GUILayout.Button(ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].ConfigurationName + " | Next tank setup", ProceduralWingManager.uiStyleButton))
+                        NextConfiguration();
+                }
+
+                drawOptions();
+            }
+            else
+            {
+                if (uiEditModeTimeout)
+                    GUILayout.Label("Exiting edit mode...\n", ProceduralWingManager.uiStyleLabelMedium);
+                else
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Press J while pointing at a\nprocedural part to edit it", ProceduralWingManager.uiStyleLabelHint);
+                    if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
+                    {
+                        uiWindowActive = false;
+                        stockButton.SetFalse(false);
+                        uiAdjustWindow = true;
+                        EditorLogic.fetch.Unlock("WingProceduralWindow");
+                    }
+                    GUILayout.EndHorizontal();
+                }
+            }
+            GUI.DragWindow();
+        }
+
+        public virtual void drawEditFields()
+        {
+            double[] val = new double[] { length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness };
+            UIGroups[0].drawGroup(ref val);
+            length = val[0];
+            rootWidth = val[1];
+            tipWidth = val[2];
+            tipOffset = val[3];
+            rootThickness = val[4];
+            tipThickness = val[5];
+        }
+
+        public static double incrementMain = 0.125, incrementSmall = 0.04;
+        public static Vector2d uiLengthLimit = new Vector2d(0.125, 16);
+        public static Vector2d uiRootLimit = new Vector2d(0.125, 16);
+        public static Vector2d uiTipLimit = new Vector2d(0.0000001, 16);
+        public static Vector2d uiOffsetLimit = new Vector2d(-8, 8);
+        public static Vector2d uiThicknessLimit = new Vector2d(0.04, 1);
+        public static Vector4 baseColour = new Vector4(0.25f, 0.5f, 0.4f, 1f);
+
+
+        public virtual void drawOptions()
+        {
+            //GUILayout.BeginHorizontal();
+            //if (GUILayout.Button("Shape", ProceduralWingManager.uiStyleButton))
+            //    InheritParentValues(0);
+            //if (GUILayout.Button("Base", ProceduralWingManager.uiStyleButton))
+            //    InheritParentValues(1);
+            //if (GUILayout.Button("Edges", ProceduralWingManager.uiStyleButton))
+            //    InheritParentValues(2);
+            //GUILayout.EndHorizontal();
+        }
+        #endregion
+
+        #region stockToolbar
+        public static ApplicationLauncherButton stockButton = null;
+        public static int uiInstanceIDTarget = 0, uiInstanceIDLocal = 0;
+
+        public virtual void OnStockButtonSetup()
+        {
+            stockButton = ApplicationLauncher.Instance.AddModApplication(OnStockButtonClick, OnStockButtonClick, null, null, null, null, ApplicationLauncher.AppScenes.SPH, (Texture)GameDatabase.Instance.GetTexture("B9_Aerospace/Plugins/icon_stock", false));
+        }
+
+        public void OnStockButtonClick()
+        {
+            uiWindowActive = !uiWindowActive;
+        }
+
+        //public void editorAppDestroy()
+        //{
+        //    if (!HighLogic.LoadedSceneIsEditor)
+        //        return;
+
+        //    bool stockButtonCanBeRemoved = true;
+        //    //WingProcedural[] components = GameObject.FindObjectsOfType<WingProcedural>();
+        //    if (WPDebug.logEvents)
+        //        DebugLogWithID("OnDestroy", "Invoked, with " + components.Length + " remaining components in the scene");
+        //    for (int i = 0; i < components.Length; ++i)
+        //    {
+        //        if (components[i] != null)
+        //            stockButtonCanBeRemoved = false;
+        //    }
+        //    if (stockButtonCanBeRemoved)
+        //    {
+        //        uiInstanceIDTarget = 0;
+        //        if (stockButton != null)
+        //        {
+        //            ApplicationLauncher.Instance.RemoveModApplication(stockButton);
+        //            stockButton = null;
+        //        }
+        //    }
+        //}
 
         #endregion
     }

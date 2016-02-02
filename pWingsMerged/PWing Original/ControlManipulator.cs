@@ -13,7 +13,26 @@ namespace ProceduralWings
         }
 
         [KSPField]
-        public float ctrlFraction;
+        public float ctrlFraction = 1f;
+
+        public const float costDensityControl = 6500f;
+
+        /// <summary>
+        /// control surfaces cant carry fuel
+        /// </summary>
+        public override bool canBeFueled
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public override float updateCost()
+        {
+            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
+        }
+
         [KSPField]
         public bool symmetricMovement = true;
         [KSPField(isPersistant = true)]
@@ -78,26 +97,6 @@ namespace ProceduralWings
             {
                 Type FARtype = FARmodule.GetType();
                 FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
-            }
-        }
-
-        // Updates child pWings
-        public void UpdateChildren()
-        {
-            // Get the list of child parts
-            for (int i = 0; i < part.children.Count; ++i)
-            {
-                Part p = part.children[i];
-                // Check that it is a pWing and that it is affected by parent snapping
-                WingManipulator wing = p.Modules.OfType<WingManipulator>().FirstOrDefault();
-                if (wing != null && !wing.IgnoreSnapping)
-                {
-                    // Update its positions and refresh the collider
-                    wing.UpdateGeometry();
-                    wing.SetupCollider();
-                    // If its a wing, refresh its aerodynamic values
-                    wing.CalculateAerodynamicValues();
-                }
             }
         }
 
