@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using System.Reflection;
 
-namespace ProceduralWings
+namespace ProceduralWings.Original
 {
     public class WingManipulator : ProceduralWing
     {

@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace ProceduralWings.UI
 {
+    using Utility;
     /// <summary>
     /// draws a labelled horizontal value selection bar that is draggable to different values
     /// Also provides indication that the value has been altered

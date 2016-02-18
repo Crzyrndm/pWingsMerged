@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using System.Reflection;
 
-namespace ProceduralWings
+namespace ProceduralWings.B9
 {
     //class ControlProcedural : WingProcedural
     //{

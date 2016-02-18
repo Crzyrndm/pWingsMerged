@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ProceduralWings
+namespace ProceduralWings.Original
 {
     class ControlManipulator : WingManipulator
     {

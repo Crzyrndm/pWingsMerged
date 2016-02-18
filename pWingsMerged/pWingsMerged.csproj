@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\Desktop\Kerbal Space Program Dev\GameData\</OutputPath>
+    <OutputPath>..\..\..\..\Desktop\Kerbal Space Program Dev\GameData\pWing Plugin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -51,7 +51,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="B9PWing\ResourceExtractor.cs" />
     <Compile Include="PWing Original\ControlManipulator.cs" />
-    <Compile Include="UI\UIFieldGroup.cs" />
+    <Compile Include="UI\UIGroup.cs" />
+    <Compile Include="UI\UIWingModifier.cs" />
     <Compile Include="Utility\UIUtility.cs" />
     <Compile Include="UI\UIDragField.cs" />
     <Compile Include="Utility\UtilityTexture.cs" />

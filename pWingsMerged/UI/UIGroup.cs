@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ProceduralWings.UI
 {
-    public class UIFieldGroup
+    public class UIGroup
     {
         public List<UIDragField> fieldsToDraw = new List<UIDragField>();
         public bool Open;
@@ -23,7 +23,7 @@ namespace ProceduralWings.UI
             GUILayout.EndHorizontal();
 
             if (fieldsToDraw.Count != vals.Length)
-                throw new Exception("argument count mismatch for group " + Label); // this should never happen, so make sure the programmer knows about it
+                throw new Exception("argument count mismatch for group " + Label); // this should never happen, so make sure the programmer knows about it quickly
             for (int i = 0; i < fieldsToDraw.Count; ++i)
                 fieldsToDraw[i].FieldSlider(ref vals[i]);
         }

@@ -6,6 +6,7 @@ using KSP;
 
 namespace ProceduralWings
 {
+    using Utility;
     // Referenced from FAR debug manager
     // Credit goes to ferram4
 
@@ -52,9 +53,13 @@ namespace ProceduralWings
             if (wingTankConfigurations == null)
             {
                 wingTankConfigurations = new List<WingTankConfiguration>();
-                ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes("ProceduralWingFuelSetups").FirstOrDefault().GetNodes("FuelSet");
-                for (int i = 0; i < nodes.Length; ++i)
-                    wingTankConfigurations.Add(new WingTankConfiguration(nodes[i]));
+                ConfigNode node = GameDatabase.Instance.GetConfigNodes("ProceduralWingFuelSetups").FirstOrDefault();
+                if (node != null)
+                {
+                    ConfigNode[] nodes = node.GetNodes("FuelSet");
+                    for (int i = 0; i < nodes.Length; ++i)
+                        wingTankConfigurations.Add(new WingTankConfiguration(nodes[i]));
+                }
             }
         }
 

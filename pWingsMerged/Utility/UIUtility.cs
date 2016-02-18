@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProceduralWings
+namespace ProceduralWings.Utility
 {
     public static class UIUtility
     {

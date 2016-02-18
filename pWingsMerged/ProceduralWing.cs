@@ -4,10 +4,13 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
-using ProceduralWings.UI;
-
 namespace ProceduralWings
 {
+    using UI;
+    using Utility;
+    using B9;
+    using Original;
+
     /// <summary>
     /// methods and properties common to both wing variants. Some implementations will be specific to the wing type
     /// </summary>
@@ -29,10 +32,10 @@ namespace ProceduralWings
         public abstract double tipWidth { get; set; }
         public abstract double tipThickness { get; set; }
         public abstract double tipOffset { get; set; }
-        #warning nullrefs and incorrect positions...
+        
         public virtual Vector3 rootPos
         {
-            get { return isAttached ? part.attachJoint.transform.position : part.transform.position; }
+            get { return Vector3.zero; }
         }
         public abstract double rootWidth { get; set; }
         public abstract double rootThickness { get; set; }
@@ -89,7 +92,7 @@ namespace ProceduralWings
             get { return part.isAttached; }
         }
 
-        List<UIFieldGroup> UIGroups;
+        List<UIGroup> UIGroups;
 
         #region entry points
         /// <summary>
@@ -192,13 +195,15 @@ namespace ProceduralWings
                 fuelSelectedTankSetup = 0;
                 FuelTankTypeChanged();
             }
+
+            OnStockButtonSetup();
         }
 
         public virtual void SetupUI() 
         {
-            UIGroups = new List<UIFieldGroup>(); // only need to init this in the editor
+            UIGroups = new List<UIGroup>(); // only need to init this in the editor
 
-            UIFieldGroup baseGroup = new UIFieldGroup();
+            UIGroup baseGroup = new UIGroup();
             baseGroup.Label = "Base";
 
             baseGroup.fieldsToDraw.Add(new UIDragField("Length", "Lateral measurement of the wing, \nalso referred to as semispan", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
@@ -1023,7 +1028,8 @@ namespace ProceduralWings
 
         public virtual void OnStockButtonSetup()
         {
-            stockButton = ApplicationLauncher.Instance.AddModApplication(OnStockButtonClick, OnStockButtonClick, null, null, null, null, ApplicationLauncher.AppScenes.SPH, (Texture)GameDatabase.Instance.GetTexture("B9_Aerospace/Plugins/icon_stock", false));
+            if (stockButton == null)
+                stockButton = ApplicationLauncher.Instance.AddModApplication(OnStockButtonClick, OnStockButtonClick, null, null, null, null, ApplicationLauncher.AppScenes.SPH, (Texture)GameDatabase.Instance.GetTexture("B9_Aerospace/Plugins/icon_stock", false));
         }
 
         public void OnStockButtonClick()
