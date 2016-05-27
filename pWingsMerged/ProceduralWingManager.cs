@@ -7,6 +7,7 @@ using KSP;
 namespace ProceduralWings
 {
     using Utility;
+    using KSP.UI.Screens;
     // Referenced from FAR debug manager
     // Credit goes to ferram4
 

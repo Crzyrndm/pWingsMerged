@@ -10,11 +10,12 @@ namespace ProceduralWings
     using Utility;
     using B9;
     using Original;
+    using KSP.UI.Screens;
 
     /// <summary>
     /// methods and properties common to both wing variants. Some implementations will be specific to the wing type
     /// </summary>
-    abstract public class ProceduralWing : PartModule, IPartCostModifier, /*IPartMassModifier, */IPartSizeModifier
+    abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
         public Dictionary<string, UIDragField> wingVars = new Dictionary<string, UIDragField>();
         public virtual bool isCtrlSrf
@@ -644,12 +645,13 @@ namespace ProceduralWings
         /// <summary>
         /// respond to key/mouse input used to shape the wing
         /// </summary>
+        public static Camera editorCam;
         public virtual void DeformWing()
         {
             if (!isAttached || state == 0)
                 return;
 
-            float depth = EditorCamera.Instance.camera.WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
+            float depth = EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
             Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
             lastMousePos = Input.mousePosition;
 
@@ -675,8 +677,8 @@ namespace ProceduralWings
                 return;
             }
             tempVec = tipPos;
-            tempVec.x += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.up);
-            tempVec.z += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
+            tempVec.x += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
+            tempVec.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
             tempVec.z = Mathf.Max(tempVec.z, (float)minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             tempVec.y = 0;
             tipPos = tempVec;
@@ -689,9 +691,9 @@ namespace ProceduralWings
                 state = 0;
                 return;
             }
-            tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+            tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
             tipWidth = Math.Max(tipWidth, 0.01);
-            tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+            tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
             tipThickness = Math.Max(tipThickness, 0.01);
         }
 
@@ -706,9 +708,9 @@ namespace ProceduralWings
                 state = 0;
                 return;
             }
-            rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, -part.transform.up);
+            rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
             rootWidth = Math.Max(rootWidth, 0.01);
-            rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.forward);
+            rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
             rootThickness = Math.Max(rootThickness, 0.01);
         }
 
@@ -721,20 +723,36 @@ namespace ProceduralWings
             return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * costDensity, 1);
         }
 
-        public float GetModuleCost(float defaultCost)
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            return updateCost();
+            return FuelGetAddedCost() + updateCost() - defaultCost;
         }
 
-        // is this doing silly stuff just for FAR or in stock as well? Need to spend some time investigating
-        //public float GetModuleMass(float defaultMass)
-        //{
-        //    return part.mass - part.partInfo.partPrefab.mass;
-        //}
-
-        public Vector3 GetModuleSize(Vector3 defaultSize)
+        public ModifierChangeWhen GetModuleCostChangeWhen()
         {
-            return Vector3.zero; // should do this properly at some point
+            return ModifierChangeWhen.FIXED;
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            if (FARactive)
+                return 0;
+            return (float)wingMass - defaultMass;
+        }
+
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.FIXED;
+        }
+
+        public Vector3 GetModuleSize(Vector3 defaultSize, ModifierStagingSituation sit)
+        {
+            return Vector3.zero;
+        }
+
+        public ModifierChangeWhen GetModuleSizeChangeWhen()
+        {
+            return ModifierChangeWhen.FIXED;
         }
         #endregion
 
