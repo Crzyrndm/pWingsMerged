@@ -12,7 +12,7 @@ namespace ProceduralWings
     // Credit goes to ferram4
 
     [KSPAddon (KSPAddon.Startup.SpaceCentre, true)]
-    public class ProceduralWingManager : MonoBehaviour
+    public class ProceduralWingDebug : MonoBehaviour
     {
         public static KSP.IO.PluginConfiguration config;
         private static ApplicationLauncherButton debugButtonStock;
@@ -32,8 +32,6 @@ namespace ProceduralWings
         public static GUIStyle uiStyleToggle = new GUIStyle ();
         public static bool uiStyleConfigured = false;
 
-        public static List<WingTankConfiguration> wingTankConfigurations;
-
         private enum MenuTab
         {
             DebugAndData
@@ -50,18 +48,6 @@ namespace ProceduralWings
         {
             LoadConfigs ();
             OnGUIAppLauncherReady();
-
-            if (wingTankConfigurations == null)
-            {
-                wingTankConfigurations = new List<WingTankConfiguration>();
-                ConfigNode node = GameDatabase.Instance.GetConfigNodes("ProceduralWingFuelSetups").FirstOrDefault();
-                if (node != null)
-                {
-                    ConfigNode[] nodes = node.GetNodes("FuelSet");
-                    for (int i = 0; i < nodes.Length; ++i)
-                        wingTankConfigurations.Add(new WingTankConfiguration(nodes[i]));
-                }
-            }
         }
 
         private void OnGUIAppLauncherReady ()
@@ -257,11 +243,11 @@ namespace ProceduralWings
 
         public static void LoadConfigs ()
         {
-            config = KSP.IO.PluginConfiguration.CreateForType<ProceduralWingManager> ();
+            config = KSP.IO.PluginConfiguration.CreateForType<ProceduralWingDebug> ();
             config.load ();
 
-            ProceduralWingManager.uiRectWindowEditor = config.GetValue("uiRectWindowEditor", UIUtility.SetToScreenCenterAlways(new Rect()));
-            ProceduralWingManager.uiRectWindowDebug = config.GetValue<Rect> ("uiRectWindowDebug", UIUtility.SetToScreenCenterAlways(new Rect()));
+            ProceduralWingDebug.uiRectWindowEditor = config.GetValue("uiRectWindowEditor", UIUtility.SetToScreenCenterAlways(new Rect()));
+            ProceduralWingDebug.uiRectWindowDebug = config.GetValue<Rect> ("uiRectWindowDebug", UIUtility.SetToScreenCenterAlways(new Rect()));
 
             WPDebug.logCAV = Convert.ToBoolean (config.GetValue ("logCAV", "false"));
             WPDebug.logUpdate = Convert.ToBoolean (config.GetValue ("logUpdate", "false"));

@@ -572,19 +572,7 @@ namespace ProceduralWings.B9
 
         #region Unity stuff and Callbacks/events
 
-        /// <summary>
-        /// run whenever part is created (used in editor), which in the editor is as soon as part list is clicked or symmetry count increases
-        /// </summary>
-        public override void Start()
-        {
-            if (HighLogic.LoadedSceneIsEditor)
-            {
-                uiInstanceIDLocal = uiInstanceIDTarget = 0;
-                if (!ProceduralWingManager.uiStyleConfigured)
-                    ProceduralWingManager.ConfigureStyles();
-            }
-            base.Start();
-        }
+
 
         //public override void OnDestroy()
         //{
@@ -597,11 +585,6 @@ namespace ProceduralWings.B9
                 return;
 
             base.Update();
-            if (CheckVisualFieldValues()) // a cosmetic change was made
-            {
-                UpdateGeometry(false);
-                UpdateCounterparts();
-            }
         }
 
         // Attachment handling
@@ -626,7 +609,6 @@ namespace ProceduralWings.B9
                     parentModule.CalculateAerodynamicValues();
                 }
             }
-            uiEditMode = false;
         }
 
 
@@ -634,7 +616,6 @@ namespace ProceduralWings.B9
         public override void SetupGeometryAndAppearance()
         {
             SetupMeshFilters();
-            SetupFields();
             SetupMeshReferences();
         }
 
@@ -645,15 +626,20 @@ namespace ProceduralWings.B9
         {
             UpdateMaterials();
             UpdateGeometry(true);
-            UpdateWindow();
         }
         #endregion
 
         #region Geometry
+        public override bool CheckForGeometryChanges()
+        {
+            throw new NotImplementedException();
+        }
+
         public override void UpdateGeometry()
         {
             UpdateGeometry(true);
         }
+
         public virtual void UpdateGeometry(bool updateAerodynamics)
         {
             float wingThicknessDeviationRoot = sharedBaseThicknessRoot / 0.24f;
@@ -1096,9 +1082,9 @@ namespace ProceduralWings.B9
         public virtual void SetMaterialReferences()
         {
             if (materialLayeredSurface == null)
-                materialLayeredSurface = ResourceExtractor.GetEmbeddedMaterial("ProceduralWings.B9PWing.SpecularLayered.txt");
+                materialLayeredSurface = new Material(StaticWingGlobals.B9WingShader);
             if (materialLayeredEdge == null)
-                materialLayeredEdge = ResourceExtractor.GetEmbeddedMaterial("ProceduralWings.B9PWing.SpecularLayered.txt");
+                materialLayeredEdge = new Material(StaticWingGlobals.B9WingShader);
 
             SetTextures(meshFilterWingSurface, meshFiltersWingEdgeTrailing[0]);
 
@@ -1155,6 +1141,14 @@ namespace ProceduralWings.B9
                         DebugLogWithID("SetTextures", "Main: " + materialLayeredEdgeTextureMain.ToString() + " | Mask: " + materialLayeredEdgeTextureMask);
                 }
             }
+        }
+
+        public static Vector2 GetVertexUV2(float selectedLayer)
+        {
+            if (selectedLayer == 0)
+                return new Vector2(0f, 1f);
+            else
+                return new Vector2((selectedLayer - 1f) / 3f, 0f);
         }
 
         #endregion
@@ -1382,73 +1376,11 @@ namespace ProceduralWings.B9
 
         #region Alternative UI/input
 
-        //public KeyCode uiKeyCodeEdit = KeyCode.J;
         public static float uiMouseDeltaCache = 0f;
-        //public int uiInstanceIDLocal = 0;
 
         public static int uiPropertySelectionWing = 0;
         public static int uiPropertySelectionSurface = 0;
 
-        // Supposed to fix context menu updates
-        // Proposed by NathanKell, if I'm not mistaken
-        UIPartActionWindow _myWindow = null;
-        public UIPartActionWindow myWindow
-        {
-            get
-            {
-                if (_myWindow == null)
-                {
-                    UIPartActionWindow[] windows = (UIPartActionWindow[])FindObjectsOfType(typeof(UIPartActionWindow));
-                    for (int i = 0; i < windows.Length; ++i)
-                    {
-                        if (windows[i].part == part)
-                            _myWindow = windows[i];
-                    }
-                }
-                return _myWindow;
-            }
-        }
-
-        public virtual void UpdateWindow()
-        {
-            if (myWindow != null)
-                myWindow.displayDirty = true;
-        }
-
-        //public virtual void OnGUI()
-        //{
-        //    if (!isStarted || !HighLogic.LoadedSceneIsEditor || !uiWindowActive)
-        //        return;
-
-        //    if (uiInstanceIDLocal == 0)
-        //        uiInstanceIDLocal = part.GetInstanceID();
-        //    if (uiInstanceIDTarget == uiInstanceIDLocal || uiInstanceIDTarget == 0)
-        //    {
-        //        if (!ProceduralWingManager.uiStyleConfigured)
-        //            ProceduralWingManager.ConfigureStyles();
-
-        //        if (uiAdjustWindow)
-        //        {
-        //            uiAdjustWindow = false;
-        //            if (WPDebug.logPropertyWindow)
-        //                DebugLogWithID("OnGUI", "Window forced to adjust");
-        //            ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow, GUILayout.Height(0));
-        //        }
-        //        else
-        //            ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow);
-
-        //        // Thanks to ferram4
-        //        // Following section lock the editor, preventing window clickthrough
-
-        //        if (ProceduralWingManager.uiRectWindowEditor.Contains(UIUtility.GetMousePos()))
-        //        {
-        //            EditorLogic.fetch.Lock(false, false, false, "WingProceduralWindow");
-        //            EditorTooltip.Instance.HideToolTip();
-        //        }
-        //        else
-        //            EditorLogic.fetch.Unlock("WingProceduralWindow");
-        //    }
-        //}
 
         public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderEdgeL = new Vector4(0.20f, 0.5f, 0.4f, 1f);
@@ -1457,242 +1389,6 @@ namespace ProceduralWings.B9
         public static Vector4 uiColorSliderColorsSB = new Vector4(0.05f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderColorsET = new Vector4(0.00f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderColorsEL = new Vector4(0.95f, 0.5f, 0.4f, 1f);
-
-        //public override void OnWindow(int window)
-        //{
-        //    if (uiEditMode)
-        //    {
-        //        bool returnEarly = false;
-        //        GUILayout.BeginHorizontal();
-        //        GUILayout.BeginVertical();
-        //        if (uiLastFieldName.Length > 0) GUILayout.Label("Last: " + uiLastFieldName, ProceduralWingManager.uiStyleLabelMedium);
-        //        else GUILayout.Label("Property editor", ProceduralWingManager.uiStyleLabelMedium);
-        //        if (uiLastFieldTooltip.Length > 0) GUILayout.Label(uiLastFieldTooltip + "\n_________________________", ProceduralWingManager.uiStyleLabelHint, GUILayout.MaxHeight(44f), GUILayout.MinHeight(44f)); // 58f for four lines
-        //        GUILayout.EndVertical();
-        //        if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
-        //        {
-        //            EditorLogic.fetch.Unlock("WingProceduralWindow");
-        //            uiWindowActive = false;
-        //            stockButton.SetFalse(false);
-        //            returnEarly = true;
-        //        }
-        //        GUILayout.EndHorizontal();
-        //        if (returnEarly)
-        //            return;
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupBaseStatic, "Base");
-        //        if (sharedFieldGroupBaseStatic)
-        //        {
-        //            sharedBaseLength = (float)DrawField(sharedBaseLength, GetIncrementFromType(sharedIncrementMain, sharedIncrementSmall), GetIncrementFromType(1f, 0.24f), GetLimitsFromType(sharedBaseLengthLimits), "Length", uiColorSliderBase, 0, 0);
-        //            sharedBaseWidthRoot = (float)DrawField(sharedBaseWidthRoot, GetIncrementFromType(sharedIncrementMain, sharedIncrementSmall), GetIncrementFromType(1f, 0.24f), GetLimitsFromType(sharedBaseWidthRootLimits), "Width (root)", uiColorSliderBase, 1, 0);
-        //            sharedBaseWidthTip = (float)DrawField(sharedBaseWidthTip, GetIncrementFromType(sharedIncrementMain, sharedIncrementSmall), GetIncrementFromType(1f, 0.24f), GetLimitsFromType(sharedBaseWidthTipLimits), "Width (tip)", uiColorSliderBase, 2, 0);
-        //            sharedBaseOffsetTip = (float)DrawField(sharedBaseOffsetTip, GetIncrementFromType(sharedIncrementMain, sharedIncrementSmall), 1f, GetLimitsFromType(sharedBaseOffsetLimits), "Offset (tip)", uiColorSliderBase, 4, 0);
-        //            sharedBaseThicknessRoot = (float)DrawField(sharedBaseThicknessRoot, sharedIncrementSmall, sharedIncrementSmall, sharedBaseThicknessLimits, "Thickness (root)", uiColorSliderBase, 5, 0);
-        //            sharedBaseThicknessTip = (float)DrawField(sharedBaseThicknessTip, sharedIncrementSmall, sharedIncrementSmall, sharedBaseThicknessLimits, "Thickness (tip)", uiColorSliderBase, 6, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupEdgeLeadingStatic, "Edge (leading)");
-        //        if (sharedFieldGroupEdgeLeadingStatic)
-        //        {
-        //            sharedEdgeTypeLeading = (float)DrawField(sharedEdgeTypeLeading, sharedIncrementInt, sharedIncrementInt, GetLimitsFromType(sharedEdgeTypeLimits), "Shape", uiColorSliderEdgeL, 7, 2, false);
-        //            sharedEdgeWidthLeadingRoot = (float)DrawField(sharedEdgeWidthLeadingRoot, sharedIncrementSmall, sharedIncrementSmall, GetLimitsFromType(sharedEdgeWidthLimits), "Width (root)", uiColorSliderEdgeL, 8, 0);
-        //            sharedEdgeWidthLeadingTip = (float)DrawField(sharedEdgeWidthLeadingTip, sharedIncrementSmall, sharedIncrementSmall, GetLimitsFromType(sharedEdgeWidthLimits), "Width (tip)", uiColorSliderEdgeL, 9, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupEdgeTrailingStatic, "Edge (trailing)");
-        //        if (sharedFieldGroupEdgeTrailingStatic)
-        //        {
-        //            sharedEdgeTypeTrailing = (float)DrawField(sharedEdgeTypeTrailing, sharedIncrementInt, sharedIncrementInt, GetLimitsFromType(sharedEdgeTypeLimits), "Shape", uiColorSliderEdgeT, 10, 2, false);
-        //            sharedEdgeWidthTrailingRoot = (float)DrawField(sharedEdgeWidthTrailingRoot, sharedIncrementSmall, sharedIncrementSmall, GetLimitsFromType(sharedEdgeWidthLimits), "Width (root)", uiColorSliderEdgeT, 11, 0);
-        //            sharedEdgeWidthTrailingTip = (float)DrawField(sharedEdgeWidthTrailingTip, sharedIncrementSmall, sharedIncrementSmall, GetLimitsFromType(sharedEdgeWidthLimits), "Width (tip)", uiColorSliderEdgeT, 12, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupColorSTStatic, "Surface (top)");
-        //        if (sharedFieldGroupColorSTStatic)
-        //        {
-        //            sharedMaterialST = (float)DrawField(sharedMaterialST, sharedIncrementInt, sharedIncrementInt, sharedMaterialLimits, "Material", uiColorSliderColorsST, 13, 1, false);
-        //            sharedColorSTOpacity = (float)DrawField(sharedColorSTOpacity, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Opacity", uiColorSliderColorsST, 14, 0);
-        //            sharedColorSTHue = (float)DrawField(sharedColorSTHue, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Hue", uiColorSliderColorsST, 15, 0);
-        //            sharedColorSTSaturation = (float)DrawField(sharedColorSTSaturation, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Saturation", uiColorSliderColorsST, 16, 0);
-        //            sharedColorSTBrightness = (float)DrawField(sharedColorSTBrightness, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Brightness", uiColorSliderColorsST, 17, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupColorSBStatic, "Surface (bottom)");
-        //        if (sharedFieldGroupColorSBStatic)
-        //        {
-        //            sharedMaterialSB = (float)DrawField(sharedMaterialSB, sharedIncrementInt, sharedIncrementInt, sharedMaterialLimits, "Material", uiColorSliderColorsSB, 13, 1, false);
-        //            sharedColorSBOpacity = (float)DrawField(sharedColorSBOpacity, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Opacity", uiColorSliderColorsSB, 14, 0);
-        //            sharedColorSBHue = (float)DrawField(sharedColorSBHue, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Hue", uiColorSliderColorsSB, 15, 0);
-        //            sharedColorSBSaturation = (float)DrawField(sharedColorSBSaturation, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Saturation", uiColorSliderColorsSB, 16, 0);
-        //            sharedColorSBBrightness = (float)DrawField(sharedColorSBBrightness, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Brightness", uiColorSliderColorsSB, 17, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupColorETStatic, "Surface (trailing edge)");
-        //        if (sharedFieldGroupColorETStatic)
-        //        {
-        //            sharedMaterialET = (float)DrawField(sharedMaterialET, sharedIncrementInt, sharedIncrementInt, sharedMaterialLimits, "Material", uiColorSliderColorsET, 13, 1, false);
-        //            sharedColorETOpacity = (float)DrawField(sharedColorETOpacity, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Opacity", uiColorSliderColorsET, 14, 0);
-        //            sharedColorETHue = (float)DrawField(sharedColorETHue, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Hue", uiColorSliderColorsET, 15, 0);
-        //            sharedColorETSaturation = (float)DrawField(sharedColorETSaturation, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Saturation", uiColorSliderColorsET, 16, 0);
-        //            sharedColorETBrightness = (float)DrawField(sharedColorETBrightness, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Brightness", uiColorSliderColorsET, 17, 0);
-        //        }
-
-        //        DrawFieldGroupHeader(ref sharedFieldGroupColorELStatic, "Surface (leading edge)");
-        //        if (sharedFieldGroupColorELStatic)
-        //        {
-        //            sharedMaterialEL = (float)DrawField(sharedMaterialEL, sharedIncrementInt, sharedIncrementInt, sharedMaterialLimits, "Material", uiColorSliderColorsEL, 13, 1, false);
-        //            sharedColorELOpacity = (float)DrawField(sharedColorELOpacity, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Opacity", uiColorSliderColorsEL, 14, 0);
-        //            sharedColorELHue = (float)DrawField(sharedColorELHue, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Hue", uiColorSliderColorsEL, 15, 0);
-        //            sharedColorELSaturation = (float)DrawField(sharedColorELSaturation, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Saturation", uiColorSliderColorsEL, 16, 0);
-        //            sharedColorELBrightness = (float)DrawField(sharedColorELBrightness, sharedIncrementColor, sharedIncrementColorLarge, sharedColorLimits, "Brightness", uiColorSliderColorsEL, 17, 0);
-        //        }
-
-        //        GUILayout.Label("_________________________\n\nPress J to exit edit mode\nOptions below allow you to change default values", ProceduralWingManager.uiStyleLabelHint);
-        //        if (canBeFueled && useStockFuel)
-        //        {
-        //            if (GUILayout.Button(ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].ConfigurationName + " | Next tank setup", ProceduralWingManager.uiStyleButton))
-        //                NextConfiguration();
-        //        }
-
-        //        GUILayout.BeginHorizontal();
-        //        if (GUILayout.Button("Save as default", ProceduralWingManager.uiStyleButton))
-        //            ReplaceDefaults();
-        //        if (GUILayout.Button("Restore default", ProceduralWingManager.uiStyleButton))
-        //            RestoreDefaults();
-        //        GUILayout.EndHorizontal();
-        //        if (inheritancePossibleOnShape || inheritancePossibleOnMaterials)
-        //        {
-        //            GUILayout.Label("_________________________\n\nOptions options allow you to match the part properties to it's parent", ProceduralWingManager.uiStyleLabelHint);
-        //            GUILayout.BeginHorizontal();
-        //            if (inheritancePossibleOnShape)
-        //            {
-        //                if (GUILayout.Button("Shape", ProceduralWingManager.uiStyleButton))
-        //                    InheritParentValues(0);
-        //                if (GUILayout.Button("Base", ProceduralWingManager.uiStyleButton))
-        //                    InheritParentValues(1);
-        //                if (GUILayout.Button("Edges", ProceduralWingManager.uiStyleButton))
-        //                    InheritParentValues(2);
-        //            }
-        //            if (inheritancePossibleOnMaterials)
-        //            {
-        //                if (GUILayout.Button("Color", ProceduralWingManager.uiStyleButton)) InheritParentValues(3);
-        //            }
-        //            GUILayout.EndHorizontal();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (uiEditModeTimeout)
-        //            GUILayout.Label("Exiting edit mode...\n", ProceduralWingManager.uiStyleLabelMedium);
-        //        else
-        //        {
-        //            GUILayout.BeginHorizontal();
-        //            GUILayout.Label("Press J while pointing at a\nprocedural part to edit it", ProceduralWingManager.uiStyleLabelHint);
-        //            if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
-        //            {
-        //                uiWindowActive = false;
-        //                stockButton.SetFalse(false);
-        //                uiAdjustWindow = true;
-        //                EditorLogic.fetch.Unlock("WingProceduralWindow");
-        //            }
-        //            GUILayout.EndHorizontal();
-        //        }
-        //    }
-        //    GUI.DragWindow();
-        //}
-
-        public virtual void SetupFields()
-        {
-            sharedBaseLength = (float)SetupFieldValue(sharedBaseLength, GetLimitsFromType(sharedBaseLengthLimits), GetDefault(sharedBaseLengthDefaults));
-            sharedBaseWidthRoot = (float)SetupFieldValue(sharedBaseWidthRoot, GetLimitsFromType(sharedBaseWidthRootLimits), GetDefault(sharedBaseWidthRootDefaults));
-            sharedBaseWidthTip = (float)SetupFieldValue(sharedBaseWidthTip, GetLimitsFromType(sharedBaseWidthTipLimits), GetDefault(sharedBaseWidthTipDefaults));
-            sharedBaseThicknessRoot = (float)SetupFieldValue(sharedBaseThicknessRoot, sharedBaseThicknessLimits, GetDefault(sharedBaseThicknessRootDefaults));
-            sharedBaseThicknessTip = (float)SetupFieldValue(sharedBaseThicknessTip, sharedBaseThicknessLimits, GetDefault(sharedBaseThicknessTipDefaults));
-            sharedBaseOffsetRoot = (float)SetupFieldValue(sharedBaseOffsetRoot, GetLimitsFromType(sharedBaseOffsetLimits), GetDefault(sharedBaseOffsetRootDefaults));
-            sharedBaseOffsetTip = (float)SetupFieldValue(sharedBaseOffsetTip, GetLimitsFromType(sharedBaseOffsetLimits), GetDefault(sharedBaseOffsetTipDefaults));
-
-            sharedEdgeTypeTrailing = (float)SetupFieldValue(sharedEdgeTypeTrailing, GetLimitsFromType(sharedEdgeTypeLimits), GetDefault(sharedEdgeTypeTrailingDefaults));
-            sharedEdgeWidthTrailingRoot = (float)SetupFieldValue(sharedEdgeWidthTrailingRoot, GetLimitsFromType(sharedEdgeWidthLimits), GetDefault(sharedEdgeWidthTrailingRootDefaults));
-            sharedEdgeWidthTrailingTip = (float)SetupFieldValue(sharedEdgeWidthTrailingTip, GetLimitsFromType(sharedEdgeWidthLimits), GetDefault(sharedEdgeWidthTrailingTipDefaults));
-
-            sharedEdgeTypeLeading = (float)SetupFieldValue(sharedEdgeTypeLeading, GetLimitsFromType(sharedEdgeTypeLimits), GetDefault(sharedEdgeTypeLeadingDefaults));
-            sharedEdgeWidthLeadingRoot = (float)SetupFieldValue(sharedEdgeWidthLeadingRoot, GetLimitsFromType(sharedEdgeWidthLimits), GetDefault(sharedEdgeWidthLeadingRootDefaults));
-            sharedEdgeWidthLeadingTip = (float)SetupFieldValue(sharedEdgeWidthLeadingTip, GetLimitsFromType(sharedEdgeWidthLimits), GetDefault(sharedEdgeWidthLeadingTipDefaults));
-
-            sharedMaterialST = (float)SetupFieldValue(sharedMaterialST, sharedMaterialLimits, GetDefault(sharedMaterialSTDefaults));
-            sharedColorSTOpacity = (float)SetupFieldValue(sharedColorSTOpacity, sharedColorLimits, GetDefault(sharedColorSTOpacityDefaults));
-            sharedColorSTHue = (float)SetupFieldValue(sharedColorSTHue, sharedColorLimits, GetDefault(sharedColorSTHueDefaults));
-            sharedColorSTSaturation = (float)SetupFieldValue(sharedColorSTSaturation, sharedColorLimits, GetDefault(sharedColorSTSaturationDefaults));
-            sharedColorSTBrightness = (float)SetupFieldValue(sharedColorSTBrightness, sharedColorLimits, GetDefault(sharedColorSTBrightnessDefaults));
-
-            sharedMaterialSB = (float)SetupFieldValue(sharedMaterialSB, sharedMaterialLimits, GetDefault(sharedMaterialSBDefaults));
-            sharedColorSBOpacity = (float)SetupFieldValue(sharedColorSBOpacity, sharedColorLimits, GetDefault(sharedColorSBOpacityDefaults));
-            sharedColorSBHue = (float)SetupFieldValue(sharedColorSBHue, sharedColorLimits, GetDefault(sharedColorSBHueDefaults));
-            sharedColorSBSaturation = (float)SetupFieldValue(sharedColorSBSaturation, sharedColorLimits, GetDefault(sharedColorSBSaturationDefaults));
-            sharedColorSBBrightness = (float)SetupFieldValue(sharedColorSBBrightness, sharedColorLimits, GetDefault(sharedColorSBBrightnessDefaults));
-
-            sharedMaterialET = (float)SetupFieldValue(sharedMaterialET, sharedMaterialLimits, GetDefault(sharedMaterialETDefaults));
-            sharedColorETOpacity = (float)SetupFieldValue(sharedColorETOpacity, sharedColorLimits, GetDefault(sharedColorETOpacityDefaults));
-            sharedColorETHue = (float)SetupFieldValue(sharedColorETHue, sharedColorLimits, GetDefault(sharedColorETHueDefaults));
-            sharedColorETSaturation = (float)SetupFieldValue(sharedColorETSaturation, sharedColorLimits, GetDefault(sharedColorETSaturationDefaults));
-            sharedColorETBrightness = (float)SetupFieldValue(sharedColorETBrightness, sharedColorLimits, GetDefault(sharedColorETBrightnessDefaults));
-
-            sharedMaterialEL = (float)SetupFieldValue(sharedMaterialEL, sharedMaterialLimits, GetDefault(sharedMaterialELDefaults));
-            sharedColorELOpacity = (float)SetupFieldValue(sharedColorELOpacity, sharedColorLimits, GetDefault(sharedColorELOpacityDefaults));
-            sharedColorELHue = (float)SetupFieldValue(sharedColorELHue, sharedColorLimits, GetDefault(sharedColorELHueDefaults));
-            sharedColorELSaturation = (float)SetupFieldValue(sharedColorELSaturation, sharedColorLimits, GetDefault(sharedColorELSaturationDefaults));
-            sharedColorELBrightness = (float)SetupFieldValue(sharedColorELBrightness, sharedColorLimits, GetDefault(sharedColorELBrightnessDefaults));
-
-            UpdateWindow();
-            isSetToDefaultValues = true;
-        }
-
-        public virtual int GetFieldMode()
-        {
-            return 1;
-        }
-
-
-
-        public override void OnMouseOver()
-        {
-            base.OnMouseOver();
-            if (!HighLogic.LoadedSceneIsEditor)
-                return;
-
-            if (this.part.parent != null && isAttached && !uiEditModeTimeout)
-            {
-                if (uiEditMode)
-                {
-                    if (Input.GetKeyDown(KeyCode.Mouse1))
-                    {
-                        uiEditMode = false;
-                        uiEditModeTimeout = true;
-                    }
-                }
-                if (Input.GetKeyDown(uiKeyCodeEdit))
-                {
-                    uiInstanceIDTarget = part.GetInstanceID();
-                    uiEditMode = true;
-                    uiEditModeTimeout = true;
-                    uiAdjustWindow = true;
-                    uiWindowActive = true;
-                    stockButton.SetTrue(false);
-                    InheritanceStatusUpdate();
-                }
-            }
-        }
-
-        //public override void translateTip(Vector3 diff)
-        //{
-        //    if (!Input.GetKey(keyTranslation))
-        //    {
-        //        state = 0;
-        //        return;
-        //    }
-        //    sharedBaseLength += 2 * diff.x * Vector3.Dot(EditorCamera.Instance.camera.transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.camera.transform.up, part.transform.right);
-        //    sharedBaseLength = (float)Utils.Clamp(sharedBaseLength, GetLimitsFromType(sharedBaseLengthLimits).x, GetLimitsFromType(sharedBaseLengthLimits).y);
-        //}
 
         public override void scaleTip(Vector3 diff)
         {
@@ -1723,98 +1419,6 @@ namespace ProceduralWings.B9
             sharedBaseThicknessRoot = (float)Utils.Clamp(sharedBaseThicknessRoot, sharedBaseThicknessLimits.x, sharedBaseThicknessLimits.y);
         }
 
-        public override void UpdateUI()
-        {
-            if (stockButton == null)
-                OnStockButtonSetup();
-            if (uiEditModeTimeout && uiInstanceIDTarget == 0)
-            {
-                if (WPDebug.logPropertyWindow)
-                    DebugLogWithID("UpdateUI", "Window timeout was left active on scene reload, resetting the window state");
-                StopWindowTimeout();
-            }
-            if (uiInstanceIDLocal != uiInstanceIDTarget)
-                return;
-
-            if (uiEditModeTimeout)
-            {
-                uiEditModeTimer += Time.deltaTime;
-                if (uiEditModeTimer > uiEditModeTimeoutDuration)
-                    StopWindowTimeout();
-            }
-            else if (uiEditMode)
-            {
-                if (Input.GetKeyDown(uiKeyCodeEdit))
-                    ExitEditMode();
-                else
-                {
-                    bool cursorInGUI = ProceduralWingManager.uiRectWindowEditor.Contains(UIUtility.GetMousePos());
-                    if (!cursorInGUI && Input.GetKeyDown(KeyCode.Mouse0))
-                        ExitEditMode();
-                }
-            }
-        }
-
-        public override bool CheckForGeometryChanges()
-        {
-            bool geometryUpdate = false;
-
-            geometryUpdate |= CheckFieldValue(sharedBaseLength, ref sharedBaseLengthCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseWidthRoot, ref sharedBaseWidthRootCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseWidthTip, ref sharedBaseWidthTipCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseThicknessRoot, ref sharedBaseThicknessRootCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseThicknessTip, ref sharedBaseThicknessTipCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseOffsetRoot, ref sharedBaseOffsetRootCached);
-            geometryUpdate |= CheckFieldValue(sharedBaseOffsetTip, ref sharedBaseOffsetTipCached);
-
-            geometryUpdate |= CheckFieldValue(sharedEdgeTypeTrailing, ref sharedEdgeTypeTrailingCached);
-            geometryUpdate |= CheckFieldValue(sharedEdgeWidthTrailingRoot, ref sharedEdgeWidthTrailingRootCached);
-            geometryUpdate |= CheckFieldValue(sharedEdgeWidthTrailingTip, ref sharedEdgeWidthTrailingTipCached);
-
-            geometryUpdate |= CheckFieldValue(sharedEdgeTypeLeading, ref sharedEdgeTypeLeadingCached);
-            geometryUpdate |= CheckFieldValue(sharedEdgeWidthLeadingRoot, ref sharedEdgeWidthLeadingRootCached);
-            geometryUpdate |= CheckFieldValue(sharedEdgeWidthLeadingTip, ref sharedEdgeWidthLeadingTipCached);
-
-            return geometryUpdate;
-        }
-
-        public virtual bool CheckVisualFieldValues()
-        {
-            bool visualUpdate = false;
-            // all the fields that have no aero effects
-
-            visualUpdate |= CheckFieldValue(sharedMaterialST, ref sharedMaterialSTCached);
-            visualUpdate |= CheckFieldValue(sharedColorSTOpacity, ref sharedColorSTOpacityCached);
-            visualUpdate |= CheckFieldValue(sharedColorSTHue, ref sharedColorSTHueCached);
-            visualUpdate |= CheckFieldValue(sharedColorSTSaturation, ref sharedColorSTSaturationCached);
-            visualUpdate |= CheckFieldValue(sharedColorSTBrightness, ref sharedColorSTBrightnessCached);
-
-            visualUpdate |= CheckFieldValue(sharedMaterialSB, ref sharedMaterialSBCached);
-            visualUpdate |= CheckFieldValue(sharedColorSBOpacity, ref sharedColorSBOpacityCached);
-            visualUpdate |= CheckFieldValue(sharedColorSBHue, ref sharedColorSBHueCached);
-            visualUpdate |= CheckFieldValue(sharedColorSBSaturation, ref sharedColorSBSaturationCached);
-            visualUpdate |= CheckFieldValue(sharedColorSBBrightness, ref sharedColorSBBrightnessCached);
-
-            visualUpdate |= CheckFieldValue(sharedMaterialET, ref sharedMaterialETCached);
-            visualUpdate |= CheckFieldValue(sharedColorETOpacity, ref sharedColorETOpacityCached);
-            visualUpdate |= CheckFieldValue(sharedColorETHue, ref sharedColorETHueCached);
-            visualUpdate |= CheckFieldValue(sharedColorETSaturation, ref sharedColorETSaturationCached);
-            visualUpdate |= CheckFieldValue(sharedColorETBrightness, ref sharedColorETBrightnessCached);
-
-            visualUpdate |= CheckFieldValue(sharedMaterialEL, ref sharedMaterialELCached);
-            visualUpdate |= CheckFieldValue(sharedColorELOpacity, ref sharedColorELOpacityCached);
-            visualUpdate |= CheckFieldValue(sharedColorELHue, ref sharedColorELHueCached);
-            visualUpdate |= CheckFieldValue(sharedColorELSaturation, ref sharedColorELSaturationCached);
-            visualUpdate |= CheckFieldValue(sharedColorELBrightness, ref sharedColorELBrightnessCached);
-
-            return visualUpdate;
-        }
-
-        public override string GetWindowTitle()
-        {
-            return "Wing";
-        }
-
         #endregion
 
         #region Coloration
@@ -1834,9 +1438,14 @@ namespace ProceduralWings.B9
             else
                 return UIUtility.ColorHSBToRGB(new Vector4(sharedColorELHue, sharedColorELSaturation, sharedColorELBrightness, sharedColorELOpacity));
         }
-
-
-
         #endregion
+
+        public static double incrementMain = 0.125, incrementSmall = 0.04;
+        public static Vector2d uiLengthLimit = new Vector2d(0.125, 16);
+        public static Vector2d uiRootLimit = new Vector2d(0.125, 16);
+        public static Vector2d uiTipLimit = new Vector2d(0.0000001, 16);
+        public static Vector2d uiOffsetLimit = new Vector2d(-8, 8);
+        public static Vector2d uiThicknessLimit = new Vector2d(0.04, 1);
+        public static Vector4 baseColour = new Vector4(0.25f, 0.5f, 0.4f, 1f);
     }
 }

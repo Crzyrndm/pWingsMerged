@@ -17,7 +17,6 @@ namespace ProceduralWings
     /// </summary>
     abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
-        public Dictionary<string, UIDragField> wingVars = new Dictionary<string, UIDragField>();
         public virtual bool isCtrlSrf
         {
             get { return false; }
@@ -87,13 +86,11 @@ namespace ProceduralWings
         public float wingCost;
         public const float costDensity = 5300f;
 
-        public bool isStarted; // helper bool that prevents anything running when the start sequence hasn't fired yet
+        public bool isStarted; // helper bool that prevents anything running when the start sequence hasn't fired yet (happens for various events -.-)
         public bool isAttached
         {
             get { return part.isAttached; }
         }
-
-        List<UIGroup> UIGroups;
 
         #region entry points
         /// <summary>
@@ -110,7 +107,7 @@ namespace ProceduralWings
             part.OnEditorAttach += new Callback(OnAttach);
             part.OnEditorDetach += new Callback(OnDetach);
 
-            SetupUI();
+            CreateEditorUI();
 
             isStarted = true;
         }
@@ -135,7 +132,7 @@ namespace ProceduralWings
         {
             if (!HighLogic.LoadedSceneIsEditor)
                 return;
-            UpdateUI();
+
             DeformWing();
             if (CheckForGeometryChanges())
             {
@@ -158,7 +155,7 @@ namespace ProceduralWings
             try
             {
                 vesselList.FirstOrDefault(vs => vs.vessel == vessel).isUpdated = false;
-                ProceduralWingManager.SaveConfigs();
+                ProceduralWingDebug.SaveConfigs();
             }
             catch
             {
@@ -196,35 +193,12 @@ namespace ProceduralWings
                 fuelSelectedTankSetup = 0;
                 FuelTankTypeChanged();
             }
-
-            OnStockButtonSetup();
-        }
-
-        public virtual void SetupUI() 
-        {
-            UIGroups = new List<UIGroup>(); // only need to init this in the editor
-
-            UIGroup baseGroup = new UIGroup();
-            baseGroup.Label = "Base";
-
-            baseGroup.fieldsToDraw.Add(new UIDragField("Length", "Lateral measurement of the wing, \nalso referred to as semispan", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-            baseGroup.fieldsToDraw.Add(new UIDragField("Width (root)", "Longitudinal measurement of the wing \nat the root cross section", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-            baseGroup.fieldsToDraw.Add(new UIDragField("Width (tip)", "Longitudinal measurement of the wing \nat the tip cross section", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-            baseGroup.fieldsToDraw.Add(new UIDragField("Offset (tip)", "Distance between midpoints of the cross \nsections on the longitudinal axis", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-            baseGroup.fieldsToDraw.Add(new UIDragField("Thickness (root)", "Thickness at the root cross section \nUsually kept proportional to edge width", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-            baseGroup.fieldsToDraw.Add(new UIDragField("Thickness (tip)", "Thickness at the tip cross section \nUsually kept proportional to edge width", uiLengthLimit, new Vector2d(incrementMain, 1.0), 2.0));
-
-            UIGroups.Add(baseGroup);
         }
 
         public abstract void SetupGeometryAndAppearance();
         #endregion
 
-        /// <summary>
-        /// handles any UI changes if neccesary
-        /// </summary>
-        public virtual void UpdateUI() { }
-
+        #region geometry
         /// <summary>
         /// makes all the neccesary geometry alterations and then updates the aerodynamics to match
         /// </summary>
@@ -342,8 +316,8 @@ namespace ProceduralWings
         public virtual void RefreshGeometry()
         {
             UpdateGeometry();
-            UpdateUI();
         }
+        #endregion
 
         #region Fuel configuration switching
         // Has to be situated here as this KSPEvent is not correctly added Part.Events otherwise
@@ -352,7 +326,7 @@ namespace ProceduralWings
         {
             if (!(canBeFueled && useStockFuel))
                 return;
-            fuelSelectedTankSetup = ++fuelSelectedTankSetup % ProceduralWingManager.wingTankConfigurations.Count;
+            fuelSelectedTankSetup = ++fuelSelectedTankSetup % StaticWingGlobals.wingTankConfigurations.Count;
             FuelTankTypeChanged();
         }
 
@@ -367,7 +341,7 @@ namespace ProceduralWings
             {
                 PartResource res = part.Resources[i];
                 double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
-                res.maxAmount = ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].resources[res.resourceName].unitsPerVolume * aeroStatVolume;
+                res.maxAmount = StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup].resources[res.resourceName].unitsPerVolume * aeroStatVolume;
                 res.amount = res.maxAmount * fillPct;
             }
             part.Resources.UpdateList();
@@ -423,7 +397,7 @@ namespace ProceduralWings
                 for (int i = 0; i < partResources.Length; i++)
                     DestroyImmediate(partResources[i]);
 
-                foreach (KeyValuePair<string, WingTankResource> kvp in ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].resources)
+                foreach (KeyValuePair<string, WingTankResource> kvp in StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup].resources)
                 {
                     ConfigNode newResourceNode = new ConfigNode("RESOURCE");
                     newResourceNode.AddValue("name", kvp.Value.resource.name);
@@ -439,7 +413,7 @@ namespace ProceduralWings
         {
             get
             {
-                return ProceduralWingManager.wingTankConfigurations.Count > 0;
+                return StaticWingGlobals.wingTankConfigurations.Count > 0;
             }
         }
 
@@ -454,7 +428,7 @@ namespace ProceduralWings
         public virtual float FuelGetAddedCost()
         {
             float result = 0f;
-            foreach (KeyValuePair<string, WingTankResource> kvp in ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].resources)
+            foreach (KeyValuePair<string, WingTankResource> kvp in StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup].resources)
             {
                 result += kvp.Value.resource.unitCost * kvp.Value.unitsPerVolume * (float)aeroStatVolume;
             }
@@ -610,25 +584,6 @@ namespace ProceduralWings
 
             if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
-
-            if (!uiEditModeTimeout)
-            {
-                if (uiEditMode && Input.GetKeyDown(KeyCode.Mouse1))
-                {
-                    uiEditMode = false;
-                    uiEditModeTimeout = true;
-                }
-                else if (Input.GetKeyDown(uiKeyCodeEdit))
-                {
-                    uiInstanceIDTarget = part.GetInstanceID();
-                    uiEditMode = true;
-                    uiEditModeTimeout = true;
-                    uiAdjustWindow = true;
-                    uiWindowActive = true;
-                    //stockButton.SetTrue(false);
-                    // inheritance update
-                }
-            }
             
             if (state == 0)
             {
@@ -847,238 +802,27 @@ namespace ProceduralWings
 
         #endregion
 
+
+
         #region UI stuff
-        public bool isSetToDefaultValues = false;
-        public static bool uiAdjustWindow = true;
-        public virtual double SetupFieldValue(double value, Vector2d limits, double defaultValue)
-        {
-            if (!isSetToDefaultValues)
-                return defaultValue;
-            else
-                return Utils.Clamp(value, limits.x, limits.y);
-        }
 
-        public static string uiLastFieldName = "";
-        public static string uiLastFieldTooltip = "Additional info on edited \nproperties is displayed here";
-
-
-
-        public static Vector2 GetVertexUV2(float selectedLayer)
-        {
-            if (selectedLayer == 0)
-                return new Vector2(0f, 1f);
-            else
-                return new Vector2((selectedLayer - 1f) / 3f, 0f);
-        }
-
-
-
-        public virtual bool CheckFieldValue(float fieldValue, ref float fieldCache)
-        {
-            if (fieldValue != fieldCache)
-            {
-                if (WPDebug.logUpdate)
-                    DebugLogWithID("Update", "Detected value change");
-                fieldCache = fieldValue;
-                return true;
-            }
-
-            return false;
-        }
-
-        public virtual void OnGUI()
-        {
-            if (!isStarted || !HighLogic.LoadedSceneIsEditor || !uiWindowActive)
-                return;
-
-            if (uiInstanceIDLocal == 0)
-                uiInstanceIDLocal = part.GetInstanceID();
-            if (uiInstanceIDTarget == uiInstanceIDLocal || uiInstanceIDTarget == 0)
-            {
-                if (!ProceduralWingManager.uiStyleConfigured)
-                    ProceduralWingManager.ConfigureStyles();
-
-                if (uiAdjustWindow)
-                {
-                    uiAdjustWindow = false;
-                    if (WPDebug.logPropertyWindow)
-                        DebugLogWithID("OnGUI", "Window forced to adjust");
-                    ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow, GUILayout.Height(0));
-                }
-                else
-                    ProceduralWingManager.uiRectWindowEditor = GUILayout.Window(273, ProceduralWingManager.uiRectWindowEditor, OnWindow, GetWindowTitle(), ProceduralWingManager.uiStyleWindow);
-
-                // Thanks to ferram4
-                // Following section lock the editor, preventing window clickthrough
-
-                if (ProceduralWingManager.uiRectWindowEditor.Contains(UIUtility.GetMousePos()))
-                {
-                    EditorLogic.fetch.Lock(false, false, false, "WingProceduralWindow");
-                    EditorTooltip.Instance.HideToolTip();
-                }
-                else
-                    EditorLogic.fetch.Unlock("WingProceduralWindow");
-            }
-        }
-
-        public virtual string GetWindowTitle()
-        {
-            return "Wing";
-        }
-
-        public static bool uiEditModeTimeout = false;
-        public static bool uiEditMode = false;
-        public float uiEditModeTimeoutDuration = 0.25f;
-        public float uiEditModeTimer = 0f;
         public KeyCode uiKeyCodeEdit = KeyCode.J;
 
-        public virtual void StopWindowTimeout()
+        public void CreateEditorUI()
         {
-            uiAdjustWindow = true;
-            uiEditModeTimeout = false;
-            uiEditModeTimer = 0.0f;
-
+            EditorWindow window = EditorWindow.Instance;
+            PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
+            PropertySlider p = basegroup.AddProperty("Length");
+            p.Max = 8.0;
+            p.Min = 0.05;
+            p.onValueChanged += SetLength;
         }
 
-        public virtual void ExitEditMode()
+        public static void SetLength(float value)
         {
-            uiEditMode = false;
-            uiEditModeTimeout = true;
-            uiAdjustWindow = true;
+            EditorWindow.currentWing.tipPos = new Vector3(EditorWindow.currentWing.tipPos.x, EditorWindow.currentWing.tipPos.y, (float)value);
         }
 
-        public static bool uiWindowActive = true;
-        public static bool displayDimensions;
-        public virtual void OnWindow(int window)
-        {
-            if (uiEditMode)
-            {
-                bool returnEarly = false;
-                GUILayout.BeginHorizontal();
-                GUILayout.BeginVertical();
-                if (uiLastFieldName.Length > 0)
-                    GUILayout.Label("Last: " + uiLastFieldName, ProceduralWingManager.uiStyleLabelMedium);
-                else
-                    GUILayout.Label("Property editor", ProceduralWingManager.uiStyleLabelMedium);
-                if (uiLastFieldTooltip.Length > 0)
-                    GUILayout.Label(uiLastFieldTooltip + "\n_________________________", ProceduralWingManager.uiStyleLabelHint, GUILayout.MaxHeight(44f), GUILayout.MinHeight(44f)); // 58f for four lines
-                GUILayout.EndVertical();
-                if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
-                {
-                    EditorLogic.fetch.Unlock("WingProceduralWindow");
-                    uiWindowActive = false;
-                    stockButton.SetFalse(false);
-                    returnEarly = true;
-                }
-                GUILayout.EndHorizontal();
-                if (returnEarly)
-                    return;
-
-                drawEditFields();
-
-                GUILayout.Label("_________________________\n\nPress J to exit edit mode\nOptions below allow you to change default values", ProceduralWingManager.uiStyleLabelHint);
-                if (canBeFueled && useStockFuel)
-                {
-                    if (GUILayout.Button(ProceduralWingManager.wingTankConfigurations[fuelSelectedTankSetup].ConfigurationName + " | Next tank setup", ProceduralWingManager.uiStyleButton))
-                        NextConfiguration();
-                }
-
-                drawOptions();
-            }
-            else
-            {
-                if (uiEditModeTimeout)
-                    GUILayout.Label("Exiting edit mode...\n", ProceduralWingManager.uiStyleLabelMedium);
-                else
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Press J while pointing at a\nprocedural part to edit it", ProceduralWingManager.uiStyleLabelHint);
-                    if (GUILayout.Button("Close", ProceduralWingManager.uiStyleButton, GUILayout.MaxWidth(50f)))
-                    {
-                        uiWindowActive = false;
-                        stockButton.SetFalse(false);
-                        uiAdjustWindow = true;
-                        EditorLogic.fetch.Unlock("WingProceduralWindow");
-                    }
-                    GUILayout.EndHorizontal();
-                }
-            }
-            GUI.DragWindow();
-        }
-
-        public virtual void drawEditFields()
-        {
-            double[] val = new double[] { length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness };
-            UIGroups[0].drawGroup(ref val);
-            length = val[0];
-            rootWidth = val[1];
-            tipWidth = val[2];
-            tipOffset = val[3];
-            rootThickness = val[4];
-            tipThickness = val[5];
-        }
-
-        public static double incrementMain = 0.125, incrementSmall = 0.04;
-        public static Vector2d uiLengthLimit = new Vector2d(0.125, 16);
-        public static Vector2d uiRootLimit = new Vector2d(0.125, 16);
-        public static Vector2d uiTipLimit = new Vector2d(0.0000001, 16);
-        public static Vector2d uiOffsetLimit = new Vector2d(-8, 8);
-        public static Vector2d uiThicknessLimit = new Vector2d(0.04, 1);
-        public static Vector4 baseColour = new Vector4(0.25f, 0.5f, 0.4f, 1f);
-
-
-        public virtual void drawOptions()
-        {
-            //GUILayout.BeginHorizontal();
-            //if (GUILayout.Button("Shape", ProceduralWingManager.uiStyleButton))
-            //    InheritParentValues(0);
-            //if (GUILayout.Button("Base", ProceduralWingManager.uiStyleButton))
-            //    InheritParentValues(1);
-            //if (GUILayout.Button("Edges", ProceduralWingManager.uiStyleButton))
-            //    InheritParentValues(2);
-            //GUILayout.EndHorizontal();
-        }
-        #endregion
-
-        #region stockToolbar
-        public static ApplicationLauncherButton stockButton = null;
-        public static int uiInstanceIDTarget = 0, uiInstanceIDLocal = 0;
-
-        public virtual void OnStockButtonSetup()
-        {
-            if (stockButton == null)
-                stockButton = ApplicationLauncher.Instance.AddModApplication(OnStockButtonClick, OnStockButtonClick, null, null, null, null, ApplicationLauncher.AppScenes.SPH, (Texture)GameDatabase.Instance.GetTexture("B9_Aerospace/Plugins/icon_stock", false));
-        }
-
-        public void OnStockButtonClick()
-        {
-            uiWindowActive = !uiWindowActive;
-        }
-
-        //public void editorAppDestroy()
-        //{
-        //    if (!HighLogic.LoadedSceneIsEditor)
-        //        return;
-
-        //    bool stockButtonCanBeRemoved = true;
-        //    //WingProcedural[] components = GameObject.FindObjectsOfType<WingProcedural>();
-        //    if (WPDebug.logEvents)
-        //        DebugLogWithID("OnDestroy", "Invoked, with " + components.Length + " remaining components in the scene");
-        //    for (int i = 0; i < components.Length; ++i)
-        //    {
-        //        if (components[i] != null)
-        //            stockButtonCanBeRemoved = false;
-        //    }
-        //    if (stockButtonCanBeRemoved)
-        //    {
-        //        uiInstanceIDTarget = 0;
-        //        if (stockButton != null)
-        //        {
-        //            ApplicationLauncher.Instance.RemoveModApplication(stockButton);
-        //            stockButton = null;
-        //        }
-        //    }
-        //}
 
         #endregion
     }
