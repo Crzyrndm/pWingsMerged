@@ -813,9 +813,7 @@ namespace ProceduralWings
             Debug.Log("creating UI");
             EditorWindow window = EditorWindow.Instance;
             PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
-            PropertySlider p = basegroup.AddProperty("Length");
-            p.Max = 8.0;
-            p.Min = 0.05;
+            PropertySlider p = basegroup.AddProperty("Length", 0.05f, 16.0f, (float)length, 2, SetLength);
             p.onValueChanged += SetLength;
         }
 

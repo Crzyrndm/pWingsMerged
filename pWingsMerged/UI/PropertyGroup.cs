@@ -65,9 +65,9 @@ namespace ProceduralWings.UI
             propertiesListGroup.SetActive(propertiesVisible);
         }
 
-        public PropertySlider AddProperty(string name)
+        public PropertySlider AddProperty(string name, float min, float max, float value, int numDec, Action<float> onChanged)
         {
-            PropertySlider newGroup = new PropertySlider(name);
+            PropertySlider newGroup = new PropertySlider(name, groupColour, min, max, value, numDec, onChanged);
             propertyList.Add(newGroup);
             newGroup.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
             return newGroup;
