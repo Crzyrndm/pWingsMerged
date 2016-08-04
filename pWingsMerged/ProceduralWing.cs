@@ -79,7 +79,7 @@ namespace ProceduralWings
 
         // fuel parameters
         [KSPField(isPersistant = true)]
-        public int fuelSelectedTankSetup = -1;
+        public int fuelSelectedTankSetup;
         public double aeroStatVolume;
 
         // module cost variables
@@ -810,6 +810,7 @@ namespace ProceduralWings
 
         public void CreateEditorUI()
         {
+            Debug.Log("creating UI");
             EditorWindow window = EditorWindow.Instance;
             PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
             PropertySlider p = basegroup.AddProperty("Length");

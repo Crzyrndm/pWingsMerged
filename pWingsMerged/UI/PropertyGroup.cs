@@ -69,7 +69,7 @@ namespace ProceduralWings.UI
         {
             PropertySlider newGroup = new PropertySlider(name);
             propertyList.Add(newGroup);
-            newGroup.propertyInstance.transform.parent = propertiesListGroup.transform;
+            newGroup.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
             return newGroup;
         }
 

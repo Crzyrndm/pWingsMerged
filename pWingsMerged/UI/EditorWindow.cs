@@ -89,22 +89,21 @@ namespace ProceduralWings.UI
         {
             // get references to all useful components
             canvas = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab.GetComponent<Canvas>());
-            canvas.gameObject.SetActive(false);
-
+            
             mainPanel = canvas.gameObject.GetChild("MainPanel");
             windowPosition = mainPanel.GetComponent<RectTransform>();
             GameObject headerPanel = mainPanel.GetChild("HeaderPanel");
             wingType = headerPanel.GetChild("WingType").GetComponent<Text>();
             lastModifiedProperty = headerPanel.GetChild("LastModifiedProperty").GetComponent<Text>();
-            lastModifiedPropertyTooltip = headerPanel.GetChild("LastModifiedPropertyTooltip").GetComponent<Text>();
+            lastModifiedPropertyTooltip = headerPanel.GetChild("LastModifiedPropertyToolTip").GetComponent<Text>();
             closeButton = headerPanel.GetChild("CloseButton").GetComponent<Button>();
-
+            
             // window position drag event
             EventTrigger.Entry entry = new EventTrigger.Entry();
             entry.eventID = EventTriggerType.Drag;
             entry.callback = new EventTrigger.TriggerEvent();
             entry.callback.AddListener((x) => windowDrag(x));
-            windowPosition.gameObject.GetComponent<EventTrigger>().triggers.Add(entry);
+            mainPanel.GetComponent<EventTrigger>().triggers.Add(entry);
 
             // close button click hides the window
             closeButton.onClick.AddListener(closeWindow);
@@ -142,7 +141,7 @@ namespace ProceduralWings.UI
             {
                 newGroup = new PropertyGroup(name, groupColour);
                 propertyGroupList.Add(name, newGroup);
-                newGroup.groupInstance.transform.parent = mainPanel.transform;
+                newGroup.groupInstance.transform.SetParent(mainPanel.transform, false);
             }
             return newGroup;
         }

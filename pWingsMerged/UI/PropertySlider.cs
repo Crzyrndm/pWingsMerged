@@ -83,10 +83,10 @@ namespace ProceduralWings.UI
         public PropertySlider(string name)
         {
             propertyInstance = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_PropertyPrefab);
-            propertyLabel = propertyInstance.GetChild("PropertyLabel").GetComponent<Text>();
+            inputSlider = propertyInstance.GetChild("InputSlider").GetComponent<Slider>();
+            propertyLabel = inputSlider.gameObject.GetChild("PropertyLabel").GetComponent<Text>();
             propertyLabel.text = name;
-            input = propertyInstance.GetChild("User Input").GetComponent<InputField>();
-            inputSlider = propertyInstance.GetChild("PropertySlider").GetComponent<Slider>();
+            input = inputSlider.gameObject.GetChild("UserInput").GetComponent<InputField>();
 
             inputSlider.onValueChanged.AddListener(SliderValueChanged);
             Value = 1;
@@ -95,7 +95,7 @@ namespace ProceduralWings.UI
         void SliderValueChanged(float value)
         {
             input.text = value.ToString();
-            onValueChanged.Invoke(value);
+            onValueChanged?.Invoke(value);
         }
     }
 }

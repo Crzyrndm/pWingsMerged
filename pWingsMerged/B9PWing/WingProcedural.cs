@@ -632,7 +632,7 @@ namespace ProceduralWings.B9
         #region Geometry
         public override bool CheckForGeometryChanges()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override void UpdateGeometry()

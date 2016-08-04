@@ -33,39 +33,48 @@ namespace ProceduralWings
 
         public IEnumerator LoadBundleAssets()
         {
-            while (!Caching.ready)
-                yield return null;
             Debug.Log("[B9PW] Aquiring bundle data");
-            using (WWW www = WWW.LoadFromCacheOrDownload("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
-                                                                            + Path.DirectorySeparatorChar + "B9_Aerospace_ProceduralWings" + Path.DirectorySeparatorChar + "wingshader.ksp", 1))
+            using (WWW www = new WWW("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
+                                                                            + Path.DirectorySeparatorChar + "B9_Aerospace_ProceduralWings" + Path.DirectorySeparatorChar + "wingshader.ksp"))
             {
                 yield return www;
-
+                Debug.Log($"[B9PW] {www.error}");
                 AssetBundle shaderBundle = www.assetBundle;
+                Shader[] shaders = shaderBundle.LoadAllAssets<Shader>();
+                for (int i = 0; i < shaders.Length; ++i)
+                {
+                    Debug.Log($"[B9PW] {shaders[i].name}");
+                    switch (shaders[i].name)
+                    {
+                        case "KSP/Specular Layered":
+                            B9WingShader = shaders[i] as Shader;
+                            Debug.Log($"[B9PW] Wing shader \"{shaders[i].name}\" loaded. Supported? {B9WingShader.isSupported}");
+                            break;
+                    }
+                }
+
                 GameObject[] objects = shaderBundle.LoadAllAssets<GameObject>();
+                Debug.Log(objects);
+                Debug.Log(objects.Length);
                 for (int i = 0; i < objects.Length; ++i)
                 {
                     Debug.Log($"[B9PW] {objects[i].name}");
                     switch (objects[i].name)
                     {
-                        //case "KSP/Specular Layered":
-                        //    B9WingShader = objects[i] as Shader;
-                        //    Debug.Log($"[B9PW] Wing shader \"{objects[i].name}\" loaded");
-                        //    break;
                         case "FuelPanelPrefab":
                             UI_FuelPanel = objects[i] as GameObject;
                             Debug.Log($"[B9PW] Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "MainEditorPanel":
-                            UI_FuelPanel = objects[i] as GameObject;
+                            UI_WindowPrefab = objects[i] as GameObject;
                             Debug.Log($"[B9PW] Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "PropertyGroup":
-                            UI_FuelPanel = objects[i] as GameObject;
+                            UI_PropertyGroupPrefab = objects[i] as GameObject;
                             Debug.Log($"[B9PW] Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "PropertySelector":
-                            UI_FuelPanel = objects[i] as GameObject;
+                            UI_PropertyPrefab = objects[i] as GameObject;
                             Debug.Log($"[B9PW] Prefab \"{objects[i].name}\" loaded");
                             break;
                     }

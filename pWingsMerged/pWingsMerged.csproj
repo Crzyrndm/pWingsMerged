@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\Desktop\Kerbal Space Program Dev\GameData\ProceduralWingPlugin\</OutputPath>
+    <OutputPath>..\GameData\PWingsPlugin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -36,9 +36,11 @@
     </Reference>
     <Reference Include="KSPAssets">
       <HintPath>..\..\..\Desktop\Kerbal Space Program Dev\KSP_Data\Managed\KSPAssets.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KSPUtil">
       <HintPath>..\..\..\Desktop\Kerbal Space Program Dev\KSP_Data\Managed\KSPUtil.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -63,7 +65,7 @@
     <Compile Include="StaticWingGlobals.cs" />
     <Compile Include="UI\EditorWindow.cs" />
     <Compile Include="UI\PropertyGroup.cs" />
-    <Compile Include="UI\PropertySelector.cs" />
+    <Compile Include="UI\PropertySlider.cs" />
     <Compile Include="Utility\UIUtility.cs" />
     <Compile Include="Utility\UtilityTexture.cs" />
     <Compile Include="B9PWing\WingProcedural.cs" />
@@ -74,6 +76,11 @@
     <Compile Include="WingTankResource.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>set SOURCE="D:\Libraries\GitHub\pWingsMerged\GameData"
+set DESTINATION="D:\Libraries\Desktop\Kerbal Space Program Dev\GameData"
+xcopy %25SOURCE%25 %25DESTINATION%25 /E /C /R /I /K /Y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
