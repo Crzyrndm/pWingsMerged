@@ -11,19 +11,6 @@ namespace ProceduralWings.UI
     /// </summary>
     public class EditorWindow
     {
-        static EditorWindow UI_Window;
-        public static EditorWindow Instance
-        {
-            get
-            {
-                if (UI_Window == null)
-                {
-                    UI_Window = new EditorWindow();
-                }
-                return UI_Window;
-            }
-        }
-
         bool visible;
         public bool Visible
         {
@@ -33,6 +20,7 @@ namespace ProceduralWings.UI
             }
             set
             {
+                Debug.Log(value);
                 visible = value;
                 if (!visible)
                 {
@@ -85,7 +73,7 @@ namespace ProceduralWings.UI
         /// <summary>
         /// Constructor
         /// </summary>
-        EditorWindow()
+        public EditorWindow()
         {
             // get references to all useful components
             canvas = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab.GetComponent<Canvas>());

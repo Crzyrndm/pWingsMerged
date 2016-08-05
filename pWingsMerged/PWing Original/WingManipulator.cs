@@ -220,72 +220,17 @@ namespace ProceduralWings.Original
             }
         }
 
-        //public virtual string UpdateTooltipText(int fieldID)
-        //{
-        //    switch (fieldID)
-        //    {
-        //        case 7: // sharedEdgeTypeTrailing))
-        //            return "Shape of the trailing edge cross \nsection (round/biconvex/sharp)";
-        //        case 8: // sharedEdgeWidthTrailingRoot))
-        //            return "Longitudinal measurement of the trailing \nedge cross section at wing root";
-        //        case 9: // sharedEdgeWidthTrailingTip))
-        //            return "Longitudinal measurement of the trailing \nedge cross section at wing tip";
-        //        case 10: // sharedEdgeTypeLeading))
-        //            return "Shape of the leading edge cross \nsection (round/biconvex/sharp)";
-        //        case 11: // sharedEdgeWidthLeadingRoot))
-        //            return "Longitudinal measurement of the leading \nedge cross section at wing root";
-        //        case 12: // sharedEdgeWidthLeadingTip))
-        //            return "Longitudinal measurement of the leading \nedge cross section at with tip";
-        //        case 13:
-        //            return "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)";
-        //        case 14:
-        //            return "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1";
-        //        case 15:
-        //            return "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle";
-        //        case 16:
-        //            return "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1";
-        //        case 17:
-        //            return "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5";
-        //        default:
-        //            return "Unknown field\n";
-        //    }
-        //}
-
-        bool geometryChanging = true;
-        public override bool CheckForGeometryChanges()
-        {
-            if (state > 0)
-            {
-                geometryChanging = true;
-                return true;
-            }
-            
-            if (geometryChanging)
-            {
-                geometryChanging = false;
-                return true;
-            }
-            return false;
-        }
-
         public override void UpdateGeometry()
         {
-            // If we're snapping, match relative thickness scaling with root
-            //SetThicknessScalingTypeToRoot();
-
             Tip.localScale = tipScale;
             Root.localScale = rootScale;
 
             Tip.localPosition = tipPosition + TipSpawnOffset;
-
             if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<Base_ProceduralWing>().Any() && !IgnoreSnapping)
             {
                 Base_ProceduralWing Parent = part.parent.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
-                //rootScale = Parent.tipScale;
             }
-            //Sets the skinned meshrenderer to update even when culled for being outside the screen
-            //wingSMR.updateWhenOffscreen = true;
         }
 
         public override void UpdateCounterparts()

@@ -1,81 +1,48 @@
-﻿using KSP;
-using KSP.IO;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 using System.Reflection;
+using UnityEngine;
 
 namespace ProceduralWings.B9
 {
     using Utility;
-    public class B9_WingProcedural : Base_ProceduralWing
+    public class B9_ProceduralWing : Base_ProceduralWing
     {
-        public override Vector3 tipPos
+        #region Unity stuff and Callbacks/events
+
+        public override void Update()
         {
-            get
-            {
-                return new Vector3(-sharedBaseOffsetTip, 0, sharedBaseLength);
-            }
-            set
-            {
-                sharedBaseLength = value.z;
-                sharedBaseOffsetTip = -value.x;
-            }
+            base.Update();
         }
-        public override double tipWidth
+        // Attachment handling
+        public void UpdateOnEditorAttach()
         {
-            get { return sharedBaseWidthTip; }
-            set { sharedBaseWidthTip = (float)value; }
-        }
-        public override double tipThickness
-        {
-            get { return sharedBaseThicknessTip; }
-            set { sharedBaseThicknessTip = (float)value; }
-        }
-        public override double rootWidth
-        {
-            get { return sharedBaseWidthRoot; }
-            set { sharedBaseWidthRoot = (float)value; }
-        }
-        public override double rootThickness
-        {
-            get { return sharedBaseThicknessRoot; }
-            set { sharedBaseThicknessRoot = (float)value; }
-        }
-        public override double minSpan
-        {
-            get { return sharedBaseLengthLimits.x; }
+            UpdateGeometry(true);
         }
 
-        public override double tipOffset
+        public void UpdateOnEditorDetach()
         {
-            get { return sharedBaseOffsetTip; }
-            set { sharedBaseOffsetTip = (float)value; }
-        }
-
-        public override double Scale
-        {
-            set
+            if (this.part.parent != null)
             {
-                throw new NotImplementedException();
+                B9_ProceduralWing parentModule = this.part.parent.Modules.OfType<B9_ProceduralWing>().FirstOrDefault();
+                if (parentModule != null)
+                {
+                    parentModule.FuelUpdateVolume();
+                    parentModule.CalculateAerodynamicValues();
+                }
             }
         }
 
-        public override double Length
-        {
-            get
-            {
-                return sharedBaseLength;
-            }
 
-            set
-            {
-                sharedBaseLength = (float)value;
-            }
+        public override void SetupGeometryAndAppearance()
+        {
+            SetupMeshFilters();
+            SetupMeshReferences();
+            UpdateMaterials();
         }
+        #endregion
 
         #region Mesh properties
 
@@ -138,36 +105,27 @@ namespace ProceduralWings.B9
 
         #region Shared properties / Base
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Base")]
-        public static bool sharedFieldGroupBaseStatic = true;
         public static string[] sharedFieldGroupBaseArray = new string[] { "sharedBaseLength", "sharedBaseWidthRoot", "sharedBaseWidthTip", "sharedBaseThicknessRoot", "sharedBaseThicknessTip", "sharedBaseOffsetTip" };
         public static string[] sharedFieldGroupBaseArrayCtrl = new string[] { "sharedBaseOffsetRoot" };
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Length", guiFormat = "S4")]
         public float sharedBaseLength = 4f;
         public static Vector4 sharedBaseLengthDefaults = new Vector4(4f, 1f, 4f, 1f);
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Width (root)", guiFormat = "S4")]
         public float sharedBaseWidthRoot = 4f;
         public static Vector4 sharedBaseWidthRootDefaults = new Vector4(4f, 0.5f, 4f, 0.5f);
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Width (tip)", guiFormat = "S4")]
         public float sharedBaseWidthTip = 4f;
         public static Vector4 sharedBaseWidthTipDefaults = new Vector4(4f, 0.5f, 4f, 0.5f);
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Offset (root)", guiFormat = "S4")]
         public float sharedBaseOffsetRoot = 0f;
         public static Vector4 sharedBaseOffsetRootDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Offset (tip)", guiFormat = "S4")]
         public float sharedBaseOffsetTip = 0f;
         public static Vector4 sharedBaseOffsetTipDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thickness (root)", guiFormat = "F3")]
         public float sharedBaseThicknessRoot = 0.24f;
         public static Vector4 sharedBaseThicknessRootDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thickness (tip)", guiFormat = "F3")]
         public float sharedBaseThicknessTip = 0.24f;
         public static Vector4 sharedBaseThicknessTipDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
@@ -175,19 +133,14 @@ namespace ProceduralWings.B9
 
         #region Shared properties / Edge / Leading
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Lead. edge")]
-        public static bool sharedFieldGroupEdgeLeadingStatic = false;
         public static string[] sharedFieldGroupEdgeLeadingArray = new string[] { "sharedEdgeTypeLeading", "sharedEdgeWidthLeadingRoot", "sharedEdgeWidthLeadingTip" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Shape", guiFormat = "F3")]
         public float sharedEdgeTypeLeading = 2f;
         public static Vector4 sharedEdgeTypeLeadingDefaults = new Vector4(2f, 1f, 2f, 1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Width (root)", guiFormat = "F3")]
         public float sharedEdgeWidthLeadingRoot = 0.24f;
         public static Vector4 sharedEdgeWidthLeadingRootDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Width (tip)", guiFormat = "F3")]
         public float sharedEdgeWidthLeadingTip = 0.24f;
         public static Vector4 sharedEdgeWidthLeadingTipDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
@@ -195,47 +148,34 @@ namespace ProceduralWings.B9
 
         #region Shared properties / Edge / Trailing
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Trail. edge")]
-        public static bool sharedFieldGroupEdgeTrailingStatic = false;
         public static string[] sharedFieldGroupEdgeTrailingArray = new string[] { "sharedEdgeTypeTrailing", "sharedEdgeWidthTrailingRoot", "sharedEdgeWidthTrailingTip" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Shape", guiFormat = "F3")]
         public float sharedEdgeTypeTrailing = 3f;
         public static Vector4 sharedEdgeTypeTrailingDefaults = new Vector4(3f, 2f, 3f, 2f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Width (root)", guiFormat = "F3")]
         public float sharedEdgeWidthTrailingRoot = 0.48f;
         public static Vector4 sharedEdgeWidthTrailingRootDefaults = new Vector4(0.48f, 0.48f, 0.48f, 0.48f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Width (tip)", guiFormat = "F3")]
         public float sharedEdgeWidthTrailingTip = 0.48f;
         public static Vector4 sharedEdgeWidthTrailingTipDefaults = new Vector4(0.48f, 0.48f, 0.48f, 0.48f);
 
         #endregion
 
         #region Shared properties / Surface / Top
-
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Material A")]
-        public static bool sharedFieldGroupColorSTStatic = false;
         public static string[] sharedFieldGroupColorSTArray = new string[] { "sharedMaterialST", "sharedColorSTOpacity", "sharedColorSTHue", "sharedColorSTSaturation", "sharedColorSTBrightness" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Material", guiFormat = "F3")]
         public float sharedMaterialST = 1f;
         public static Vector4 sharedMaterialSTDefaults = new Vector4(1f, 1f, 1f, 1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Opacity", guiFormat = "F3")]
         public float sharedColorSTOpacity = 0f;
         public static Vector4 sharedColorSTOpacityDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (H)", guiFormat = "F3")]
         public float sharedColorSTHue = 0.10f;
         public static Vector4 sharedColorSTHueDefaults = new Vector4(0.1f, 0.1f, 0.1f, 0.1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (S)", guiFormat = "F3")]
         public float sharedColorSTSaturation = 0.75f;
         public static Vector4 sharedColorSTSaturationDefaults = new Vector4(0.75f, 0.75f, 0.75f, 0.75f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (B)", guiFormat = "F3")]
         public float sharedColorSTBrightness = 0.6f;
         public static Vector4 sharedColorSTBrightnessDefaults = new Vector4(0.6f, 0.6f, 0.6f, 0.6f);
 
@@ -243,82 +183,61 @@ namespace ProceduralWings.B9
 
         #region Shared properties / Surface / bottom
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Material B")]
-        public static bool sharedFieldGroupColorSBStatic = false;
         public static string[] sharedFieldGroupColorSBArray = new string[] { "sharedMaterialSB", "sharedColorSBOpacity", "sharedColorSBHue", "sharedColorSBSaturation", "sharedColorSBBrightness" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Material", guiFormat = "F3")]
         public float sharedMaterialSB = 4f;
         public static Vector4 sharedMaterialSBDefaults = new Vector4(4f, 4f, 4f, 4f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Opacity", guiFormat = "F3")]
         public float sharedColorSBOpacity = 0f;
         public static Vector4 sharedColorSBOpacityDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (H)", guiFormat = "F3")]
         public float sharedColorSBHue = 0.10f;
         public static Vector4 sharedColorSBHueDefaults = new Vector4(0.1f, 0.1f, 0.1f, 0.1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (S)", guiFormat = "F3")]
         public float sharedColorSBSaturation = 0.75f;
         public static Vector4 sharedColorSBSaturationDefaults = new Vector4(0.75f, 0.75f, 0.75f, 0.75f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (B)", guiFormat = "F3")]
         public float sharedColorSBBrightness = 0.6f;
         public static Vector4 sharedColorSBBrightnessDefaults = new Vector4(0.6f, 0.6f, 0.6f, 0.6f);
         #endregion
 
         #region Shared properties / Surface / trailing edge
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Material T")]
-        public static bool sharedFieldGroupColorETStatic = false;
         public static string[] sharedFieldGroupColorETArray = new string[] { "sharedMaterialET", "sharedColorETOpacity", "sharedColorETHue", "sharedColorETSaturation", "sharedColorETBrightness" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Material", guiFormat = "F3")]
         public float sharedMaterialET = 4f;
         public static Vector4 sharedMaterialETDefaults = new Vector4(4f, 4f, 4f, 4f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Opacity", guiFormat = "F3")]
         public float sharedColorETOpacity = 0f;
         public static Vector4 sharedColorETOpacityDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (H)", guiFormat = "F3")]
         public float sharedColorETHue = 0.10f;
         public static Vector4 sharedColorETHueDefaults = new Vector4(0.1f, 0.1f, 0.1f, 0.1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (S)", guiFormat = "F3")]
         public float sharedColorETSaturation = 0.75f;
         public static Vector4 sharedColorETSaturationDefaults = new Vector4(0.75f, 0.75f, 0.75f, 0.75f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (B)", guiFormat = "F3")]
         public float sharedColorETBrightness = 0.6f;
         public static Vector4 sharedColorETBrightnessDefaults = new Vector4(0.6f, 0.6f, 0.6f, 0.6f);
 
         #endregion
 
         #region Shared properties / Surface / leading edge
-
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "| Material L")]
         public static bool sharedFieldGroupColorELStatic = false;
         public static string[] sharedFieldGroupColorELArray = new string[] { "sharedMaterialEL", "sharedColorELOpacity", "sharedColorELHue", "sharedColorELSaturation", "sharedColorELBrightness" };
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Material", guiFormat = "F3")]
         public float sharedMaterialEL = 4f;
         public static Vector4 sharedMaterialELDefaults = new Vector4(4f, 4f, 4f, 4f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Opacity", guiFormat = "F3")]
         public float sharedColorELOpacity = 0f;
         public static Vector4 sharedColorELOpacityDefaults = new Vector4(0f, 0f, 0f, 0f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (H)", guiFormat = "F3")]
         public float sharedColorELHue = 0.10f;
         public static Vector4 sharedColorELHueDefaults = new Vector4(0.1f, 0.1f, 0.1f, 0.1f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (S)", guiFormat = "F3")]
         public float sharedColorELSaturation = 0.75f;
         public static Vector4 sharedColorELSaturationDefaults = new Vector4(0.75f, 0.75f, 0.75f, 0.75f);
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Color (B)", guiFormat = "F3")]
         public float sharedColorELBrightness = 0.6f;
         public static Vector4 sharedColorELBrightnessDefaults = new Vector4(0.6f, 0.6f, 0.6f, 0.6f);
 
@@ -393,7 +312,7 @@ namespace ProceduralWings.B9
         {
             base.inheritBase(parent);
 
-            B9_WingProcedural wing = parent as B9_WingProcedural;
+            B9_ProceduralWing wing = parent as B9_ProceduralWing;
             if (wing == null)
                 return;
             sharedEdgeTypeLeading = wing.sharedEdgeTypeLeading;
@@ -405,7 +324,7 @@ namespace ProceduralWings.B9
 
         public virtual void inheritEdges(Base_ProceduralWing parent)
         {
-            B9_WingProcedural wing = parent as B9_WingProcedural;
+            B9_ProceduralWing wing = parent as B9_ProceduralWing;
             if (wing == null)
                 return;
 
@@ -420,7 +339,7 @@ namespace ProceduralWings.B9
 
         public virtual void inheritColours(Base_ProceduralWing parent)
         {
-            B9_WingProcedural wing = parent as B9_WingProcedural;
+            B9_ProceduralWing wing = parent as B9_ProceduralWing;
             if (wing == null)
                 return;
 
@@ -451,66 +370,7 @@ namespace ProceduralWings.B9
 
         #endregion
 
-        #region Unity stuff and Callbacks/events
-
-
-
-        //public override void OnDestroy()
-        //{
-        //    base.OnDestroy();
-        //}
-
-        public override void Update()
-        {
-            if (!HighLogic.LoadedSceneIsEditor || !isStarted)
-                return;
-
-            base.Update();
-        }
-
-        // Attachment handling
-        public void UpdateOnEditorAttach()
-        {
-            UpdateGeometry(true);
-        }
-
-        public void UpdateOnEditorDetach()
-        {
-            if (this.part.parent != null)
-            {
-                B9_WingProcedural parentModule = this.part.parent.Modules.OfType<B9_WingProcedural>().FirstOrDefault();
-                if (parentModule != null)
-                {
-                    parentModule.FuelUpdateVolume();
-                    parentModule.CalculateAerodynamicValues();
-                }
-            }
-        }
-
-
-
-        public override void SetupGeometryAndAppearance()
-        {
-            SetupMeshFilters();
-            SetupMeshReferences();
-        }
-
-        /// <summary>
-        /// called from setup and when updating clones
-        /// </summary>
-        public override void RefreshGeometry()
-        {
-            UpdateMaterials();
-            UpdateGeometry(true);
-        }
-        #endregion
-
         #region Geometry
-        public override bool CheckForGeometryChanges()
-        {
-            return true;
-        }
-
         public override void UpdateGeometry()
         {
             UpdateGeometry(true);
@@ -752,14 +612,14 @@ namespace ProceduralWings.B9
 
         public override void UpdateCounterparts()
         {
-            B9_WingProcedural clone;
+            B9_ProceduralWing clone;
             for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
             {
                 clone = null;
                 for (int j = part.symmetryCounterparts[i].Modules.Count - 1; i >=0; --j)
                 {
-                    if (part.symmetryCounterparts[i].Modules[j] is B9_WingProcedural)
-                        clone = (B9_WingProcedural)part.symmetryCounterparts[i].Modules[j];
+                    if (part.symmetryCounterparts[i].Modules[j] is B9_ProceduralWing)
+                        clone = (B9_ProceduralWing)part.symmetryCounterparts[i].Modules[j];
                 }
                 if (clone == null)
                 {
@@ -807,23 +667,14 @@ namespace ProceduralWings.B9
                 clone.sharedColorETSaturation = sharedColorETSaturation;
                 clone.sharedColorELSaturation = sharedColorELSaturation;
 
-                clone.RefreshGeometry();
+                clone.UpdateGeometry();
             }
         }
 
         // Edge geometry
         public Vector3[] GetReferenceVertices(MeshFilter source)
         {
-            Vector3[] positions = new Vector3[0];
-            if (source != null)
-            {
-                if (source.mesh != null)
-                {
-                    positions = source.mesh.vertices;
-                    return positions;
-                }
-            }
-            return positions;
+            return source?.mesh?.vertices;
         }
 
         #endregion
@@ -845,31 +696,21 @@ namespace ProceduralWings.B9
 
         public virtual void SetupMeshReferences()
         {
-            bool required = true;
-            if (meshReferenceWingSection != null && meshReferenceWingSurface != null && meshReferencesWingEdge[meshTypeCountEdgeWing - 1] != null)
+            if (meshReferenceWingSection == null || meshReferenceWingSection.vp.Length == 0
+                || meshReferenceWingSurface == null || meshReferenceWingSurface.vp.Length == 0
+                || meshReferencesWingEdge[meshTypeCountEdgeWing - 1] == null || meshReferencesWingEdge[meshTypeCountEdgeWing - 1].vp.Length == 0)
             {
-                if (meshReferenceWingSection.vp.Length > 0 && meshReferenceWingSurface.vp.Length > 0 && meshReferencesWingEdge[meshTypeCountEdgeWing - 1].vp.Length > 0)
+                meshReferenceWingSection = FillMeshRefererence(meshFilterWingSection);
+                meshReferenceWingSurface = FillMeshRefererence(meshFilterWingSurface);
+                for (int i = 0; i < meshTypeCountEdgeWing; ++i)
                 {
-                    required = false;
+                    MeshReference meshReferenceWingEdge = FillMeshRefererence(meshFiltersWingEdgeTrailing[i]);
+                    meshReferencesWingEdge.Add(meshReferenceWingEdge);
                 }
-            }
-            if (required)
-                SetupMeshReferencesFromScratch();
-        }
-
-        public virtual void SetupMeshReferencesFromScratch()
-        {
-            B9_WingProcedural.meshReferenceWingSection = FillMeshRefererence(meshFilterWingSection);
-            B9_WingProcedural.meshReferenceWingSurface = FillMeshRefererence(meshFilterWingSurface);
-            for (int i = 0; i < meshTypeCountEdgeWing; ++i)
-            {
-                MeshReference meshReferenceWingEdge = FillMeshRefererence(meshFiltersWingEdgeTrailing[i]);
-                meshReferencesWingEdge.Add(meshReferenceWingEdge);
             }
         }
 
         // Reference fetching
-
         public virtual MeshFilter CheckMeshFilter(string name) { return CheckMeshFilter(null, name, false); }
         public virtual MeshFilter CheckMeshFilter(MeshFilter reference, string name) { return CheckMeshFilter(reference, name, false); }
         public virtual MeshFilter CheckMeshFilter(MeshFilter reference, string name, bool disable)
@@ -1041,7 +882,7 @@ namespace ProceduralWings.B9
             if (!vesselList[vesselStatusIndex].isUpdated)
             {
                 vesselList[vesselStatusIndex].isUpdated = true;
-                List<B9_WingProcedural> moduleList = new List<B9_WingProcedural>();
+                List<B9_ProceduralWing> moduleList = new List<B9_ProceduralWing>();
 
                 // First we get a list of all relevant parts in the vessel
                 // Found modules are added to a list
@@ -1050,7 +891,7 @@ namespace ProceduralWings.B9
                 for (int i = 0; i < vesselPartsCount; ++i)
                 {
                     if (vessel.parts[i].Modules.Contains("WingProcedural"))
-                        moduleList.Add((B9_WingProcedural)vessel.parts[i].Modules["WingProcedural"]);
+                        moduleList.Add((B9_ProceduralWing)vessel.parts[i].Modules["WingProcedural"]);
                 }
 
                 // After that we make two separate runs through that list
@@ -1072,58 +913,20 @@ namespace ProceduralWings.B9
         }
 
 
-
-
-        // Aerodynamics value calculation
-        // More or less lifted from pWings, so credit goes to DYJ and Taverius
-
-
-
-        [KSPField(guiActiveEditor = false, guiName = "Coefficient of drag", guiFormat = "F3")]
-        public float aeroUICd;
-
-        [KSPField(guiActiveEditor = false, guiName = "Coefficient of lift", guiFormat = "F3")]
-        public float aeroUICl;
-
-        [KSPField(guiActiveEditor = false, guiName = "Mass", guiFormat = "F3", guiUnits = "t")]
-        public float aeroUIMass;
-
-        [KSPField(guiActiveEditor = false, guiName = "Cost")]
-        public float aeroUICost;
-
-        [KSPField(guiActiveEditor = false, guiName = "Mean aerodynamic chord", guiFormat = "F3", guiUnits = "m")]
-        public float aeroUIMeanAerodynamicChord;
-
-        [KSPField(guiActiveEditor = false, guiName = "Semispan", guiFormat = "F3", guiUnits = "m")]
-        public float aeroUISemispan;
-
-        [KSPField(guiActiveEditor = false, guiName = "Mid-chord sweep", guiFormat = "F3", guiUnits = "deg.")]
-        public float aeroUIMidChordSweep;
-
-        [KSPField(guiActiveEditor = false, guiName = "Taper ratio", guiFormat = "F3")]
-        public float aeroUITaperRatio;
-
-        [KSPField(guiActiveEditor = false, guiName = "Surface area", guiFormat = "F3", guiUnits = "m²")]
-        public float aeroUISurfaceArea;
-
-        [KSPField(guiActiveEditor = false, guiName = "Aspect ratio", guiFormat = "F3")]
-        public float aeroUIAspectRatio;
-
         public Vector3d aeroStatRootMidChordOffsetFromOrigin;
 
         public PartModule aeroFARModuleReference;
         public Type aeroFARModuleType;
+        public MethodInfo aeroFARMethodInfoUsed;
 
         public FieldInfo aeroFARFieldInfoSemispan;
-        public FieldInfo aeroFARFieldInfoSemispan_Actual; // to handle tweakscale, wings have semispan (unscaled) and semispan_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
+        public FieldInfo aeroFARFieldInfoSemispan_Actual; // to handle tweakscale, FARs wings have semispan (unscaled) and semispan_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
         public FieldInfo aeroFARFieldInfoMAC;
-        public FieldInfo aeroFARFieldInfoMAC_Actual; //  to handle tweakscale, wings have MAC (unscaled) and MAC_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
-        public FieldInfo aeroFARFieldInfoSurfaceArea; // calculated internally from b_2_actual and MAC_actual
+        public FieldInfo aeroFARFieldInfoMAC_Actual; //  to handle tweakscale, FARs wings have MAC (unscaled) and MAC_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
         public FieldInfo aeroFARFieldInfoMidChordSweep;
         public FieldInfo aeroFARFieldInfoTaperRatio;
         public FieldInfo aeroFARFieldInfoControlSurfaceFraction;
         public FieldInfo aeroFARFieldInfoRootChordOffset;
-        public MethodInfo aeroFARMethodInfoUsed;
 
         public override void CalculateAerodynamicValues()
         {
@@ -1186,19 +989,9 @@ namespace ProceduralWings.B9
             if (!FARactive)
             {
                 SetStockModuleParams();
-                aeroUICd = (float)Math.Round(Cd, 2);
-                aeroUICl = (float)Math.Round(Cl, 2);
-                aeroUIMass = part.mass;
             }
             else
                 setFARModuleParams();
-
-            aeroUIMeanAerodynamicChord = (float)MAC;
-            aeroUISemispan = (float)length;
-            aeroUIMidChordSweep = (float)midChordSweep;
-            aeroUITaperRatio = (float)taperRatio;
-            aeroUISurfaceArea = (float)surfaceArea;
-            aeroUIAspectRatio = (float)aspectRatio;
             
             StartCoroutine(updateAeroDelayed());
         }
@@ -1206,13 +999,6 @@ namespace ProceduralWings.B9
         #endregion
 
         #region Alternative UI/input
-
-        public static float uiMouseDeltaCache = 0f;
-
-        public static int uiPropertySelectionWing = 0;
-        public static int uiPropertySelectionSurface = 0;
-
-
         public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderEdgeL = new Vector4(0.20f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderEdgeT = new Vector4(0.15f, 0.5f, 0.4f, 1f);
@@ -1250,9 +1036,6 @@ namespace ProceduralWings.B9
             sharedBaseThicknessRoot = (float)Utils.Clamp(sharedBaseThicknessRoot, sharedBaseThicknessLimits.x, sharedBaseThicknessLimits.y);
         }
 
-        #endregion
-
-        #region Coloration
         public virtual Color GetVertexColor(int side)
         {
             if (side == 0)
@@ -1273,5 +1056,81 @@ namespace ProceduralWings.B9
         public static Vector2d uiOffsetLimit = new Vector2d(-8, 8);
         public static Vector2d uiThicknessLimit = new Vector2d(0.04, 1);
         public static Vector4 baseColour = new Vector4(0.25f, 0.5f, 0.4f, 1f);
+
+        public override Vector3 tipPos
+        {
+            get { return new Vector3(-sharedBaseOffsetTip, 0, sharedBaseLength); }
+            set
+            {
+                sharedBaseLength = value.z;
+                sharedBaseOffsetTip = -value.x;
+                UpdateGeometry(true);
+            }
+        }
+        public override double tipWidth
+        {
+            get { return sharedBaseWidthTip; }
+            set
+            {
+                sharedBaseWidthTip = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double tipThickness
+        {
+            get { return sharedBaseThicknessTip; }
+            set
+            {
+                sharedBaseThicknessTip = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double rootWidth
+        {
+            get { return sharedBaseWidthRoot; }
+            set
+            {
+                sharedBaseWidthRoot = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double rootThickness
+        {
+            get { return sharedBaseThicknessRoot; }
+            set
+            {
+                sharedBaseThicknessRoot = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double minSpan
+        {
+            get { return sharedBaseLengthLimits.x; }
+        }
+        public override double tipOffset
+        {
+            get { return sharedBaseOffsetTip; }
+            set
+            {
+                sharedBaseOffsetTip = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double Length
+        {
+            get { return sharedBaseLength; }
+            set
+            {
+                sharedBaseLength = (float)value;
+                UpdateGeometry(true);
+            }
+        }
+        public override double Scale
+        {
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

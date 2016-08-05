@@ -67,7 +67,7 @@
     <Compile Include="UI\PropertyGroup.cs" />
     <Compile Include="UI\PropertySlider.cs" />
     <Compile Include="Utility\UIUtility.cs" />
-    <Compile Include="B9PWing\B9_WingProcedural.cs" />
+    <Compile Include="B9PWing\B9_ProceduralWing.cs" />
     <Compile Include="PWing Original\WingManipulator.cs" />
     <Compile Include="Utility\Utils.cs" />
     <Compile Include="Fuel\WingTankConfiguration.cs" />

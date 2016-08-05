@@ -177,7 +177,7 @@ namespace ProceduralWings
         {
             CheckAssemblies();
             SetupGeometryAndAppearance();
-            RefreshGeometry();
+            UpdateGeometry();
 
             if (fuelSelectedTankSetup < 0)
             {
@@ -281,19 +281,6 @@ namespace ProceduralWings
             }
         }
 
-        /// <summary>
-        /// check if the wing shape/appearance has changed since last update
-        /// </summary>
-        /// <returns></returns>
-        public abstract bool CheckForGeometryChanges();
-
-        /// <summary>
-        /// call during setup and when updating sym counterparts
-        /// </summary>
-        public virtual void RefreshGeometry()
-        {
-            UpdateGeometry();
-        }
         #endregion
 
         #region Fuel configuration switching
@@ -558,6 +545,12 @@ namespace ProceduralWings
         {
             if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
+
+            if (Input.GetKeyDown(uiKeyCodeEdit))
+            {
+                window.wing = this;
+                window.Visible = true;
+            }
             
             if (state == 0)
             {
@@ -711,9 +704,14 @@ namespace ProceduralWings
 
         public KeyCode uiKeyCodeEdit = KeyCode.J;
 
-        public static void CreateEditorUI()
+        public void CreateEditorUI()
         {
-            EditorWindow window = EditorWindow.Instance;
+            if (window != null)
+                return;
+
+            window = new EditorWindow();
+            window.wing = this;
+
             PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
             basegroup.AddProperty("Length", 0.05f, 16.0f, (float)window.wing.Length, 2, SetLength);
             basegroup.AddProperty("Width (root)", 0.05f, 16.0f, (float)window.wing.rootWidth, 2, SetRootWidth);
@@ -756,7 +754,7 @@ namespace ProceduralWings
 
         #endregion
 
-        public static void Log(string formatted)
+        public static void Log(object formatted)
         {
             Debug.Log("[B9PW] " + formatted);
         }
