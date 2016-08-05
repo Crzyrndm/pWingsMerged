@@ -9,7 +9,7 @@ namespace ProceduralWings.UI
     /// <summary>
     /// Window is an instance of the MainEditorPanelPrefab. It has a header block for title and generic info, a set of property groups, and finally the fuel switch options
     /// </summary>
-    class EditorWindow
+    public class EditorWindow
     {
         static EditorWindow UI_Window;
         public static EditorWindow Instance
@@ -36,14 +36,14 @@ namespace ProceduralWings.UI
                 visible = value;
                 if (!visible)
                 {
-                    currentWing = null;
+                    wing = null;
                 }
                 canvas.enabled = visible;
             }
         }
 
 
-        public static Base_ProceduralWing currentWing;
+        public Base_ProceduralWing wing;
 
         /// <summary>
         /// window position

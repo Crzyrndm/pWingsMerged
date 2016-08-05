@@ -111,8 +111,6 @@ namespace ProceduralWings.B9
         #region Shared properties / Limits and increments
         public virtual Vector2d GetLimitsFromType(Vector4d set)
         {
-            if (WPDebug.logLimits)
-                Log($"GetLimitsFromType, Using set: {set}");
             return new Vector2d(set.x, set.y);
         }
 
@@ -473,12 +471,7 @@ namespace ProceduralWings.B9
         // Attachment handling
         public void UpdateOnEditorAttach()
         {
-            if (WPDebug.logEvents)
-                Log("UpdateOnEditorAttach, Setup started");
-
             UpdateGeometry(true);
-            if (WPDebug.logEvents)
-                Log("UpdateOnEditorAttach, Setup ended");
         }
 
         public void UpdateOnEditorDetach()
@@ -541,8 +534,6 @@ namespace ProceduralWings.B9
                 Array.Copy(meshReferenceWingSection.vp, vp, length);
                 Vector2[] uv = new Vector2[length];
                 Array.Copy(meshReferenceWingSection.uv, uv, length);
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing section | Passed array setup");
 
                 for (int i = 0; i < length; ++i)
                 {
@@ -585,9 +576,6 @@ namespace ProceduralWings.B9
                 meshCollider.sharedMesh = null;
                 meshCollider.sharedMesh = meshFilterWingSection.mesh;
                 meshCollider.convex = true;
-
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing section | Finished");
             }
 
             // Second, wing surfaces
@@ -606,8 +594,6 @@ namespace ProceduralWings.B9
                 Color[] cl = new Color[length];
                 Vector2[] uv2 = new Vector2[length];
 
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing surface top | Passed array setup");
                 for (int i = 0; i < length; ++i)
                 {
                     // Root/tip filtering followed by leading/trailing filtering
@@ -656,10 +642,6 @@ namespace ProceduralWings.B9
                 meshFilterWingSurface.mesh.uv2 = uv2;
                 meshFilterWingSurface.mesh.colors = cl;
                 meshFilterWingSurface.mesh.RecalculateBounds();
-
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing surface | Finished");
-
             }
 
             // Next, time for leading and trailing edges
@@ -706,8 +688,6 @@ namespace ProceduralWings.B9
                 Color[] cl = new Color[length];
                 Vector2[] uv2 = new Vector2[length];
 
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing edge trailing | Passed array setup");
                 for (int i = 0; i < vp.Length; ++i)
                 {
                     if (vp[i].x < -0.1f)
@@ -729,8 +709,6 @@ namespace ProceduralWings.B9
                 meshFiltersWingEdgeTrailing[wingEdgeTypeTrailingInt].mesh.uv2 = uv2;
                 meshFiltersWingEdgeTrailing[wingEdgeTypeTrailingInt].mesh.colors = cl;
                 meshFiltersWingEdgeTrailing[wingEdgeTypeTrailingInt].mesh.RecalculateBounds();
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing edge trailing | Finished");
             }
             if (meshFiltersWingEdgeLeading[wingEdgeTypeLeadingInt] != null)
             {
@@ -745,8 +723,6 @@ namespace ProceduralWings.B9
                 Color[] cl = new Color[length];
                 Vector2[] uv2 = new Vector2[length];
 
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing edge leading | Passed array setup");
                 for (int i = 0; i < vp.Length; ++i)
                 {
                     if (vp[i].x < -0.1f)
@@ -769,11 +745,7 @@ namespace ProceduralWings.B9
                 meshFiltersWingEdgeLeading[wingEdgeTypeLeadingInt].mesh.uv2 = uv2;
                 meshFiltersWingEdgeLeading[wingEdgeTypeLeadingInt].mesh.colors = cl;
                 meshFiltersWingEdgeLeading[wingEdgeTypeLeadingInt].mesh.RecalculateBounds();
-                if (WPDebug.logUpdateGeometry)
-                    Log("UpdateGeometry, Wing edge leading | Finished");
             }
-            if (WPDebug.logUpdateGeometry)
-                Log("UpdateGeometry, Finished");
             if (updateAerodynamics)
                 CalculateAerodynamicValues();
         }
@@ -904,20 +876,14 @@ namespace ProceduralWings.B9
         {
             if (reference == null)
             {
-                if (WPDebug.logCheckMeshFilter)
-                    Log($"CheckMeshFilter, Looking for object: {name}");
                 Transform parent = part.transform.GetChild(0).GetChild(0).GetChild(0).Find(name);
                 if (parent != null)
                 {
                     parent.localPosition = Vector3.zero;
-                    if (WPDebug.logCheckMeshFilter)
-                        Log($"CheckMeshFilter, Object {name} was found");
                     reference = parent.gameObject.GetComponent<MeshFilter>();
                     if (disable)
                         parent.gameObject.SetActive(false);
                 }
-                else if (WPDebug.logCheckMeshFilter)
-                    Log($"CheckMeshFilter, Object {name} was not found!");
             }
             return reference;
         }
@@ -941,8 +907,6 @@ namespace ProceduralWings.B9
                 Array.Copy(source.mesh.uv, reference.uv, length);
                 return reference;
             }
-            else if (WPDebug.logMeshReferences)
-                Log("FillMeshReference, Mesh filter reference is null, unable to set up reference arrays");
             return null;
         }
         #endregion
@@ -988,7 +952,6 @@ namespace ProceduralWings.B9
                 materialLayeredSurface.SetFloat("_Shininess", materialPropertyShininess);
                 materialLayeredSurface.SetColor("_SpecColor", materialPropertySpecular);
             }
-            else if (WPDebug.logUpdateMaterials) Log("SetMaterialReferences, Surface textures not found");
 
             if (materialLayeredEdgeTextureMain != null && materialLayeredEdgeTextureMask != null)
             {
@@ -997,7 +960,6 @@ namespace ProceduralWings.B9
                 materialLayeredEdge.SetFloat("_Shininess", materialPropertyShininess);
                 materialLayeredEdge.SetColor("_SpecColor", materialPropertySpecular);
             }
-            else if (WPDebug.logUpdateMaterials) Log("SetMaterialReferences, Edge textures not found");
         }
 
         public virtual void SetMaterial(MeshFilter target, Material material)
@@ -1019,8 +981,6 @@ namespace ProceduralWings.B9
                 {
                     materialLayeredSurfaceTextureMain = r.sharedMaterial.GetTexture("_MainTex");
                     materialLayeredSurfaceTextureMask = r.sharedMaterial.GetTexture("_Emissive");
-                    if (WPDebug.logUpdateMaterials)
-                        Log($"SetTextures, Main: {materialLayeredSurfaceTextureMain} | Mask: {materialLayeredSurfaceTextureMask}");
                 }
             }
             if (sourceEdge != null)
@@ -1030,8 +990,6 @@ namespace ProceduralWings.B9
                 {
                     materialLayeredEdgeTextureMain = r.sharedMaterial.GetTexture("_MainTex");
                     materialLayeredEdgeTextureMask = r.sharedMaterial.GetTexture("_Emissive");
-                    if (WPDebug.logUpdateMaterials)
-                        Log($"SetTextures, Main: {materialLayeredEdgeTextureMain} Mask: {materialLayeredEdgeTextureMask}");
                 }
             }
         }
@@ -1063,8 +1021,6 @@ namespace ProceduralWings.B9
             {
                 if (vesselList[i].vessel.GetInstanceID() == vesselID)
                 {
-                    if (WPDebug.logFlightSetup)
-                        Log($"SetupReorderedForFlight, Vessel {vesselID} found in the status list");
                     vesselListInclusive = true;
                     vesselStatusIndex = i;
                 }
@@ -1075,8 +1031,6 @@ namespace ProceduralWings.B9
 
             if (!vesselListInclusive)
             {
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not found in the status list, adding it");
                 vesselList.Add(new VesselStatus(vessel, false));
                 vesselStatusIndex = vesselList.Count - 1;
             }
@@ -1086,8 +1040,6 @@ namespace ProceduralWings.B9
 
             if (!vesselList[vesselStatusIndex].isUpdated)
             {
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not updated yet (this message should only appear once)");
                 vesselList[vesselStatusIndex].isUpdated = true;
                 List<B9_WingProcedural> moduleList = new List<B9_WingProcedural>();
 
@@ -1103,9 +1055,6 @@ namespace ProceduralWings.B9
 
                 // After that we make two separate runs through that list
                 // First one setting up all geometry and second one setting up aerodynamic values
-
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} contained {vesselPartsCount} parts, of which {moduleList.Count} should be set up");
                 int moduleListCount = moduleList.Count;
                 for (int i = 0; i < moduleListCount; ++i)
                 {
@@ -1115,8 +1064,6 @@ namespace ProceduralWings.B9
                 yield return new WaitForFixedUpdate();
                 yield return new WaitForFixedUpdate();
 
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} waited for updates, starting aero value calculation");
                 for (int i = 0; i < moduleListCount; ++i)
                 {
                     moduleList[i].CalculateAerodynamicValues();
@@ -1180,8 +1127,6 @@ namespace ProceduralWings.B9
 
         public override void CalculateAerodynamicValues()
         {
-            if (WPDebug.logCAV)
-                Log("CalculateAerodynamicValues, Started");
             CheckAssemblies();
 
             float sharedWidthTipSum = sharedBaseWidthTip;
@@ -1228,8 +1173,6 @@ namespace ProceduralWings.B9
             Cl = liftFudgeNumber * surfaceArea * ArSweepScale;
             GatherChildrenCl();
             connectionForce = Math.Round(Utils.Clamp(Math.Sqrt(Cl + ChildrenCl) * (double)connectionFactor, (double)connectionMinimum, double.MaxValue));
-            if (WPDebug.logCAV)
-                Log("CalculateAerodynamicValues, Passed SR/AR/ARSS/mass/Cl/Cd/connection");
 
             // Shared parameters
 
@@ -1238,8 +1181,6 @@ namespace ProceduralWings.B9
 
             part.breakingForce = Mathf.Round((float)connectionForce);
             part.breakingTorque = Mathf.Round((float)connectionForce);
-            if (WPDebug.logCAV)
-                Log("CalculateAerodynamicValues, Passed cost/force/torque");
 
             // Stock-only values
             if (!FARactive)
@@ -1258,10 +1199,7 @@ namespace ProceduralWings.B9
             aeroUITaperRatio = (float)taperRatio;
             aeroUISurfaceArea = (float)surfaceArea;
             aeroUIAspectRatio = (float)aspectRatio;
-
-            if (WPDebug.logCAV)
-                Log("CalculateAerodynamicValues, Finished");
-
+            
             StartCoroutine(updateAeroDelayed());
         }
 
@@ -1315,11 +1253,6 @@ namespace ProceduralWings.B9
         #endregion
 
         #region Coloration
-
-        // XYZ
-        // HSB
-        // RGB
-
         public virtual Color GetVertexColor(int side)
         {
             if (side == 0)

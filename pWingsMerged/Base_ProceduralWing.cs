@@ -141,16 +141,12 @@ namespace ProceduralWings
             GameEvents.onGameSceneLoadRequested.Remove(OnSceneSwitch);
         }
 
-        // unnecesary save/load. config is static so it will be initialised as you pass through the space center, and there is no way to change options in the editor scene
-        // may resolve errors reported by Hodo
         public override void OnSave(ConfigNode node)
         {
-            if (WPDebug.logEvents)
-                Log("OnSave, Invoked");
             try
             {
-                vesselList.FirstOrDefault(vs => vs.vessel == vessel).isUpdated = false;
-                ProceduralWingDebug.SaveConfigs();
+                if (vesselList != null)
+                    vesselList.FirstOrDefault(vs => vs.vessel == vessel).isUpdated = false;
             }
             catch
             {
@@ -251,8 +247,6 @@ namespace ProceduralWings
             {
                 if (vesselList[i].vessel.GetInstanceID() == vesselID)
                 {
-                    if (WPDebug.logFlightSetup)
-                        Log($"SetupReorderedForFlight, Vessel {vesselID} found in the status list");
                     vesselListInclusive = true;
                     vesselStatusIndex = i;
                 }
@@ -260,40 +254,28 @@ namespace ProceduralWings
 
             // If it was not included, we add it to the list
             // Correct index is then fairly obvious
-
             if (!vesselListInclusive)
             {
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not found in the status list, adding it");
                 vesselList.Add(new VesselStatus(vessel, false));
                 vesselStatusIndex = vesselList.Count - 1;
             }
 
-            // Using the index for the status list we obtained, we check whether it was updated yet
-            // So that only one part can run the following part
-
+            // Using the index for the status list we obtained, we check whether it was updated yet. So that only one part can run the following part
             if (!vesselList[vesselStatusIndex].isUpdated)
             {
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not updated yet (this message should only appear once)");
                 vesselList[vesselStatusIndex].isUpdated = true;
                 List<Base_ProceduralWing> moduleList = new List<Base_ProceduralWing>();
 
-                // First we get a list of all relevant parts in the vessel
-                // Found modules are added to a list
-                for (int i = 0; i < vessel.parts.Count; ++i)
+                for (int i = 0; i < vessel.parts.Count; ++i) // First we get a list of all relevant parts in the vessel. Found modules are added to a list
                     moduleList.AddRange(vessel.parts[i].Modules.OfType<Base_ProceduralWing>());
 
-                // After that we make two separate runs through that list
-                // First one setting up all geometry and second one setting up aerodynamic values
+                // After that we make two separate runs through that list. First one setting up all geometry and second one setting up aerodynamic values
                 for (int i = 0; i < moduleList.Count; ++i)
                     moduleList[i].Setup();
 
                 yield return new WaitForFixedUpdate();
                 yield return new WaitForFixedUpdate();
 
-                if (WPDebug.logFlightSetup)
-                    Log($"SetupReorderedForFlight, Vessel {vesselID} waited for updates, starting aero value calculation");
                 for (int i = 0; i < moduleList.Count; ++i)
                     moduleList[i].CalculateAerodynamicValues();
             }
@@ -725,21 +707,50 @@ namespace ProceduralWings
 
 
         #region UI stuff
+        public static EditorWindow window;
 
         public KeyCode uiKeyCodeEdit = KeyCode.J;
 
-        public void CreateEditorUI()
+        public static void CreateEditorUI()
         {
-            Debug.Log("creating UI");
             EditorWindow window = EditorWindow.Instance;
             PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
-            PropertySlider p = basegroup.AddProperty("Length", 0.05f, 16.0f, (float)length, 2, SetLength);
-            p.onValueChanged += SetLength;
+            basegroup.AddProperty("Length", 0.05f, 16.0f, (float)window.wing.Length, 2, SetLength);
+            basegroup.AddProperty("Width (root)", 0.05f, 16.0f, (float)window.wing.rootWidth, 2, SetRootWidth);
+            basegroup.AddProperty("Width (tip)", 0.05f, 16.0f, (float)window.wing.tipWidth, 2, SetTipWidth);
+            basegroup.AddProperty("Offset (tip)", -8.0f, 8.0f, (float)window.wing.tipOffset, 2, SetOffset);
+            basegroup.AddProperty("Thickness (root)", 0.01f, 2.0f, (float)window.wing.rootThickness, 2, SetRootThickness);
+            basegroup.AddProperty("Thickness (tip)", 0.01f, 2.0f, (float)window.wing.tipThickness, 2, SetTipThickness);
         }
 
         public static void SetLength(float value)
         {
-            EditorWindow.currentWing.tipPos = new Vector3(EditorWindow.currentWing.tipPos.x, EditorWindow.currentWing.tipPos.y, (float)value);
+            window.wing.Length = value;
+        }
+
+        public static void SetRootWidth(float value)
+        {
+            window.wing.rootWidth = value;
+        }
+
+        public static void SetTipWidth(float value)
+        {
+            window.wing.tipWidth = value;
+        }
+
+        public static void SetOffset(float value)
+        {
+            window.wing.tipOffset = value;
+        }
+
+        public static void SetRootThickness(float value)
+        {
+            window.wing.rootThickness = value;
+        }
+
+        public static void SetTipThickness(float value)
+        {
+            window.wing.tipThickness = value;
         }
 
 

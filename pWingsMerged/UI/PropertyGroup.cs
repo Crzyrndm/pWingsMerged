@@ -9,7 +9,7 @@ namespace ProceduralWings.UI
     /// <summary>
     /// A group of properties with visibility toggled by a button press
     /// </summary>
-    class PropertyGroup
+    public class PropertyGroup
     {
         /// <summary>
         /// used by the window to add groups to the go tree correctly
@@ -36,7 +36,7 @@ namespace ProceduralWings.UI
         /// <summary>
         /// List of all properties added to this group
         /// </summary>
-        List<PropertySlider> propertyList = new List<PropertySlider>();
+        Dictionary<string, PropertySlider> properties = new Dictionary<string, PropertySlider>();
 
         /// <summary>
         /// constructor
@@ -67,9 +67,13 @@ namespace ProceduralWings.UI
 
         public PropertySlider AddProperty(string name, float min, float max, float value, int numDec, Action<float> onChanged)
         {
-            PropertySlider newGroup = new PropertySlider(name, groupColour, min, max, value, numDec, onChanged);
-            propertyList.Add(newGroup);
-            newGroup.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+            PropertySlider newGroup;
+            if (!properties.TryGetValue(name, out newGroup)) // prevent adding duplicate properties for some reason
+            {
+                newGroup = new PropertySlider(name, groupColour, min, max, value, numDec, onChanged);
+                properties.Add(name, newGroup);
+                newGroup.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+            }
             return newGroup;
         }
 

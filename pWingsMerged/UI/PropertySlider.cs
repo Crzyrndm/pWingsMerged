@@ -7,7 +7,7 @@ namespace ProceduralWings.UI
     /// <summary>
     /// A single property value. Has two images to use for creating a slider, a text field for the property title, and an input field for direct user entry of values
     /// </summary>
-    class PropertySlider
+    public class PropertySlider
     {
         /// <summary>
         /// used by property group to associate the go in the tree for rendering

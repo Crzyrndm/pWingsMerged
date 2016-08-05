@@ -1,9 +1,4 @@
-﻿using KSP;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ProceduralWings.Utility
 {
@@ -33,29 +28,6 @@ namespace ProceduralWings.Utility
             r.y = Screen.height / 2f - r.height / 2f;
             return r;
         }
-
-        public static double TextEntryForDouble (string label, int labelWidth, double prevValue)
-        {
-            double temp;
-            string valString = prevValue.ToString ();
-            UIUtility.TextEntryField (label, labelWidth, ref valString);
-
-            if (!double.TryParse(valString, out temp))
-                return prevValue;
-
-            return temp;
-        }
-
-        public static void TextEntryField (string label, int labelWidth, ref string inputOutput)
-        {
-            GUILayout.BeginHorizontal ();
-            GUILayout.Label (label, GUILayout.Width (labelWidth));
-            inputOutput = GUILayout.TextField (inputOutput);
-            GUILayout.EndHorizontal ();
-        }
-
-
-        private static Vector3 mousePos = Vector3.zero;
 
         public static Vector3 GetMousePos ()
         {
