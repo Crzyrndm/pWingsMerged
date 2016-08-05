@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace ProceduralWings.Original
 {
-    public class WingManipulator : ProceduralWing
+    public class WingManipulator : Base_ProceduralWing
     {
         public override double tipThickness
         {
@@ -55,6 +55,27 @@ namespace ProceduralWings.Original
             get
             {
                 return Root.position;
+            }
+        }
+
+        public override double Scale
+        {
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override double Length
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -257,9 +278,9 @@ namespace ProceduralWings.Original
 
             Tip.localPosition = tipPosition + TipSpawnOffset;
 
-            if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<ProceduralWing>().Any() && !IgnoreSnapping)
+            if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<Base_ProceduralWing>().Any() && !IgnoreSnapping)
             {
-                ProceduralWing Parent = part.parent.Modules.OfType<ProceduralWing>().FirstOrDefault();
+                Base_ProceduralWing Parent = part.parent.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
                 //rootScale = Parent.tipScale;
             }
@@ -319,7 +340,7 @@ namespace ProceduralWings.Original
         public override void OnAttach()
         {
             base.OnAttach();
-            if (part.parent.Modules.OfType<ProceduralWing>().Any())
+            if (part.parent.Modules.OfType<Base_ProceduralWing>().Any())
                 Events["MatchTaperEvent"].guiActiveEditor = false;
         }
 
@@ -343,7 +364,7 @@ namespace ProceduralWings.Original
             SetupCollider();
 
             // Enable root-matching events
-            if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<ProceduralWing>().Any())
+            if (IsAttached && this.part.parent != null && this.part.parent.Modules.OfType<Base_ProceduralWing>().Any())
                 Events["MatchTaperEvent"].guiActiveEditor = true;
         }
         #endregion

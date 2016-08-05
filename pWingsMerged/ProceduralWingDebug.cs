@@ -270,21 +270,21 @@ namespace ProceduralWings
                 return;
 
             if (node.HasValue("keyTranslation"))
-                ProceduralWing.keyTranslation = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTranslation"), true);
+                Base_ProceduralWing.keyTranslation = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTranslation"), true);
 
             if (node.HasValue("keyTipScale"))
-                ProceduralWing.keyTipScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTipScale"), true);
+                Base_ProceduralWing.keyTipScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTipScale"), true);
 
             if (node.HasValue("keyRootScale"))
-                ProceduralWing.keyRootScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyRootScale"), true);
+                Base_ProceduralWing.keyRootScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyRootScale"), true);
 
             if (node.HasValue("moveSpeed"))
-                float.TryParse(node.GetValue("moveSpeed"), out ProceduralWing.moveSpeed);
+                float.TryParse(node.GetValue("moveSpeed"), out Base_ProceduralWing.moveSpeed);
 
             if (node.HasValue("scaleSpeed"))
-                float.TryParse(node.GetValue("scaleSpeed"), out ProceduralWing.scaleSpeed);
+                float.TryParse(node.GetValue("scaleSpeed"), out Base_ProceduralWing.scaleSpeed);
 
-            ProceduralWing.loadedConfig = true;
+            Base_ProceduralWing.loadedConfig = true;
         }
 
         public static void SaveConfigs ()

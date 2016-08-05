@@ -8,14 +8,12 @@ namespace ProceduralWings
 {
     using UI;
     using Utility;
-    using B9;
-    using Original;
-    using KSP.UI.Screens;
+    using Fuel;
 
     /// <summary>
     /// methods and properties common to both wing variants. Some implementations will be specific to the wing type
     /// </summary>
-    abstract public class ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
+    abstract public class Base_ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
         public virtual bool isCtrlSrf
         {
@@ -24,14 +22,16 @@ namespace ProceduralWings
 
         public override string GetInfo()
         {
-            return "this is a PWing";
+            return "this is a PWing and GetInfo needs to be overridden...";
         }
 
         // Properties for aero calcs
+        public abstract double Scale { set; } // scale all parameters of this part AND any children attached to it.
         public abstract Vector3 tipPos { get; set; }
         public abstract double tipWidth { get; set; }
         public abstract double tipThickness { get; set; }
         public abstract double tipOffset { get; set; }
+        public abstract double Length { get; set; }
         
         public virtual Vector3 rootPos
         {
@@ -134,11 +134,6 @@ namespace ProceduralWings
                 return;
 
             DeformWing();
-            if (CheckForGeometryChanges())
-            {
-                UpdateGeometry();
-                UpdateCounterparts();
-            }
         }
 
         public virtual void OnDestroy()
@@ -151,7 +146,7 @@ namespace ProceduralWings
         public override void OnSave(ConfigNode node)
         {
             if (WPDebug.logEvents)
-                DebugLogWithID("OnSave", "Invoked");
+                Log("OnSave, Invoked");
             try
             {
                 vesselList.FirstOrDefault(vs => vs.vessel == vessel).isUpdated = false;
@@ -159,7 +154,7 @@ namespace ProceduralWings
             }
             catch
             {
-                Debug.Log("B9 PWings - Failed to save settings");
+                Log("Failed to save settings");
             }
         }
 
@@ -211,7 +206,7 @@ namespace ProceduralWings
 
         public virtual void OnDetach()
         {
-            ProceduralWing parentWing = part.parent.Modules.OfType<ProceduralWing>().FirstOrDefault();
+            Base_ProceduralWing parentWing = part.parent.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
             if (parentWing != null)
             {
                 parentWing.FuelUpdateVolume(); // why am I doing this...?
@@ -257,7 +252,7 @@ namespace ProceduralWings
                 if (vesselList[i].vessel.GetInstanceID() == vesselID)
                 {
                     if (WPDebug.logFlightSetup)
-                        DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " found in the status list");
+                        Log($"SetupReorderedForFlight, Vessel {vesselID} found in the status list");
                     vesselListInclusive = true;
                     vesselStatusIndex = i;
                 }
@@ -269,7 +264,7 @@ namespace ProceduralWings
             if (!vesselListInclusive)
             {
                 if (WPDebug.logFlightSetup)
-                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " was not found in the status list, adding it");
+                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not found in the status list, adding it");
                 vesselList.Add(new VesselStatus(vessel, false));
                 vesselStatusIndex = vesselList.Count - 1;
             }
@@ -280,14 +275,14 @@ namespace ProceduralWings
             if (!vesselList[vesselStatusIndex].isUpdated)
             {
                 if (WPDebug.logFlightSetup)
-                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " was not updated yet (this message should only appear once)");
+                    Log($"SetupReorderedForFlight, Vessel {vesselID} was not updated yet (this message should only appear once)");
                 vesselList[vesselStatusIndex].isUpdated = true;
-                List<ProceduralWing> moduleList = new List<ProceduralWing>();
+                List<Base_ProceduralWing> moduleList = new List<Base_ProceduralWing>();
 
                 // First we get a list of all relevant parts in the vessel
                 // Found modules are added to a list
                 for (int i = 0; i < vessel.parts.Count; ++i)
-                    moduleList.AddRange(vessel.parts[i].Modules.OfType<ProceduralWing>());
+                    moduleList.AddRange(vessel.parts[i].Modules.OfType<Base_ProceduralWing>());
 
                 // After that we make two separate runs through that list
                 // First one setting up all geometry and second one setting up aerodynamic values
@@ -298,7 +293,7 @@ namespace ProceduralWings
                 yield return new WaitForFixedUpdate();
 
                 if (WPDebug.logFlightSetup)
-                    DebugLogWithID("SetupReorderedForFlight", "Vessel " + vesselID + " waited for updates, starting aero value calculation");
+                    Log($"SetupReorderedForFlight, Vessel {vesselID} waited for updates, starting aero value calculation");
                 for (int i = 0; i < moduleList.Count; ++i)
                     moduleList[i].CalculateAerodynamicValues();
             }
@@ -357,7 +352,7 @@ namespace ProceduralWings
             {
                 if (part.symmetryCounterparts[s] == null) // fixes nullref caused by removing mirror sym while hovering over attach location
                     continue;
-                ProceduralWing wing = part.symmetryCounterparts[s].Modules.OfType<ProceduralWing>().FirstOrDefault();
+                Base_ProceduralWing wing = part.symmetryCounterparts[s].Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 if (wing != null)
                 {
                     wing.fuelSelectedTankSetup = fuelSelectedTankSetup;
@@ -553,7 +548,7 @@ namespace ProceduralWings
             // Add up the Cl and ChildrenCl of all our children to our ChildrenCl
             foreach (Part p in this.part.children)
             {
-                ProceduralWing child = p.Modules.OfType<ProceduralWing>().FirstOrDefault();
+                Base_ProceduralWing child = p.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 if (child != null)
                 {
                     ChildrenCl += child.Cl;
@@ -564,7 +559,7 @@ namespace ProceduralWings
             // If parent is a pWing, trickle the call to gather ChildrenCl down to them.
             if (this.part.parent != null)
             {
-                ProceduralWing Parent = this.part.parent.Modules.OfType<ProceduralWing>().FirstOrDefault();
+                Base_ProceduralWing Parent = this.part.parent.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 if (Parent != null)
                     Parent.GatherChildrenCl();
             }
@@ -579,9 +574,6 @@ namespace ProceduralWings
         public Vector3 tempVec = Vector3.zero;
         public virtual void OnMouseOver()
         {
-            DebugValues();
-            
-
             if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
             
@@ -654,7 +646,7 @@ namespace ProceduralWings
 
         public virtual void scaleRoot(Vector3 diff)
         {
-            if (part.parent.Modules.OfType<ProceduralWing>().Any())
+            if (part.parent.Modules.OfType<Base_ProceduralWing>().Any())
                 return;
             // Root scaling
             // only if the root part is not a pWing, in which case the root will snap to the parent tip
@@ -711,81 +703,9 @@ namespace ProceduralWings
         }
         #endregion
 
-        #region debug
-        public struct DebugMessage
-        {
-            public string message;
-            public string interval;
-
-            public DebugMessage(string m, string i)
-            {
-                message = m;
-                interval = i;
-            }
-        }
-
-        public DateTime debugTime;
-        public DateTime debugTimeLast;
-        public List<DebugMessage> debugMessageList = new List<DebugMessage>();
-        
-        /// <summary>
-        /// Print debug values when 'O' is pressed.
-        /// </summary>
-        public void DebugValues()
-        {
-            if (Input.GetKeyDown(KeyCode.O))
-            {
-                print("tipScaleModified " + tipWidth);
-                print("rootScaleModified " + rootWidth);
-                print("Mass " + wingMass);
-                print("ConnectionForce " + connectionForce);
-                print("DeflectionLift " + Cl);
-                print("ChildrenDeflectionLift " + ChildrenCl);
-                print("DeflectionDrag " + Cd);
-                print("Aspectratio " + aspectRatio);
-                print("ArSweepScale " + ArSweepScale);
-                print("Surfacearea " + surfaceArea);
-                print("taperRatio " + taperRatio);
-                print("MidChordSweep " + midChordSweep);
-                print("MAC " + MAC);
-                print("b_2 " + length);
-                print("FARactive " + FARactive);
-            }
-        }
-
-        public void DebugLogWithID(string method, string message)
-        {
-            debugTime = DateTime.UtcNow;
-            string m = "WP | ID: " + part.gameObject.GetInstanceID() + " | " + method + " | " + message;
-            string i = (debugTime - debugTimeLast).TotalMilliseconds + " ms.";
-            if (debugMessageList.Count <= 150)
-                debugMessageList.Add(new DebugMessage(m, i));
-            debugTimeLast = DateTime.UtcNow;
-            Debug.Log(m);
-        }
-
-        ArrowPointer pointer;
-        void DrawArrow(Vector3 dir)
-        {
-            if (pointer == null)
-                pointer = ArrowPointer.Create(part.partTransform, Vector3.zero, dir, 30, Color.red, true);
-            else
-                pointer.Direction = dir;
-        }
-
-        void destroyArrow()
-        {
-            if (pointer != null)
-            {
-                Destroy(pointer);
-                pointer = null;
-            }
-        }
-        #endregion
-
         #region Parent matching
 
-        public virtual void inheritShape(ProceduralWing parent)
+        public virtual void inheritShape(Base_ProceduralWing parent)
         {
             inheritBase(parent);
 
@@ -794,7 +714,7 @@ namespace ProceduralWings
             tipThickness = rootThickness + ((parent.tipThickness - parent.rootThickness) / parent.length) * length;
         }
 
-        public virtual void inheritBase(ProceduralWing parent)
+        public virtual void inheritBase(Base_ProceduralWing parent)
         {
             rootWidth = parent.tipWidth;
             rootThickness = parent.tipThickness;
@@ -824,5 +744,15 @@ namespace ProceduralWings
 
 
         #endregion
+
+        public static void Log(string formatted)
+        {
+            Debug.Log("[B9PW] " + formatted);
+        }
+
+        public static void Log(string toBeFormatted, params object[] args)
+        {
+            Debug.Log("[B9PW] " + string.Format(toBeFormatted, args));
+        }
     }
 }

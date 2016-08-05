@@ -43,7 +43,7 @@ namespace ProceduralWings.UI
         }
 
 
-        public static ProceduralWing currentWing;
+        public static Base_ProceduralWing currentWing;
 
         /// <summary>
         /// window position
