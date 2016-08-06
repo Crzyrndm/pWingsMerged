@@ -7,98 +7,98 @@ namespace ProceduralWings.Original
 {
     class ControlManipulator : WingManipulator
     {
-        public override bool isCtrlSrf
-        {
-            get { return true; }
-        }
+        //public override bool isCtrlSrf
+        //{
+        //    get { return true; }
+        //}
 
-        [KSPField]
-        public float ctrlFraction = 1f;
+        //[KSPField]
+        //public float ctrlFraction = 1f;
 
-        public const float costDensityControl = 6500f;
+        //public const float costDensityControl = 6500f;
 
-        /// <summary>
-        /// control surfaces cant carry fuel
-        /// </summary>
-        public override bool canBeFueled
-        {
-            get
-            {
-                return false;
-            }
-        }
+        ///// <summary>
+        ///// control surfaces cant carry fuel
+        ///// </summary>
+        //public override bool canBeFueled
+        //{
+        //    get
+        //    {
+        //        return false;
+        //    }
+        //}
 
-        public override float updateCost()
-        {
-            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
-        }
+        //public override float updateCost()
+        //{
+        //    return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
+        //}
 
-        [KSPField]
-        public bool symmetricMovement = true;
-        [KSPField(isPersistant = true)]
-        public Vector3 rootPosition = Vector3.zero;
+        //[KSPField]
+        //public bool symmetricMovement = true;
+        //[KSPField(isPersistant = true)]
+        //public Vector3 rootPosition = Vector3.zero;
 
-        public override void UpdateGeometry()
-        {
-            base.UpdateGeometry();
+        //public override void UpdateGeometry()
+        //{
+        //    base.UpdateGeometry();
 
-            if (symmetricMovement)
-            {
-                tipPosition.y = 0f;
-                tipPosition.x = 0f;
-                rootPosition.x = 0f;
-                rootPosition.y = 0f;
+        //    if (symmetricMovement)
+        //    {
+        //        tipPosition.y = 0f;
+        //        tipPosition.x = 0f;
+        //        rootPosition.x = 0f;
+        //        rootPosition.y = 0f;
 
-                Root.localPosition = -(tipPosition + TipSpawnOffset);
-            }
-        }
+        //        Root.localPosition = -(tipPosition + TipSpawnOffset);
+        //    }
+        //}
 
-        public override void setFARModuleParams()
-        {
-            if (part.Modules.Contains("FARControllableSurface"))
-            {
-                PartModule FARmodule = part.Modules["FARControllableSurface"];
-                Type FARtype = FARmodule.GetType();
-                FARtype.GetField("b_2").SetValue(FARmodule, length);
-                FARtype.GetField("b_2_actual").SetValue(FARmodule, length);
-                FARtype.GetField("MAC").SetValue(FARmodule, MAC);
-                FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
-                FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
-                FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
-                FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-                FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
-            }
+        //public override void setFARModuleParams()
+        //{
+        //    if (part.Modules.Contains("FARControllableSurface"))
+        //    {
+        //        PartModule FARmodule = part.Modules["FARControllableSurface"];
+        //        Type FARtype = FARmodule.GetType();
+        //        FARtype.GetField("b_2").SetValue(FARmodule, length);
+        //        FARtype.GetField("b_2_actual").SetValue(FARmodule, length);
+        //        FARtype.GetField("MAC").SetValue(FARmodule, MAC);
+        //        FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
+        //        FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
+        //        FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
+        //        FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
+        //        FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
+        //    }
 
-            if (!triggerUpdate)
-                TriggerUpdateAllWings();
-            triggerUpdate = false;
-        }
+        //    if (!triggerUpdate)
+        //        TriggerUpdateAllWings();
+        //    triggerUpdate = false;
+        //}
 
-        public override void SetStockModuleParams()
-        {
-            // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
-            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // COP matches COM
-            ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
-            if (mCtrlSrf != null)
-            {
-                mCtrlSrf.deflectionLiftCoeff = (float)surfaceArea / 3.52f;
-                mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
-                part.mass = (float)surfaceArea * (1 + ctrlFraction) / 35.2f; // multiply by 0.1, divide by 3.52
-            }
-        }
+        //public override void SetStockModuleParams()
+        //{
+        //    // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
+        //    part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // COP matches COM
+        //    ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
+        //    if (mCtrlSrf != null)
+        //    {
+        //        mCtrlSrf.deflectionLiftCoeff = (float)surfaceArea / 3.52f;
+        //        mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
+        //        part.mass = (float)surfaceArea * (1 + ctrlFraction) / 35.2f; // multiply by 0.1, divide by 3.52
+        //    }
+        //}
 
-        public override void TriggerFARColliderUpdate()
-        {
-            CalculateAerodynamicValues();
-            PartModule FARmodule = null;
-            if (part.Modules.Contains("FARControllableSurface"))
-                FARmodule = part.Modules["FARControllableSurface"];
-            if (FARmodule != null)
-            {
-                Type FARtype = FARmodule.GetType();
-                FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
-            }
-        }
+        //public override void TriggerFARColliderUpdate()
+        //{
+        //    CalculateAerodynamicValues();
+        //    PartModule FARmodule = null;
+        //    if (part.Modules.Contains("FARControllableSurface"))
+        //        FARmodule = part.Modules["FARControllableSurface"];
+        //    if (FARmodule != null)
+        //    {
+        //        Type FARtype = FARmodule.GetType();
+        //        FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
+        //    }
+        //}
 
         //public override void DeformWing()
         //{

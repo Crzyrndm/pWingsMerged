@@ -922,8 +922,8 @@ namespace ProceduralWings.B9
         {
             CheckAssemblies();
 
-            float sharedWidthTipSum = (float)TipWidth;
-            float sharedWidthRootSum = (float)RootWidth;
+            double sharedWidthTipSum = TipWidth;
+            double sharedWidthRootSum = RootWidth;
 
             double offset = 0;
             if (sharedEdgeTypeLeading != 1)
@@ -940,31 +940,29 @@ namespace ProceduralWings.B9
             }
             aeroStatRootMidChordOffsetFromOrigin = offset * Vector3d.up;
 
-            float ctrlOffsetRootLimit = ((float)Length / 2f) / ((float)RootWidth + sharedEdgeWidthTrailingRoot);
-            float ctrlOffsetTipLimit = ((float)Length / 2f) / ((float)TipWidth + sharedEdgeWidthTrailingTip);
+            double ctrlOffsetRootLimit = (Length / 2f) / (RootWidth + sharedEdgeWidthTrailingRoot);
+            double ctrlOffsetTipLimit = (Length / 2f) / (TipWidth + sharedEdgeWidthTrailingTip);
 
-            float ctrlOffsetRootClamped = Mathf.Clamp((float)RootWidth, -ctrlOffsetRootLimit, ctrlOffsetRootLimit);
-            float ctrlOffsetTipClamped = Mathf.Clamp((float)TipWidth, -ctrlOffsetTipLimit, ctrlOffsetTipLimit);
+            double ctrlOffsetRootClamped = Utils.Clamp(RootWidth, -ctrlOffsetRootLimit, ctrlOffsetRootLimit);
+            double ctrlOffsetTipClamped = Utils.Clamp(TipWidth, -ctrlOffsetTipLimit, ctrlOffsetTipLimit);
 
             // Base four values
-            taperRatio = (double)sharedWidthTipSum / (double)sharedWidthRootSum;
-            MAC = (double)(sharedWidthTipSum + sharedWidthRootSum) / 2.0;
-            midChordSweep = Math.Atan((double)(float)TipWidth / Length) * Utils.Rad2Deg;
+            double taperRatio = sharedWidthTipSum / sharedWidthRootSum;
+            double midChordSweep = Math.Atan(TipWidth / Length) * Utils.Rad2Deg;
 
             // Derived values
 
-            surfaceArea = MAC * Length;
-            aspectRatio = 2.0f * Length / MAC;
+            double aspectRatio = 2.0f * Length / MAC;
 
             ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0f) + 4.0f;
             ArSweepScale = 2.0f + Math.Sqrt(ArSweepScale);
             ArSweepScale = (2.0f * Math.PI) / ArSweepScale * aspectRatio;
 
-            wingMass = Utils.Clamp(massFudgeNumber * surfaceArea * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2), 0.01, double.MaxValue);
+            wingMass = Utils.Clamp(massFudgeNumber * MAC * Length * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2), 0.01, double.MaxValue);
             Cd = dragBaseValue / ArSweepScale * dragMultiplier;
-            Cl = liftFudgeNumber * surfaceArea * ArSweepScale;
+            Cl = liftFudgeNumber * MAC * Length * ArSweepScale;
             GatherChildrenCl();
-            connectionForce = Math.Round(Utils.Clamp(Math.Sqrt(Cl + ChildrenCl) * (double)connectionFactor, (double)connectionMinimum, double.MaxValue));
+            connectionForce = Math.Round(Utils.Clamp(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum, double.MaxValue));
 
             // Shared parameters
 
@@ -980,7 +978,7 @@ namespace ProceduralWings.B9
                 SetStockModuleParams();
             }
             else
-                setFARModuleParams();
+                setFARModuleParams(midChordSweep, taperRatio, Vector3.zero);
             
             StartCoroutine(updateAeroDelayed());
         }

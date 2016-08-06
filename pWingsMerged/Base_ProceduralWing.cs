@@ -129,6 +129,14 @@ namespace ProceduralWings
                 TipOffset = -value.x;
             }
         }
+        public virtual double MAC
+        {
+            get { return (TipWidth + RootWidth) / 2; }
+        }
+        public virtual string FarModuleName
+        {
+            get { return "FARWingAerodynamicModel"; }
+        }
         public virtual double Scale // scale all parameters of this part AND any children attached to it.
         {
             set
@@ -144,17 +152,12 @@ namespace ProceduralWings
         public static bool MFTactive;
 
         // aero parameters
-        public double MAC;
-        public double midChordSweep;
+        public double ArSweepScale;
         public double Cd;
         public double Cl;
         public double ChildrenCl;
         public double wingMass;
         public double connectionForce;
-        public double taperRatio;
-        public double surfaceArea;
-        public double aspectRatio;
-        public double ArSweepScale;
         public Vector3d midChordOffsetFromOrigin = Vector3.zero; // used to calculate the impact of edges on the wing center
 
         public const float liftFudgeNumber = 0.0775f;
@@ -578,20 +581,18 @@ namespace ProceduralWings
         /// </summary>
         public virtual void CalculateAerodynamicValues()
         {
-            MAC = (tipWidth.value + rootWidth.value);
-            midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length.value));
-            taperRatio = tipWidth.value / rootWidth.value;
-            surfaceArea = MAC * length.value;
-            aspectRatio = 2.0 * length.value / MAC;
+            double midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length.value));
+            double taperRatio = tipWidth.value / rootWidth.value;
+            double aspectRatio = 2.0 * length.value / MAC;
 
             ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0) + 4.0;
             ArSweepScale = 2.0 + Math.Sqrt(ArSweepScale);
             ArSweepScale = (2.0 * Math.PI) / ArSweepScale * aspectRatio;
 
-            wingMass = Math.Max(0.01, massFudgeNumber * surfaceArea * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
+            wingMass = Math.Max(0.01, massFudgeNumber * MAC * Length * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
 
             Cd = dragBaseValue / ArSweepScale * dragMultiplier;
-            Cl = liftFudgeNumber * surfaceArea * ArSweepScale;
+            Cl = liftFudgeNumber * MAC * Length * ArSweepScale;
             GatherChildrenCl();
 
             connectionForce = Math.Round(Math.Max(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum), 0);
@@ -606,32 +607,32 @@ namespace ProceduralWings
             if (!FARactive)
                 SetStockModuleParams();
             else
-                setFARModuleParams();
+                setFARModuleParams(midChordSweep, taperRatio, (Vector3)midChordOffsetFromOrigin);
 
             StartCoroutine(updateAeroDelayed());
         }
 
-        public virtual void setFARModuleParams()
+        public virtual void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
-            if (part.Modules.Contains("FARWingAerodynamicModel"))
+            if (part.Modules.Contains(FarModuleName))
             {
-                PartModule FARmodule = part.Modules["FARWingAerodynamicModel"];
+                PartModule FARmodule = part.Modules[FarModuleName];
                 Type FARtype = FARmodule.GetType();
-                FARtype.GetField("b_2").SetValue(FARmodule, length);
-                FARtype.GetField("b_2_actual").SetValue(FARmodule, length);
+                FARtype.GetField("b_2").SetValue(FARmodule, Length);
+                FARtype.GetField("b_2_actual").SetValue(FARmodule, Length);
                 FARtype.GetField("MAC").SetValue(FARmodule, MAC);
                 FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
-                FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
+                FARtype.GetField("S").SetValue(FARmodule, MAC * Length);
                 FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
                 FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-                FARtype.GetField("rootMidChordOffsetFromOrig").SetValue(FARmodule, (Vector3)midChordOffsetFromOrigin);
+                FARtype.GetField("rootMidChordOffsetFromOrig").SetValue(FARmodule, midChordOffset);
             }
         }
 
         public virtual void SetStockModuleParams()
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
-            float stockLiftCoefficient = (float)(surfaceArea / 3.52);
+            float stockLiftCoefficient = (float)(Length * MAC / 3.52);
             part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // CoL/P matches CoM unless otherwise specified
             part.Modules.GetModule<ModuleLiftingSurface>().deflectionLiftCoeff = stockLiftCoefficient;
             part.mass = stockLiftCoefficient * 0.1f;
@@ -657,9 +658,9 @@ namespace ProceduralWings
             }
             if (FARactive)
             {
-                if (part.Modules.Contains("FARWingAerodynamicModel"))
+                if (part.Modules.Contains(FarModuleName))
                 {
-                    PartModule FARmodule = part.Modules["FARWingAerodynamicModel"];
+                    PartModule FARmodule = part.Modules[FarModuleName];
                     Type FARtype = FARmodule.GetType();
                     FARtype.GetMethod("StartInitialization").Invoke(FARmodule, null);
                 }
