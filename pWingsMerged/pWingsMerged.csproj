@@ -72,10 +72,15 @@
     <Compile Include="Utility\Utils.cs" />
     <Compile Include="Fuel\WingTankConfiguration.cs" />
     <Compile Include="Fuel\WingTankResource.cs" />
+    <Compile Include="WingProperty.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>set SOURCE="D:\Libraries\GitHub\pWingsMerged\GameData"
+    <PostBuildEvent>set SOURCE="D:\Libraries\GitHub\Unity-Workspace\AssetBundles\wingshader.ksp"
+set DESTINATION="D:\Libraries\GitHub\pWingsMerged\GameData\B9_Aerospace_ProceduralWings\"
+xcopy %25SOURCE%25 %25DESTINATION%25 /E /C /R /I /K /Y
+
+set SOURCE="D:\Libraries\GitHub\pWingsMerged\GameData"
 set DESTINATION="D:\Libraries\Desktop\Kerbal Space Program Dev\GameData"
 xcopy %25SOURCE%25 %25DESTINATION%25 /E /C /R /I /K /Y</PostBuildEvent>
   </PropertyGroup>

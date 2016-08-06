@@ -9,13 +9,13 @@ namespace ProceduralWings.Original
 {
     public class WingManipulator : Base_ProceduralWing
     {
-        public override double tipThickness
+        public override double TipThickness
         {
             get { return 0.2 * tipScale.z; }
             set { tipScale.z = 5 * (float)value; }
         }
 
-        public override double tipWidth
+        public override double TipWidth
         {
             get { return tipScale.x * modelChordLength; }
             set { tipScale.x = (float)value / modelChordLength; }
@@ -27,19 +27,19 @@ namespace ProceduralWings.Original
             set { tipPosition = value; }
         }
 
-        public override double tipOffset
+        public override double TipOffset
         {
             get { return -tipPosition.x; }
             set { tipPosition.x = (float)-value; }
         }
 
-        public override double rootThickness
+        public override double RootThickness
         {
             get { return 0.2 * rootScale.z; }
             set { rootScale.z = (float)value * 5; }
         }
 
-        public override double rootWidth
+        public override double RootWidth
         {
             get { return rootScale.x * modelChordLength; }
             set { rootScale.x = (float)value / modelChordLength; }
@@ -124,16 +124,13 @@ namespace ProceduralWings.Original
             WingManipulator parentWing = part.parent.Modules.OfType<WingManipulator>().FirstOrDefault();
             if (parentWing == null)
                 return;
-            Vector3 changeTipScale = (float)(length / parentWing.length) * (parentWing.tipScale - parentWing.rootScale);
+            Vector3 changeTipScale = (float)(Length / parentWing.Length) * (parentWing.tipScale - parentWing.rootScale);
 
             // Scale the tip
             tipScale.Set(
                 Mathf.Max(rootScale.x + changeTipScale.x, 0.01f),
                 Mathf.Max(rootScale.y + changeTipScale.y, 0.01f),
                 Mathf.Max(rootScale.z + changeTipScale.z, 0.01f));
-
-            // Update part and children
-            UpdateCounterparts();
         }
 
         #region aerodynamics
@@ -230,34 +227,6 @@ namespace ProceduralWings.Original
             {
                 Base_ProceduralWing Parent = part.parent.Modules.OfType<Base_ProceduralWing>().FirstOrDefault();
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
-            }
-        }
-
-        public override void UpdateCounterparts()
-        {
-            UpdateGeometry();
-            SetupCollider();
-
-            if (updateChildren)
-                UpdateChildren();
-
-            CalculateAerodynamicValues();
-
-            for (int i = 0; i < part.symmetryCounterparts.Count; ++i)
-            {
-                Part p = part.symmetryCounterparts[i];
-                var clone = p.Modules.OfType<WingManipulator>().FirstOrDefault();
-
-                clone.rootScale = rootScale;
-                clone.tipScale = tipScale;
-                clone.tipPosition = tipPosition;
-
-                clone.UpdateGeometry();
-                clone.SetupCollider();
-
-                if (updateChildren)
-                    clone.UpdateChildren();
-                clone.CalculateAerodynamicValues();
             }
         }
 

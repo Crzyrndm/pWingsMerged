@@ -10,16 +10,14 @@ namespace ProceduralWings.B9
     using Utility;
     public class B9_ProceduralWing : Base_ProceduralWing
     {
+        public bool isMirrored;
         #region Unity stuff and Callbacks/events
 
-        public override void Update()
-        {
-            base.Update();
-        }
         // Attachment handling
-        public void UpdateOnEditorAttach()
+        public override void OnAttach()
         {
-            UpdateGeometry(true);
+            base.OnAttach();
+            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
         }
 
         public void UpdateOnEditorDetach()
@@ -35,6 +33,18 @@ namespace ProceduralWings.B9
             }
         }
 
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+            node.RemoveValues("mirrorTexturing");
+            node.AddValue("mirrorTexturing", isMirrored);
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            node.TryGetValue("mirrorTexturing", ref isMirrored);
+        }
 
         public override void SetupGeometryAndAppearance()
         {
@@ -86,11 +96,6 @@ namespace ProceduralWings.B9
             return incrementWing;
         }
 
-        public static Vector4d sharedBaseLengthLimits = new Vector4d(0.125, 16, 0.04, 8);
-        public static Vector2d sharedBaseThicknessLimits = new Vector2d(0.04, 1);
-        public static Vector4d sharedBaseWidthRootLimits = new Vector4d(0.125, 16, 0.04, 1.6);
-        public static Vector4d sharedBaseWidthTipLimits = new Vector4d(0.0001, 16, 0.04, 1.6);
-        public static Vector4d sharedBaseOffsetLimits = new Vector4d(-8, 8, -2, 2);
         public static Vector4d sharedEdgeTypeLimits = new Vector4d(1, 4, 1, 3);
         public static Vector4d sharedEdgeWidthLimits = new Vector4d(0, 1, 0, 1);
         public static Vector2d sharedMaterialLimits = new Vector2d(0, 4);
@@ -108,25 +113,12 @@ namespace ProceduralWings.B9
         public static string[] sharedFieldGroupBaseArray = new string[] { "sharedBaseLength", "sharedBaseWidthRoot", "sharedBaseWidthTip", "sharedBaseThicknessRoot", "sharedBaseThicknessTip", "sharedBaseOffsetTip" };
         public static string[] sharedFieldGroupBaseArrayCtrl = new string[] { "sharedBaseOffsetRoot" };
 
-        public float sharedBaseLength = 4f;
         public static Vector4 sharedBaseLengthDefaults = new Vector4(4f, 1f, 4f, 1f);
-
-        public float sharedBaseWidthRoot = 4f;
         public static Vector4 sharedBaseWidthRootDefaults = new Vector4(4f, 0.5f, 4f, 0.5f);
-
-        public float sharedBaseWidthTip = 4f;
         public static Vector4 sharedBaseWidthTipDefaults = new Vector4(4f, 0.5f, 4f, 0.5f);
-
-        public float sharedBaseOffsetRoot = 0f;
         public static Vector4 sharedBaseOffsetRootDefaults = new Vector4(0f, 0f, 0f, 0f);
-
-        public float sharedBaseOffsetTip = 0f;
         public static Vector4 sharedBaseOffsetTipDefaults = new Vector4(0f, 0f, 0f, 0f);
-
-        public float sharedBaseThicknessRoot = 0.24f;
         public static Vector4 sharedBaseThicknessRootDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
-
-        public float sharedBaseThicknessTip = 0.24f;
         public static Vector4 sharedBaseThicknessTipDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
         #endregion
@@ -289,23 +281,20 @@ namespace ProceduralWings.B9
         {
             base.inheritShape(parent);
 
-            if (tipWidth < sharedBaseWidthTipLimits.x)
-                length *= (rootWidth - sharedBaseWidthTipLimits.x) / (sharedBaseWidthRoot - sharedBaseWidthTip);
-            else if (tipWidth > sharedBaseWidthTipLimits.y)
-                length *= sharedBaseWidthTipLimits.y / tipWidth;
+            if (TipWidth < tipWidth.min)
+                Length *= (RootWidth - tipWidth.min) / (RootWidth - TipWidth);
+            else if (TipWidth > tipWidth.max)
+                Length *= tipWidth.max / TipWidth;
 
-            if (tipOffset > sharedBaseOffsetLimits.y)
-                length *= sharedBaseOffsetLimits.y / tipOffset;
-            else if (tipOffset < sharedBaseOffsetLimits.x)
-                length *= sharedBaseOffsetLimits.x / tipOffset;
+            if (TipOffset > tipOffset.max)
+                Length *= tipOffset.max / TipOffset;
+            else if (TipOffset < tipOffset.min)
+                Length *= tipOffset.min / TipOffset;
 
-            length = Utils.Clamp(length, sharedBaseLengthLimits.x, sharedBaseLengthLimits.y);
-            tipWidth = Utils.Clamp(tipWidth, sharedBaseWidthTipLimits.x, sharedBaseWidthTipLimits.y);
-            tipOffset = Utils.Clamp(tipOffset, sharedBaseOffsetLimits.x, sharedBaseOffsetLimits.y);
-            tipThickness = Utils.Clamp(rootThickness + length / parent.length * (parent.tipThickness - parent.rootThickness), sharedBaseThicknessLimits.x, sharedBaseThicknessLimits.y);
-
-            if (Input.GetMouseButtonUp(0))
-                inheritEdges(parent);
+            Length = Utils.Clamp(Length, length.min, length.max);
+            TipWidth = Utils.Clamp(TipWidth, tipWidth.min, tipWidth.max);
+            TipOffset = Utils.Clamp(TipOffset, tipOffset.min, tipOffset.max);
+            TipThickness = Utils.Clamp(RootThickness + Length / parent.Length * (parent.TipThickness - parent.RootThickness), tipThickness.min, tipThickness.max);
         }
 
         public override void inheritBase(Base_ProceduralWing parent)
@@ -330,11 +319,11 @@ namespace ProceduralWings.B9
 
             sharedEdgeTypeLeading = wing.sharedEdgeTypeLeading;
             sharedEdgeWidthLeadingRoot = wing.sharedEdgeWidthLeadingTip;
-            sharedEdgeWidthLeadingTip = (float)Utils.Clamp(sharedEdgeWidthLeadingRoot + ((wing.sharedEdgeWidthLeadingTip - wing.sharedEdgeWidthLeadingRoot) / wing.sharedBaseLength) * sharedBaseLength, sharedEdgeWidthLimits.x, sharedEdgeWidthLimits.y);
+            sharedEdgeWidthLeadingTip = (float)Utils.Clamp(sharedEdgeWidthLeadingRoot + ((wing.sharedEdgeWidthLeadingTip - wing.sharedEdgeWidthLeadingRoot) / wing.Length) * Length, sharedEdgeWidthLimits.x, sharedEdgeWidthLimits.y);
 
             sharedEdgeTypeTrailing = wing.sharedEdgeTypeTrailing;
             sharedEdgeWidthTrailingRoot = wing.sharedEdgeWidthTrailingTip;
-            sharedEdgeWidthTrailingTip = (float)Utils.Clamp(sharedEdgeWidthTrailingRoot + ((wing.sharedEdgeWidthTrailingTip - wing.sharedEdgeWidthTrailingRoot) / wing.sharedBaseLength) * sharedBaseLength, sharedEdgeWidthLimits.x, sharedEdgeWidthLimits.y);
+            sharedEdgeWidthTrailingTip = (float)Utils.Clamp(sharedEdgeWidthTrailingRoot + ((wing.sharedEdgeWidthTrailingTip - wing.sharedEdgeWidthTrailingRoot) / wing.Length) * Length, sharedEdgeWidthLimits.x, sharedEdgeWidthLimits.y);
         }
 
         public virtual void inheritColours(Base_ProceduralWing parent)
@@ -378,11 +367,11 @@ namespace ProceduralWings.B9
 
         public virtual void UpdateGeometry(bool updateAerodynamics)
         {
-            float wingThicknessDeviationRoot = sharedBaseThicknessRoot / 0.24f;
-            float wingThicknessDeviationTip = sharedBaseThicknessTip / 0.24f;
-            float wingWidthTipBasedOffsetTrailing = sharedBaseWidthTip / 2f + sharedBaseOffsetTip;
-            float wingWidthTipBasedOffsetLeading = -sharedBaseWidthTip / 2f + sharedBaseOffsetTip;
-            float wingWidthRootBasedOffset = sharedBaseWidthRoot / 2f;
+            float wingThicknessDeviationRoot = (float)RootThickness / 0.24f;
+            float wingThicknessDeviationTip = (float)TipThickness / 0.24f;
+            float wingWidthTipBasedOffsetTrailing = (float)TipWidth / 2f + (float)TipOffset;
+            float wingWidthTipBasedOffsetLeading = -(float)TipWidth / 2f + (float)TipOffset;
+            float wingWidthRootBasedOffset = (float)RootWidth / 2f;
 
             // First, wing cross section
             // No need to filter vertices by normals
@@ -402,12 +391,12 @@ namespace ProceduralWings.B9
                     {
                         if (vp[i].z < 0f)
                         {
-                            vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetLeading);
-                            uv[i] = new Vector2(sharedBaseWidthTip, uv[i].y);
+                            vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetLeading);
+                            uv[i] = new Vector2((float)TipWidth, uv[i].y);
                         }
                         else
                         {
-                            vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetTrailing);
+                            vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetTrailing);
                             uv[i] = new Vector2(0f, uv[i].y);
                         }
                     }
@@ -416,7 +405,7 @@ namespace ProceduralWings.B9
                         if (vp[i].z < 0f)
                         {
                             vp[i] = new Vector3(vp[i].x, vp[i].y * wingThicknessDeviationRoot, -wingWidthRootBasedOffset);
-                            uv[i] = new Vector2(sharedBaseWidthRoot, uv[i].y);
+                            uv[i] = new Vector2((float)RootWidth, uv[i].y);
                         }
                         else
                         {
@@ -461,13 +450,13 @@ namespace ProceduralWings.B9
                     {
                         if (vp[i].z < 0f)
                         {
-                            vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetLeading);
-                            uv[i] = new Vector2(sharedBaseLength / 4f, 1f - 0.5f + sharedBaseWidthTip / 8f - sharedBaseOffsetTip / 4f);
+                            vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetLeading);
+                            uv[i] = new Vector2((float)Length / 4f, 1f - 0.5f + (float)TipWidth / 8f - (float)TipOffset / 4f);
                         }
                         else
                         {
-                            vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetTrailing);
-                            uv[i] = new Vector2(sharedBaseLength / 4f, 0f + 0.5f - sharedBaseWidthTip / 8f - sharedBaseOffsetTip / 4f);
+                            vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, wingWidthTipBasedOffsetTrailing);
+                            uv[i] = new Vector2((float)Length / 4f, 0f + 0.5f - (float)TipWidth / 8f - (float)TipOffset / 4f);
                         }
                     }
                     else
@@ -475,17 +464,17 @@ namespace ProceduralWings.B9
                         if (vp[i].z < 0f)
                         {
                             vp[i] = new Vector3(vp[i].x, vp[i].y * wingThicknessDeviationRoot, -wingWidthRootBasedOffset);
-                            uv[i] = new Vector2(0.0f, 1f - 0.5f + sharedBaseWidthRoot / 8f);
+                            uv[i] = new Vector2(0.0f, 1f - 0.5f + (float)RootWidth / 8f);
                         }
                         else
                         {
                             vp[i] = new Vector3(vp[i].x, vp[i].y * wingThicknessDeviationRoot, wingWidthRootBasedOffset);
-                            uv[i] = new Vector2(0f, 0f + 0.5f - sharedBaseWidthRoot / 8f);
+                            uv[i] = new Vector2(0f, 0f + 0.5f - (float)RootWidth / 8f);
                         }
                     }
 
                     // Top/bottom filtering
-                    if (vp[i].y > 0f)
+                    if (vp[i].y > 0f ^ isMirrored)
                     {
                         cl[i] = GetVertexColor(0);
                         uv2[i] = GetVertexUV2(sharedMaterialST);
@@ -552,11 +541,11 @@ namespace ProceduralWings.B9
                 {
                     if (vp[i].x < -0.1f)
                     {
-                        vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, vp[i].z * wingEdgeWidthTrailingTipDeviation + sharedBaseWidthTip / 2f + sharedBaseOffsetTip); // Tip edge
-                        if (nm[i].x == 0f) uv[i] = new Vector2(sharedBaseLength, uv[i].y);
+                        vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, vp[i].z * wingEdgeWidthTrailingTipDeviation + (float)TipWidth / 2f + (float)TipOffset); // Tip edge
+                        if (nm[i].x == 0f) uv[i] = new Vector2((float)Length, uv[i].y);
                     }
                     else
-                        vp[i] = new Vector3(0f, vp[i].y * wingThicknessDeviationRoot, vp[i].z * wingEdgeWidthTrailingRootDeviation + sharedBaseWidthRoot / 2f); // Root edge
+                        vp[i] = new Vector3(0f, vp[i].y * wingThicknessDeviationRoot, vp[i].z * wingEdgeWidthTrailingRootDeviation + (float)RootWidth / 2f); // Root edge
                     if (nm[i].x == 0f && sharedEdgeTypeTrailing != 1)
                     {
                         cl[i] = GetVertexColor(2);
@@ -587,12 +576,12 @@ namespace ProceduralWings.B9
                 {
                     if (vp[i].x < -0.1f)
                     {
-                        vp[i] = new Vector3(-sharedBaseLength, vp[i].y * wingThicknessDeviationTip, vp[i].z * wingEdgeWidthLeadingTipDeviation + sharedBaseWidthTip / 2f - sharedBaseOffsetTip); // Tip edge
+                        vp[i] = new Vector3(-(float)Length, vp[i].y * wingThicknessDeviationTip, vp[i].z * wingEdgeWidthLeadingTipDeviation + (float)TipWidth / 2f - (float)TipOffset); // Tip edge
                         if (nm[i].x == 0f)
-                            uv[i] = new Vector2(sharedBaseLength, uv[i].y);
+                            uv[i] = new Vector2((float)Length, uv[i].y);
                     }
                     else
-                        vp[i] = new Vector3(0f, vp[i].y * wingThicknessDeviationRoot, vp[i].z * wingEdgeWidthLeadingRootDeviation + sharedBaseWidthRoot / 2f); // Root edge
+                        vp[i] = new Vector3(0f, vp[i].y * wingThicknessDeviationRoot, vp[i].z * wingEdgeWidthLeadingRootDeviation + (float)RootWidth / 2f); // Root edge
                     if (nm[i].x == 0f && sharedEdgeTypeLeading != 1)
                     {
                         cl[i] = GetVertexColor(3);
@@ -610,66 +599,67 @@ namespace ProceduralWings.B9
                 CalculateAerodynamicValues();
         }
 
-        public override void UpdateCounterparts()
-        {
-            B9_ProceduralWing clone;
-            for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
-            {
-                clone = null;
-                for (int j = part.symmetryCounterparts[i].Modules.Count - 1; i >=0; --j)
-                {
-                    if (part.symmetryCounterparts[i].Modules[j] is B9_ProceduralWing)
-                        clone = (B9_ProceduralWing)part.symmetryCounterparts[i].Modules[j];
-                }
-                if (clone == null)
-                {
-                    throw new NullReferenceException("symmetry counterpart should never not have the same modules !!!");
-                }
+        // done through references to wingproperties now
+        //public override void UpdateCounterparts()
+        //{
+        //    base.UpdateCounterparts();
+        //    B9_ProceduralWing clone;
+        //    for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
+        //    {
+        //        clone = null;
+        //        for (int j = part.symmetryCounterparts[i].Modules.Count - 1; i >=0; --j)
+        //        {
+        //            if (part.symmetryCounterparts[i].Modules[j] is B9_ProceduralWing)
+        //                clone = (B9_ProceduralWing)part.symmetryCounterparts[i].Modules[j];
+        //        }
+        //        if (clone == null)
+        //        {
+        //            throw new NullReferenceException("symmetry counterpart should never not have the same modules !!!");
+        //        }
 
-                clone.sharedBaseLength = sharedBaseLength;
-                clone.sharedBaseWidthRoot = sharedBaseWidthRoot;
-                clone.sharedBaseWidthTip = sharedBaseWidthTip;
-                clone.sharedBaseThicknessRoot = sharedBaseThicknessRoot;
-                clone.sharedBaseThicknessTip = sharedBaseThicknessTip;
-                clone.sharedBaseOffsetRoot = sharedBaseOffsetRoot;
-                clone.sharedBaseOffsetTip = sharedBaseOffsetTip;
+        //        clone.Length = Length;
+        //        clone.RootWidth = RootWidth;
+        //        clone.TipWidth = TipWidth;
+        //        clone.RootThickness = RootThickness;
+        //        clone.TipThickness = TipThickness;
+        //        clone.TipOffset = TipOffset;
 
-                clone.sharedEdgeTypeLeading = sharedEdgeTypeLeading;
-                clone.sharedEdgeWidthLeadingRoot = sharedEdgeWidthLeadingRoot;
-                clone.sharedEdgeWidthLeadingTip = sharedEdgeWidthLeadingTip;
+        //        clone.sharedEdgeTypeLeading = sharedEdgeTypeLeading;
+        //        clone.sharedEdgeWidthLeadingRoot = sharedEdgeWidthLeadingRoot;
+        //        clone.sharedEdgeWidthLeadingTip = sharedEdgeWidthLeadingTip;
 
-                clone.sharedEdgeTypeTrailing = sharedEdgeTypeTrailing;
-                clone.sharedEdgeWidthTrailingRoot = sharedEdgeWidthTrailingRoot;
-                clone.sharedEdgeWidthTrailingTip = sharedEdgeWidthTrailingTip;
+        //        clone.sharedEdgeTypeTrailing = sharedEdgeTypeTrailing;
+        //        clone.sharedEdgeWidthTrailingRoot = sharedEdgeWidthTrailingRoot;
+        //        clone.sharedEdgeWidthTrailingTip = sharedEdgeWidthTrailingTip;
 
-                clone.sharedMaterialST = sharedMaterialST;
-                clone.sharedMaterialSB = sharedMaterialSB;
-                clone.sharedMaterialET = sharedMaterialET;
-                clone.sharedMaterialEL = sharedMaterialEL;
+        //        clone.sharedMaterialST = sharedMaterialST;
+        //        clone.sharedMaterialSB = sharedMaterialSB;
+        //        clone.sharedMaterialET = sharedMaterialET;
+        //        clone.sharedMaterialEL = sharedMaterialEL;
 
-                clone.sharedColorSTBrightness = sharedColorSTBrightness;
-                clone.sharedColorSBBrightness = sharedColorSBBrightness;
-                clone.sharedColorETBrightness = sharedColorETBrightness;
-                clone.sharedColorELBrightness = sharedColorELBrightness;
+        //        clone.sharedColorSTBrightness = sharedColorSTBrightness;
+        //        clone.sharedColorSBBrightness = sharedColorSBBrightness;
+        //        clone.sharedColorETBrightness = sharedColorETBrightness;
+        //        clone.sharedColorELBrightness = sharedColorELBrightness;
 
-                clone.sharedColorSTOpacity = sharedColorSTOpacity;
-                clone.sharedColorSBOpacity = sharedColorSBOpacity;
-                clone.sharedColorETOpacity = sharedColorETOpacity;
-                clone.sharedColorELOpacity = sharedColorELOpacity;
+        //        clone.sharedColorSTOpacity = sharedColorSTOpacity;
+        //        clone.sharedColorSBOpacity = sharedColorSBOpacity;
+        //        clone.sharedColorETOpacity = sharedColorETOpacity;
+        //        clone.sharedColorELOpacity = sharedColorELOpacity;
 
-                clone.sharedColorSTHue = sharedColorSTHue;
-                clone.sharedColorSBHue = sharedColorSBHue;
-                clone.sharedColorETHue = sharedColorETHue;
-                clone.sharedColorELHue = sharedColorELHue;
+        //        clone.sharedColorSTHue = sharedColorSTHue;
+        //        clone.sharedColorSBHue = sharedColorSBHue;
+        //        clone.sharedColorETHue = sharedColorETHue;
+        //        clone.sharedColorELHue = sharedColorELHue;
 
-                clone.sharedColorSTSaturation = sharedColorSTSaturation;
-                clone.sharedColorSBSaturation = sharedColorSBSaturation;
-                clone.sharedColorETSaturation = sharedColorETSaturation;
-                clone.sharedColorELSaturation = sharedColorELSaturation;
+        //        clone.sharedColorSTSaturation = sharedColorSTSaturation;
+        //        clone.sharedColorSBSaturation = sharedColorSBSaturation;
+        //        clone.sharedColorETSaturation = sharedColorETSaturation;
+        //        clone.sharedColorELSaturation = sharedColorELSaturation;
 
-                clone.UpdateGeometry();
-            }
-        }
+        //        clone.UpdateGeometry();
+        //    }
+        //}
 
         // Edge geometry
         public Vector3[] GetReferenceVertices(MeshFilter source)
@@ -932,8 +922,8 @@ namespace ProceduralWings.B9
         {
             CheckAssemblies();
 
-            float sharedWidthTipSum = sharedBaseWidthTip;
-            float sharedWidthRootSum = sharedBaseWidthRoot;
+            float sharedWidthTipSum = (float)TipWidth;
+            float sharedWidthRootSum = (float)RootWidth;
 
             double offset = 0;
             if (sharedEdgeTypeLeading != 1)
@@ -950,22 +940,21 @@ namespace ProceduralWings.B9
             }
             aeroStatRootMidChordOffsetFromOrigin = offset * Vector3d.up;
 
-            float ctrlOffsetRootLimit = (sharedBaseLength / 2f) / (sharedBaseWidthRoot + sharedEdgeWidthTrailingRoot);
-            float ctrlOffsetTipLimit = (sharedBaseLength / 2f) / (sharedBaseWidthTip + sharedEdgeWidthTrailingTip);
+            float ctrlOffsetRootLimit = ((float)Length / 2f) / ((float)RootWidth + sharedEdgeWidthTrailingRoot);
+            float ctrlOffsetTipLimit = ((float)Length / 2f) / ((float)TipWidth + sharedEdgeWidthTrailingTip);
 
-            float ctrlOffsetRootClamped = Mathf.Clamp(sharedBaseOffsetRoot, -ctrlOffsetRootLimit, ctrlOffsetRootLimit);
-            float ctrlOffsetTipClamped = Mathf.Clamp(sharedBaseOffsetTip, -ctrlOffsetTipLimit, ctrlOffsetTipLimit);
+            float ctrlOffsetRootClamped = Mathf.Clamp((float)RootWidth, -ctrlOffsetRootLimit, ctrlOffsetRootLimit);
+            float ctrlOffsetTipClamped = Mathf.Clamp((float)TipWidth, -ctrlOffsetTipLimit, ctrlOffsetTipLimit);
 
             // Base four values
-            length = (double)sharedBaseLength;
             taperRatio = (double)sharedWidthTipSum / (double)sharedWidthRootSum;
             MAC = (double)(sharedWidthTipSum + sharedWidthRootSum) / 2.0;
-            midChordSweep = Math.Atan((double)sharedBaseOffsetTip / (double)sharedBaseLength) * Utils.Rad2Deg;
+            midChordSweep = Math.Atan((double)(float)TipWidth / Length) * Utils.Rad2Deg;
 
             // Derived values
 
-            surfaceArea = MAC * length;
-            aspectRatio = 2.0f * length / MAC;
+            surfaceArea = MAC * Length;
+            aspectRatio = 2.0f * Length / MAC;
 
             ArSweepScale = Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0f) + 4.0f;
             ArSweepScale = 2.0f + Math.Sqrt(ArSweepScale);
@@ -980,7 +969,7 @@ namespace ProceduralWings.B9
             // Shared parameters
 
             updateCost();
-            part.CoMOffset = new Vector3(sharedBaseLength / 2f, -sharedBaseOffsetTip / 2f, 0f);
+            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0f);
 
             part.breakingForce = Mathf.Round((float)connectionForce);
             part.breakingTorque = Mathf.Round((float)connectionForce);
@@ -1007,35 +996,6 @@ namespace ProceduralWings.B9
         public static Vector4 uiColorSliderColorsET = new Vector4(0.00f, 0.5f, 0.4f, 1f);
         public static Vector4 uiColorSliderColorsEL = new Vector4(0.95f, 0.5f, 0.4f, 1f);
 
-        public override void scaleTip(Vector3 diff)
-        {
-            if (!Input.GetKey(keyTipScale))
-            {
-                state = 0;
-                return;
-            }
-            sharedBaseWidthTip += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-            sharedBaseWidthTip = (float)Utils.Clamp(sharedBaseWidthTip, GetLimitsFromType(sharedBaseWidthTipLimits).x, GetLimitsFromType(sharedBaseWidthTipLimits).y);
-            sharedBaseThicknessTip += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward * (part.isMirrored ? 1 : -1));
-            sharedBaseThicknessTip = (float)Utils.Clamp(sharedBaseThicknessTip, sharedBaseThicknessLimits.x, sharedBaseThicknessLimits.y);
-        }
-
-        public override void scaleRoot(Vector3 diff)
-        {
-            if (part.parent.Modules.OfType<Base_ProceduralWing>().Any())
-                return;
-            if (!Input.GetKey(keyRootScale))
-            {
-                state = 0;
-                return;
-            }
-
-            sharedBaseWidthRoot += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-            sharedBaseWidthRoot = (float)Utils.Clamp(sharedBaseWidthRoot, GetLimitsFromType(sharedBaseWidthRootLimits).x, GetLimitsFromType(sharedBaseWidthRootLimits).y);
-            sharedBaseThicknessRoot += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward * (part.isMirrored ? 1 : -1));
-            sharedBaseThicknessRoot = (float)Utils.Clamp(sharedBaseThicknessRoot, sharedBaseThicknessLimits.x, sharedBaseThicknessLimits.y);
-        }
-
         public virtual Color GetVertexColor(int side)
         {
             if (side == 0)
@@ -1056,81 +1016,5 @@ namespace ProceduralWings.B9
         public static Vector2d uiOffsetLimit = new Vector2d(-8, 8);
         public static Vector2d uiThicknessLimit = new Vector2d(0.04, 1);
         public static Vector4 baseColour = new Vector4(0.25f, 0.5f, 0.4f, 1f);
-
-        public override Vector3 tipPos
-        {
-            get { return new Vector3(-sharedBaseOffsetTip, 0, sharedBaseLength); }
-            set
-            {
-                sharedBaseLength = value.z;
-                sharedBaseOffsetTip = -value.x;
-                UpdateGeometry(true);
-            }
-        }
-        public override double tipWidth
-        {
-            get { return sharedBaseWidthTip; }
-            set
-            {
-                sharedBaseWidthTip = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double tipThickness
-        {
-            get { return sharedBaseThicknessTip; }
-            set
-            {
-                sharedBaseThicknessTip = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double rootWidth
-        {
-            get { return sharedBaseWidthRoot; }
-            set
-            {
-                sharedBaseWidthRoot = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double rootThickness
-        {
-            get { return sharedBaseThicknessRoot; }
-            set
-            {
-                sharedBaseThicknessRoot = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double minSpan
-        {
-            get { return sharedBaseLengthLimits.x; }
-        }
-        public override double tipOffset
-        {
-            get { return sharedBaseOffsetTip; }
-            set
-            {
-                sharedBaseOffsetTip = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double Length
-        {
-            get { return sharedBaseLength; }
-            set
-            {
-                sharedBaseLength = (float)value;
-                UpdateGeometry(true);
-            }
-        }
-        public override double Scale
-        {
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
 }

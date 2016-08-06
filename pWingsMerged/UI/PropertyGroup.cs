@@ -65,16 +65,37 @@ namespace ProceduralWings.UI
             propertiesListGroup.SetActive(propertiesVisible);
         }
 
-        public PropertySlider AddProperty(string name, float min, float max, float value, int numDec, Action<float> onChanged)
+        public PropertySlider AddProperty(WingProperty propertyRef, Action<float> onChanged)
         {
-            PropertySlider newGroup;
-            if (!properties.TryGetValue(name, out newGroup)) // prevent adding duplicate properties for some reason
+            PropertySlider newProp;
+            if (!properties.TryGetValue(propertyRef.name, out newProp)) // prevent adding duplicate properties for some reason
             {
-                newGroup = new PropertySlider(name, groupColour, min, max, value, numDec, onChanged);
-                properties.Add(name, newGroup);
-                newGroup.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+                newProp = new PropertySlider(propertyRef, groupColour, onChanged);
+                properties.Add(propertyRef.name, newProp);
+                newProp.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
             }
-            return newGroup;
+            return newProp;
+        }
+
+        public void UpdatePropertyValues(params WingProperty[] props)
+        {
+            for (int i = props.Length - 1; i >= 0; --i)
+            {
+                PropertySlider prop;
+                if (properties.TryGetValue(props[i].name, out prop))
+                {
+                    prop.propertyRef.Update(props[i]);
+                }
+            }
+        }
+
+        public void UpdateGroupColour(Color c)
+        {
+            groupColour = c;
+            foreach (var slide in properties)
+            {
+                slide.Value.UpdateColour(c);
+            }
         }
 
         public string Name

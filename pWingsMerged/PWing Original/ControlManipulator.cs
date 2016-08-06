@@ -100,65 +100,65 @@ namespace ProceduralWings.Original
             }
         }
 
-        public override void DeformWing()
-        {
-            if (isAttached || state == 0)
-                return;
+        //public override void DeformWing()
+        //{
+        //    if (isAttached || state == 0)
+        //        return;
 
-            float depth = EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
-            Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
-            lastMousePos = Input.mousePosition;
+        //    float depth = EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
+        //    Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
+        //    lastMousePos = Input.mousePosition;
 
-            switch (state)
-            {
-                case 1: // translation
-                    if (!Input.GetKey(keyTranslation))
-                    {
-                        state = 0;
-                        return;
-                    }
+        //    switch (state)
+        //    {
+        //        case 1: // translation
+        //            if (!Input.GetKey(keyTranslation))
+        //            {
+        //                state = 0;
+        //                return;
+        //            }
 
-                    if (symmetricMovement == true)
-                    { // Symmetric movement (for wing edge control surfaces)
-                        tipPosition.z -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                        tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-                        tipPosition.x = tipPosition.y = 0;
+        //            if (symmetricMovement == true)
+        //            { // Symmetric movement (for wing edge control surfaces)
+        //                tipPosition.z -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+        //                tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
+        //                tipPosition.x = tipPosition.y = 0;
 
-                        rootPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                        rootPosition.z = Mathf.Max(rootPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-                        rootPosition.x = rootPosition.y = 0;
-                    }
-                    else
-                    { // All movers
-                        tipPosition.x += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-                        tipPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                        tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan - TipSpawnOffset.z); // Clamp z to modelMinimumSpan to prevent turning the model inside-out
-                        tipPosition.y = 0;
-                    }
-                    break;
-                case 2: // tip
-                    if (!Input.GetKey(keyTipScale))
-                    {
-                        state = 0;
-                        return;
-                    }
-                    tipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                    tipWidth = Math.Max(tipWidth, 0.01);
-                    tipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-                    tipThickness = Math.Max(tipThickness, 0.01);
-                    break;
-                case 3: // root
-                    if (!Input.GetKey(keyRootScale))
-                    {
-                        state = 0;
-                        return;
-                    }
-                    rootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                    rootWidth = Math.Max(rootWidth, 0.01);
-                    rootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-                    rootThickness = Math.Max(rootThickness, 0.01);
-                    break;
-            }
-        }
+        //                rootPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+        //                rootPosition.z = Mathf.Max(rootPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
+        //                rootPosition.x = rootPosition.y = 0;
+        //            }
+        //            else
+        //            { // All movers
+        //                tipPosition.x += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
+        //                tipPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+        //                tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan - TipSpawnOffset.z); // Clamp z to modelMinimumSpan to prevent turning the model inside-out
+        //                tipPosition.y = 0;
+        //            }
+        //            break;
+        //        case 2: // tip
+        //            if (!Input.GetKey(keyTipScale))
+        //            {
+        //                state = 0;
+        //                return;
+        //            }
+        //            TipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+        //            TipWidth = Math.Max(TipWidth, 0.01);
+        //            TipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
+        //            TipThickness = Math.Max(TipThickness, 0.01);
+        //            break;
+        //        case 3: // root
+        //            if (!Input.GetKey(keyRootScale))
+        //            {
+        //                state = 0;
+        //                return;
+        //            }
+        //            RootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+        //            RootWidth = Math.Max(RootWidth, 0.01);
+        //            RootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
+        //            RootThickness = Math.Max(RootThickness, 0.01);
+        //            break;
+        //    }
+        //}
     }
 }

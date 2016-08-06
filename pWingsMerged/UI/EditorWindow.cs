@@ -20,7 +20,6 @@ namespace ProceduralWings.UI
             }
             set
             {
-                Debug.Log(value);
                 visible = value;
                 if (!visible)
                 {
@@ -77,6 +76,7 @@ namespace ProceduralWings.UI
         {
             // get references to all useful components
             canvas = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab.GetComponent<Canvas>());
+            canvas.enabled = false;
             
             mainPanel = canvas.gameObject.GetChild("MainPanel");
             windowPosition = mainPanel.GetComponent<RectTransform>();
