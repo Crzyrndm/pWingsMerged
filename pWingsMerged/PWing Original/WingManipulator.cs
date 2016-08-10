@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
 using UnityEngine;
-using System.Reflection;
 
 namespace ProceduralWings.Original
 {

@@ -142,6 +142,14 @@ namespace ProceduralWings.UI
             return null;
         }
 
+        public void ResetGroups()
+        {
+            foreach (var kvp in propertyGroupList)
+            {
+                kvp.Value.groupInstance.SetActive(false);
+            }
+        }
+
         #region Properties
         public string WindowTitle
         {

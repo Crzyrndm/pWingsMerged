@@ -58,7 +58,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="B9PWing\B9_ControlProcedural.cs" />
+    <Compile Include="B9PWing\B9_ProceduralControl.cs" />
     <Compile Include="Base_ProceduralWing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PWing Original\ControlManipulator.cs" />

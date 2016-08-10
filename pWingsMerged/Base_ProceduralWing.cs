@@ -24,7 +24,7 @@ namespace ProceduralWings
             return "this is a PWing and GetInfo needs to be overridden...";
         }
 
-        public WingProperty length;
+        protected WingProperty length;
         public virtual double Length
         {
             get
@@ -39,7 +39,7 @@ namespace ProceduralWings
         }
 
         // Properties for aero calcs
-        public WingProperty tipWidth;
+        protected WingProperty tipWidth;
         public virtual double TipWidth
         {
             get
@@ -53,7 +53,7 @@ namespace ProceduralWings
             }
         }
 
-        public WingProperty tipThickness;
+        protected WingProperty tipThickness;
         public virtual double TipThickness
         {
             get
@@ -67,7 +67,7 @@ namespace ProceduralWings
             }
         }
 
-        public WingProperty tipOffset;
+        protected WingProperty tipOffset;
         public virtual double TipOffset
         {
             get
@@ -81,7 +81,7 @@ namespace ProceduralWings
             }
         }
 
-        public WingProperty rootWidth;
+        protected WingProperty rootWidth;
         public virtual double RootWidth
         {
             get
@@ -95,7 +95,7 @@ namespace ProceduralWings
             }
         }
 
-        public WingProperty rootThickness;
+        protected WingProperty rootThickness;
         public virtual double RootThickness
         {
             get
@@ -136,6 +136,13 @@ namespace ProceduralWings
         public virtual string FarModuleName
         {
             get { return "FARWingAerodynamicModel"; }
+        }
+        public virtual string WindowTitle
+        {
+            get
+            {
+                return "Wing";
+            }
         }
         public virtual double Scale // scale all parameters of this part AND any children attached to it.
         {
@@ -240,32 +247,40 @@ namespace ProceduralWings
 
                 foreach (ConfigNode n in node.GetNodes("WING_PROPERTY"))
                 {
-                    switch (n.GetValue("name"))
-                    {
-                        case "Length":
-                            length.Load(n);
-                            break;
-                        case "Offset (tip)":
-                            tipOffset.Load(n);
-                            break;
-                        case "Width (root)":
-                            rootWidth.Load(n);
-                            break;
-                        case "Thickness (root)":
-                            rootThickness.Load(n);
-                            break;
-                        case "Width (tip)":
-                            tipWidth.Load(n);
-                            break;
-                        case "Thickness (tip)":
-                            tipThickness.Load(n);
-                            break;
-                    }
+                    LoadWingProperty(n);
                 }
             }
             catch
             {
                 Log("failed to load wing properties");
+            }
+        }
+
+        public virtual void LoadWingProperty(ConfigNode n)
+        {
+            switch (n.GetValue("ID"))
+            {
+                case nameof(length):
+                    length.Load(n);
+                    break;
+                case nameof(tipOffset):
+                    tipOffset.Load(n);
+                    break;
+                case nameof(rootWidth):
+                    rootWidth.Load(n);
+                    break;
+                case nameof(rootThickness):
+                    rootThickness.Load(n);
+                    break;
+                case nameof(tipWidth):
+                    tipWidth.Load(n);
+                    break;
+                case nameof(tipThickness):
+                    tipThickness.Load(n);
+                    break;
+                default:
+                    Log($"No property of ID {n.GetValue("ID")} to load");
+                    break;
             }
         }
 
@@ -341,12 +356,12 @@ namespace ProceduralWings
                 return;
             if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<Base_ProceduralWing>().length == null)
             {
-                length = new WingProperty("Length", 4, 2, 0.05, 16);
-                tipOffset = new WingProperty("Offset (tip)", 0, 2, -8, 8);
-                rootWidth = new WingProperty("Width (root)", 4, 2, 0.05, 16);
-                tipWidth = new WingProperty("Width (tip)", 4, 2, 0.05, 16);
-                rootThickness = new WingProperty("Thickness (root)", 0.2, 2, 0.01, 1);
-                tipThickness = new WingProperty("Thickness (tip)", 0.2, 2, 0.01, 1);
+                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16);
+                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8);
+                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16);
+                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16);
+                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1);
+                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1);
             }
             else
             {
@@ -868,55 +883,32 @@ namespace ProceduralWings
 
         public KeyCode uiKeyCodeEdit = KeyCode.J;
 
-        public void ShowEditorUI()
+        public virtual void ShowEditorUI()
         {
-            if (window == null)
-            {
-                window = new EditorWindow();
-                PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
-                basegroup.AddProperty(new WingProperty(length), SetLength);
-                basegroup.AddProperty(new WingProperty(rootWidth), SetRootWidth);
-                basegroup.AddProperty(new WingProperty(tipWidth), SetTipWidth);
-                basegroup.AddProperty(new WingProperty(tipOffset), SetOffset);
-                basegroup.AddProperty(new WingProperty(rootThickness), SetRootThickness);
-                basegroup.AddProperty(new WingProperty(tipThickness), SetTipThickness);
-            }
+            SetupWindowGroups();
+            window.ResetGroups();
             window.wing = this;
             window.Visible = true;
             window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
         }
 
-        public static void SetLength(float value)
+        public virtual void SetupWindowGroups()
         {
-            window.wing.Length = value;
+            if (window == null)
+            {
+                window = new EditorWindow();
+            }
+            if (window.FindPropertyGroup("Base") == null)
+            {
+                PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
+                basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
+                basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
+                basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
+                basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
+                basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
+                basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
+            }
         }
-
-        public static void SetRootWidth(float value)
-        {
-            window.wing.RootWidth = value;
-        }
-
-        public static void SetTipWidth(float value)
-        {
-            window.wing.TipWidth = value;
-        }
-
-        public static void SetOffset(float value)
-        {
-            window.wing.TipOffset = value;
-        }
-
-        public static void SetRootThickness(float value)
-        {
-            window.wing.RootThickness = value;
-        }
-
-        public static void SetTipThickness(float value)
-        {
-            window.wing.TipThickness = value;
-        }
-
-
         #endregion
 
         public static void Log(object formatted)

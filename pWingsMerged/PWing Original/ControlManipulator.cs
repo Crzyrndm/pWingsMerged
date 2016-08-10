@@ -7,158 +7,84 @@ namespace ProceduralWings.Original
 {
     class ControlManipulator : WingManipulator
     {
-        //public override bool isCtrlSrf
-        //{
-        //    get { return true; }
-        //}
+        public override bool isCtrlSrf
+        {
+            get { return true; }
+        }
 
-        //[KSPField]
-        //public float ctrlFraction = 1f;
+        public override Vector3 rootPos
+        {
+            get
+            {
+                return Root.localPosition;
+            }
+        }
 
-        //public const float costDensityControl = 6500f;
+        [KSPField]
+        public float ctrlFraction = 1f;
 
-        ///// <summary>
-        ///// control surfaces cant carry fuel
-        ///// </summary>
-        //public override bool canBeFueled
-        //{
-        //    get
-        //    {
-        //        return false;
-        //    }
-        //}
+        public const float costDensityControl = 6500f;
 
-        //public override float updateCost()
-        //{
-        //    return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
-        //}
+        /// <summary>
+        /// control surfaces cant carry fuel
+        /// </summary>
+        public override bool canBeFueled
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-        //[KSPField]
-        //public bool symmetricMovement = true;
-        //[KSPField(isPersistant = true)]
-        //public Vector3 rootPosition = Vector3.zero;
+        public override float updateCost()
+        {
+            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
+        }
 
-        //public override void UpdateGeometry()
-        //{
-        //    base.UpdateGeometry();
+        [KSPField]
+        public bool symmetricMovement = true;
+        [KSPField(isPersistant = true)]
+        public Vector3 rootPosition = Vector3.zero;
 
-        //    if (symmetricMovement)
-        //    {
-        //        tipPosition.y = 0f;
-        //        tipPosition.x = 0f;
-        //        rootPosition.x = 0f;
-        //        rootPosition.y = 0f;
+        public override void UpdateGeometry()
+        {
+            base.UpdateGeometry();
 
-        //        Root.localPosition = -(tipPosition + TipSpawnOffset);
-        //    }
-        //}
+            if (symmetricMovement)
+            {
+                Tip.localPosition = new Vector3(0, ((float)Length - TipSpawnOffset.z) / 2, 0);
+                Root.localPosition = -Tip.localPosition;
+            }
+        }
 
-        //public override void setFARModuleParams()
-        //{
-        //    if (part.Modules.Contains("FARControllableSurface"))
-        //    {
-        //        PartModule FARmodule = part.Modules["FARControllableSurface"];
-        //        Type FARtype = FARmodule.GetType();
-        //        FARtype.GetField("b_2").SetValue(FARmodule, length);
-        //        FARtype.GetField("b_2_actual").SetValue(FARmodule, length);
-        //        FARtype.GetField("MAC").SetValue(FARmodule, MAC);
-        //        FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
-        //        FARtype.GetField("S").SetValue(FARmodule, surfaceArea);
-        //        FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
-        //        FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-        //        FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
-        //    }
+        public override void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
+        {
+            if (part.Modules.Contains(FarModuleName))
+            {
+                PartModule FARmodule = part.Modules[FarModuleName];
+                Type FARtype = FARmodule.GetType();
+                FARtype.GetField("b_2").SetValue(FARmodule, Length);
+                FARtype.GetField("b_2_actual").SetValue(FARmodule, Length);
+                FARtype.GetField("MAC").SetValue(FARmodule, MAC);
+                FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
+                FARtype.GetField("S").SetValue(FARmodule, Length * MAC);
+                FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
+                FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
+                FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
+            }
+        }
 
-        //    if (!triggerUpdate)
-        //        TriggerUpdateAllWings();
-        //    triggerUpdate = false;
-        //}
-
-        //public override void SetStockModuleParams()
-        //{
-        //    // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
-        //    part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // COP matches COM
-        //    ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
-        //    if (mCtrlSrf != null)
-        //    {
-        //        mCtrlSrf.deflectionLiftCoeff = (float)surfaceArea / 3.52f;
-        //        mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
-        //        part.mass = (float)surfaceArea * (1 + ctrlFraction) / 35.2f; // multiply by 0.1, divide by 3.52
-        //    }
-        //}
-
-        //public override void TriggerFARColliderUpdate()
-        //{
-        //    CalculateAerodynamicValues();
-        //    PartModule FARmodule = null;
-        //    if (part.Modules.Contains("FARControllableSurface"))
-        //        FARmodule = part.Modules["FARControllableSurface"];
-        //    if (FARmodule != null)
-        //    {
-        //        Type FARtype = FARmodule.GetType();
-        //        FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
-        //    }
-        //}
-
-        //public override void DeformWing()
-        //{
-        //    if (isAttached || state == 0)
-        //        return;
-
-        //    float depth = EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).WorldToScreenPoint(state != 3 ? tipPos : rootPos).z; // distance of tip transform from camera
-        //    Vector3 diff = (state == 1 ? moveSpeed : scaleSpeed * 20) * depth * (Input.mousePosition - lastMousePos) / 4500;
-        //    lastMousePos = Input.mousePosition;
-
-        //    switch (state)
-        //    {
-        //        case 1: // translation
-        //            if (!Input.GetKey(keyTranslation))
-        //            {
-        //                state = 0;
-        //                return;
-        //            }
-
-        //            if (symmetricMovement == true)
-        //            { // Symmetric movement (for wing edge control surfaces)
-        //                tipPosition.z -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-        //                tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-        //                tipPosition.x = tipPosition.y = 0;
-
-        //                rootPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-        //                rootPosition.z = Mathf.Max(rootPosition.z, modelMinimumSpan / 2 - TipSpawnOffset.z); // Clamp z to modelMinimumSpan/2 to prevent turning the model inside-out
-        //                rootPosition.x = rootPosition.y = 0;
-        //            }
-        //            else
-        //            { // All movers
-        //                tipPosition.x += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-        //                tipPosition.z += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-        //                tipPosition.z = Mathf.Max(tipPosition.z, modelMinimumSpan - TipSpawnOffset.z); // Clamp z to modelMinimumSpan to prevent turning the model inside-out
-        //                tipPosition.y = 0;
-        //            }
-        //            break;
-        //        case 2: // tip
-        //            if (!Input.GetKey(keyTipScale))
-        //            {
-        //                state = 0;
-        //                return;
-        //            }
-        //            TipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-        //            TipWidth = Math.Max(TipWidth, 0.01);
-        //            TipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-        //            TipThickness = Math.Max(TipThickness, 0.01);
-        //            break;
-        //        case 3: // root
-        //            if (!Input.GetKey(keyRootScale))
-        //            {
-        //                state = 0;
-        //                return;
-        //            }
-        //            RootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-        //            RootWidth = Math.Max(RootWidth, 0.01);
-        //            RootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-        //            RootThickness = Math.Max(RootThickness, 0.01);
-        //            break;
-        //    }
-        //}
+        public override void SetStockModuleParams()
+        {
+            // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
+            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // COP matches COM
+            ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
+            if (mCtrlSrf != null)
+            {
+                mCtrlSrf.deflectionLiftCoeff = (float)(Length * MAC / 3.52);
+                part.mass = mCtrlSrf.deflectionLiftCoeff * 0.1f * (1 + ctrlFraction);
+                mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
+            }
+        }
     }
 }

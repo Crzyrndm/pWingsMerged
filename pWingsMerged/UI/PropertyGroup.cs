@@ -79,6 +79,7 @@ namespace ProceduralWings.UI
 
         public void UpdatePropertyValues(params WingProperty[] props)
         {
+            groupInstance.SetActive(true);
             for (int i = props.Length - 1; i >= 0; --i)
             {
                 PropertySlider prop;
