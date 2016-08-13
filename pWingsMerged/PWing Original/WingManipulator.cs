@@ -73,7 +73,7 @@ namespace ProceduralWings.Original
         {
             Root.localScale = new Vector3(0, (float)RootWidth / modelChordLength, (float)RootThickness / modelThickness);
             Tip.localScale = new Vector3(0, (float)TipWidth / modelChordLength, (float)TipThickness / modelThickness);
-            Tip.localPosition = new Vector3(-(float)TipOffset + TipSpawnOffset.x, 0, (float)Length - TipSpawnOffset.z);
+            Tip.localPosition = new Vector3((float)TipOffset + TipSpawnOffset.x, 0, (float)Length - TipSpawnOffset.z);
 
             if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null && !IgnoreSnapping)
             {
@@ -118,8 +118,8 @@ namespace ProceduralWings.Original
             SetupCollider();
 
             // Enable root-matching events
-            if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null)
-                Events["MatchTaperEvent"].guiActiveEditor = true;
+            //if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null)
+            //    Events["MatchTaperEvent"].guiActiveEditor = true;
         }
         #endregion
     }
