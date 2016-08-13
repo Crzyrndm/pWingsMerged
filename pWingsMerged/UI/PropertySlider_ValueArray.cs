@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ProceduralWings.UI
 {
@@ -12,17 +10,44 @@ namespace ProceduralWings.UI
     public class PropertySlider_ValueArray<T> : PropertySlider
     {
         T[] displayValues;
-        public PropertySlider_ValueArray(T[] values, WingProperty propRef, Color foreColour, Action<float> onChange) : base(propRef, foreColour, onChange)
+
+        Text text;
+        public override string Text
         {
-            displayValues = values;
-            AsInt = true;
+            get
+            {
+                return text.text;
+            }
         }
 
-        protected override void SliderValueChanged(float value)
+        public override void SetText(double d)
         {
-            base.SliderValueChanged(value);
+            text.text = displayValues[(int)d - (int)Min].ToString();
+        }
 
-            input.text = displayValues[(int)(value - Min)].ToString();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prefab"></param>
+        public PropertySlider_ValueArray(T[] values, WingProperty propRef, Color foreColour, Action<float> onChange)
+        {
+            propertyInstance = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_PropertyValArrayPrefab);
+            
+            inputSlider = propertyInstance.GetChild("InputSlider").GetComponent<Slider>();
+            inputSlider.fillRect.GetComponent<Image>().color = foreColour;
+            
+            propertyLabel = inputSlider.gameObject.GetChild("PropertyLabel").GetComponent<Text>();
+            propertyLabel.text = propRef.name;
+            input = null;
+            text = inputSlider.gameObject.GetChild("Text").GetComponent<Text>();
+            
+            displayValues = values;
+            AsInt = true;
+            
+            Refresh(propRef);
+            
+            inputSlider.onValueChanged.AddListener(SliderValueChanged);
+            onValueChanged += onChange;
         }
     }
 }

@@ -69,12 +69,6 @@ namespace ProceduralWings.UI
             }
         }
 
-        public virtual void SetText(double d)
-        {
-            input.text = d.ToString($"F{propertyRef.decPlaces}");
-        }
-
-
         protected Slider inputSlider;
 
         /// <summary>
@@ -114,12 +108,16 @@ namespace ProceduralWings.UI
             onValueChanged += onChange;
         }
 
+        // for derived classes that roll their own constructor
+        protected PropertySlider()
+        { }
+
         protected virtual void TextValueChanged(string text)
         {
             float f;
             if (float.TryParse(text, out f))
             {
-                SliderValueChanged(f);
+                inputSlider.value = f;
             }
         }
 
@@ -138,6 +136,11 @@ namespace ProceduralWings.UI
             onValueChanged?.Invoke(value);
         }
 
+        public virtual void SetText(double d)
+        {
+            input.text = d.ToString($"F{propertyRef.decPlaces}");
+        }
+
         public void UpdateColour(Color c)
         {
             inputSlider.fillRect.GetComponent<Image>().color = c;
@@ -153,6 +156,7 @@ namespace ProceduralWings.UI
             Min = p.min;
             Max = p.max;
             Value = p.value;
+            SetText(Value);
         }
     }
 }

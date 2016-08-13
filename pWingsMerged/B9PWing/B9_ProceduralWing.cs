@@ -354,7 +354,6 @@ namespace ProceduralWings.B9PWing
         {
             base.OnAttach();
             isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
-            Log(isMirrored);
         }
 
         public void UpdateOnEditorDetach()

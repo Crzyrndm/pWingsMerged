@@ -17,6 +17,7 @@ namespace ProceduralWings
         public static GameObject UI_WindowPrefab;
         public static GameObject UI_PropertyGroupPrefab;
         public static GameObject UI_PropertyPrefab;
+        public static GameObject UI_PropertyValArrayPrefab;
         public static GameObject UI_FuelPanel;
 
         public static KSP.IO.PluginConfiguration config;
@@ -78,6 +79,10 @@ namespace ProceduralWings
                             break;
                         case "PropertySelector":
                             UI_PropertyPrefab = objects[i] as GameObject;
+                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            break;
+                        case "PropertySelector_ValArray":
+                            UI_PropertyValArrayPrefab = objects[i] as GameObject;
                             Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                     }
