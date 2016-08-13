@@ -97,7 +97,7 @@ namespace ProceduralWings.UI
                 PropertySlider prop;
                 if (properties.TryGetValue(props[i].name, out prop))
                 {
-                    prop.propertyRef.Update(props[i]);
+                    prop.Refresh(props[i]);
                 }
             }
         }

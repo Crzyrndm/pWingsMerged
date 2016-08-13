@@ -61,6 +61,19 @@ namespace ProceduralWings.UI
             }
         }
 
+        public virtual string Text
+        {
+            get
+            {
+                return input.text;
+            }
+        }
+
+        public virtual void SetText(double d)
+        {
+            input.text = d.ToString($"F{propertyRef.decPlaces}");
+        }
+
 
         protected Slider inputSlider;
 
@@ -93,12 +106,21 @@ namespace ProceduralWings.UI
             propertyLabel = inputSlider.gameObject.GetChild("PropertyLabel").GetComponent<Text>();
             propertyLabel.text = propRef.name;
             input = inputSlider.gameObject.GetChild("UserInput").GetComponent<InputField>();
-            input.enabled = false; // for now it can just behave like a text object. later I'll figure out how the user can directly enter stuff
 
             Refresh(propRef);
 
+            input.onValueChange.AddListener(TextValueChanged);
             inputSlider.onValueChanged.AddListener(SliderValueChanged);
             onValueChanged += onChange;
+        }
+
+        protected virtual void TextValueChanged(string text)
+        {
+            float f;
+            if (float.TryParse(text, out f))
+            {
+                SliderValueChanged(f);
+            }
         }
 
         protected virtual void SliderValueChanged(float value)
@@ -106,13 +128,13 @@ namespace ProceduralWings.UI
             if (!AsInt)
             {
                 float nvalue = (float)Math.Round(value, propertyRef.decPlaces);
-                Value = nvalue;
                 if (value != nvalue)
                 {
+                    Value = nvalue;
                     return;
                 }
             }
-            input.text = value.ToString($"F{propertyRef.decPlaces}");
+            SetText(value);
             onValueChanged?.Invoke(value);
         }
 
@@ -121,8 +143,11 @@ namespace ProceduralWings.UI
             inputSlider.fillRect.GetComponent<Image>().color = c;
         }
 
-        void Refresh(WingProperty p)
+        public void Refresh(WingProperty p)
         {
+            if (p == null)
+                return;
+
             propertyRef = p;
             AsInt = p.decPlaces == 0; // 0 dec places => integer values only
             Min = p.min;
