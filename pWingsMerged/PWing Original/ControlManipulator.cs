@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace ProceduralWings.Original
@@ -59,18 +58,11 @@ namespace ProceduralWings.Original
 
         public override void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
-            if (part.Modules.Contains(FarModuleName))
+            base.setFARModuleParams(midChordSweep, taperRatio, midChordOffset);
+            if (aeroFARFieldInfoControlSurfaceFraction != null)
             {
-                PartModule FARmodule = part.Modules[FarModuleName];
-                Type FARtype = FARmodule.GetType();
-                FARtype.GetField("b_2").SetValue(FARmodule, Length);
-                FARtype.GetField("b_2_actual").SetValue(FARmodule, Length);
-                FARtype.GetField("MAC").SetValue(FARmodule, MAC);
-                FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
-                FARtype.GetField("S").SetValue(FARmodule, Length * MAC);
-                FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
-                FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-                FARtype.GetField("ctrlSurfFrac").SetValue(FARmodule, ctrlFraction);
+                aeroFARFieldInfoControlSurfaceFraction.SetValue(aeroFARModuleReference, ctrlFraction);
+                aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
             }
         }
 
@@ -78,7 +70,7 @@ namespace ProceduralWings.Original
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
             part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // COP matches COM
-            ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
+            ModuleControlSurface mCtrlSrf = part.Modules.GetModule<ModuleControlSurface>();
             if (mCtrlSrf != null)
             {
                 mCtrlSrf.deflectionLiftCoeff = (float)(Length * MAC / 3.52);

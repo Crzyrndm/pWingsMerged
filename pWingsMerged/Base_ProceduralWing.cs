@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
+using System.Reflection;
 
 namespace ProceduralWings
 {
@@ -592,7 +593,7 @@ namespace ProceduralWings
 
         #region aero stuff
         /// <summary>
-        /// all wings need to be able to calc aero values but implementations are all different. Use a blank method for panels
+        /// all wings need to be able to calc aero values but implementations can be different. Use a blank method for panels
         /// </summary>
         public virtual void CalculateAerodynamicValues()
         {
@@ -622,25 +623,71 @@ namespace ProceduralWings
             if (!FARactive)
                 SetStockModuleParams();
             else
-                setFARModuleParams(midChordSweep, taperRatio, (Vector3)midChordOffsetFromOrigin);
+                setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
 
             StartCoroutine(updateAeroDelayed());
         }
 
+        public PartModule aeroFARModuleReference;
+        public Type aeroFARModuleType;
+        public MethodInfo aeroFARMethodInfoUsed;
+
+        public FieldInfo aeroFARFieldInfoSemispan;
+        public FieldInfo aeroFARFieldInfoSemispan_Actual; // to handle tweakscale, FARs wings have semispan (unscaled) and semispan_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
+        public FieldInfo aeroFARFieldInfoMAC;
+        public FieldInfo aeroFARFieldInfoMAC_Actual; //  to handle tweakscale, FARs wings have MAC (unscaled) and MAC_actual (tweakscaled). Need to set both (actual is the important one, and tweakscale isn't needed here, so only _actual actually needs to be set, but it would be silly to not set it)
+        public FieldInfo aeroFARFieldInfoMidChordSweep;
+        public FieldInfo aeroFARFieldInfoTaperRatio;
+        public FieldInfo aeroFARFieldInfoControlSurfaceFraction;
+        public FieldInfo aeroFARFieldInfoRootChordOffset;
+
         public virtual void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
-            if (part.Modules.Contains(FarModuleName))
+            if (aeroFARModuleReference == null)
             {
-                PartModule FARmodule = part.Modules[FarModuleName];
-                Type FARtype = FARmodule.GetType();
-                FARtype.GetField("b_2").SetValue(FARmodule, Length);
-                FARtype.GetField("b_2_actual").SetValue(FARmodule, Length);
-                FARtype.GetField("MAC").SetValue(FARmodule, MAC);
-                FARtype.GetField("MAC_actual").SetValue(FARmodule, MAC);
-                FARtype.GetField("S").SetValue(FARmodule, MAC * Length);
-                FARtype.GetField("MidChordSweep").SetValue(FARmodule, midChordSweep);
-                FARtype.GetField("TaperRatio").SetValue(FARmodule, taperRatio);
-                FARtype.GetField("rootMidChordOffsetFromOrig").SetValue(FARmodule, midChordOffset);
+                if (part.Modules.Contains(FarModuleName))
+                    aeroFARModuleReference = part.Modules[FarModuleName];
+            }
+            if (aeroFARModuleReference == null)
+                return;
+
+            if (aeroFARModuleType == null)
+                aeroFARModuleType = aeroFARModuleReference.GetType();
+            if (aeroFARModuleType != null)
+            {
+                if (aeroFARFieldInfoSemispan == null)
+                    aeroFARFieldInfoSemispan = aeroFARModuleType.GetField("b_2");
+                if (aeroFARFieldInfoSemispan_Actual == null)
+                    aeroFARFieldInfoSemispan_Actual = aeroFARModuleType.GetField("b_2_actual");
+                if (aeroFARFieldInfoMAC == null)
+                    aeroFARFieldInfoMAC = aeroFARModuleType.GetField("MAC");
+                if (aeroFARFieldInfoMAC_Actual == null)
+                    aeroFARFieldInfoMAC_Actual = aeroFARModuleType.GetField("MAC_actual");
+                if (aeroFARFieldInfoMidChordSweep == null)
+                    aeroFARFieldInfoMidChordSweep = aeroFARModuleType.GetField("MidChordSweep");
+                if (aeroFARFieldInfoTaperRatio == null)
+                    aeroFARFieldInfoTaperRatio = aeroFARModuleType.GetField("TaperRatio");
+                if (aeroFARFieldInfoControlSurfaceFraction == null)
+                    aeroFARFieldInfoControlSurfaceFraction = aeroFARModuleType.GetField("ctrlSurfFrac");
+                if (aeroFARFieldInfoRootChordOffset == null)
+                    aeroFARFieldInfoRootChordOffset = aeroFARModuleType.GetField("rootMidChordOffsetFromOrig");
+
+                if (aeroFARMethodInfoUsed == null)
+                {
+                    aeroFARMethodInfoUsed = aeroFARModuleType.GetMethod("StartInitialization");
+                }
+                if (aeroFARMethodInfoUsed != null)
+                {
+                    aeroFARFieldInfoSemispan.SetValue(aeroFARModuleReference, length);
+                    aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, length);
+                    aeroFARFieldInfoMAC.SetValue(aeroFARModuleReference, MAC);
+                    aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, MAC);
+                    aeroFARFieldInfoMidChordSweep.SetValue(aeroFARModuleReference, midChordSweep);
+                    aeroFARFieldInfoTaperRatio.SetValue(aeroFARModuleReference, taperRatio);
+                    aeroFARFieldInfoRootChordOffset.SetValue(aeroFARModuleReference, midChordOffset);
+
+                    aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
+                }
             }
         }
 
@@ -759,7 +806,7 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(false);
                 
-                TipOffset += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
+                TipOffset -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
                 length.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
                 Length = Math.Max(length.value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
@@ -879,35 +926,34 @@ namespace ProceduralWings
 
 
         #region UI stuff
-        public static EditorWindow window;
+
 
         public KeyCode uiKeyCodeEdit = KeyCode.J;
 
+        public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
+
         public virtual void ShowEditorUI()
         {
-            SetupWindowGroups();
-            window.ResetGroups();
-            window.wing = this;
-            window.Visible = true;
-            window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
+            WindowManager.GetWindow(this);
+
+            WindowManager.Window.wing = this;
+            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
+            WindowManager.Window.Visible = true;
         }
 
-        public virtual void SetupWindowGroups()
+        public virtual EditorWindow CreateWindow()
         {
-            if (window == null)
-            {
-                window = new EditorWindow();
-            }
-            if (window.FindPropertyGroup("Base") == null)
-            {
-                PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
-                basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
-                basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
-                basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
-                basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
-                basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
-                basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
-            }
+            EditorWindow window = new EditorWindow();
+
+            PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
+            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
+            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
+            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
+            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
+            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
+            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
+
+            return window;
         }
         #endregion
 

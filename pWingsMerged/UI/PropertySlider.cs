@@ -60,19 +60,19 @@ namespace ProceduralWings.UI
                 inputSlider.value = (float)value;
             }
         }
-        
 
-        Slider inputSlider;
+
+        protected Slider inputSlider;
 
         /// <summary>
         /// Description of property for user
         /// </summary>
-        Text propertyLabel;
+        protected Text propertyLabel;
 
         /// <summary>
         /// Place where user can directly enter values if required
         /// </summary>
-        InputField input;
+        protected InputField input;
 
         /// <summary>
         /// the function to call when the value of this property changes
@@ -101,7 +101,7 @@ namespace ProceduralWings.UI
             onValueChanged += onChange;
         }
 
-        void SliderValueChanged(float value)
+        protected virtual void SliderValueChanged(float value)
         {
             if (!AsInt)
             {

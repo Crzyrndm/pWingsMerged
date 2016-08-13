@@ -77,6 +77,18 @@ namespace ProceduralWings.UI
             return newProp;
         }
 
+        public PropertySlider AddProperty<T>(WingProperty propertyRef, Action<float> onChanged, T[] values)
+        {
+            PropertySlider newProp;
+            if (!properties.TryGetValue(propertyRef.name, out newProp)) // prevent adding duplicate properties for some reason
+            {
+                newProp = new PropertySlider_ValueArray<T>(values, propertyRef, groupColour, onChanged);
+                properties.Add(propertyRef.name, newProp);
+                newProp.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+            }
+            return newProp;
+        }
+
         public void UpdatePropertyValues(params WingProperty[] props)
         {
             groupInstance.SetActive(true);

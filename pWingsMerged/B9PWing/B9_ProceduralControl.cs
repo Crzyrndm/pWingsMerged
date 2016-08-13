@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProceduralWings.B9
+namespace ProceduralWings.B9PWing
 {
-    using System.Collections.Generic;
     using Utility;
+    using UI;
     class B9_ProceduralControl : B9_ProceduralWing
     {
         protected WingProperty rootOffset;
@@ -59,8 +59,93 @@ namespace ProceduralWings.B9
 
         public override void SetupProperties()
         {
-            base.SetupProperties();
-            rootOffset = new WingProperty("Offset (root)", nameof(rootOffset), 0, 2, -1, 1);
+            if (length != null)
+                return;
+            if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralControl>().length == null)
+            {
+                length = new WingProperty("Length", nameof(length), 1, 2, 0.05, 8);
+                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -1, 1);
+                rootOffset = new WingProperty("Offset (root)", nameof(rootOffset), 0, 2, -1, 1);
+                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 0.5, 2, 0.05, 1);
+                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 0.5, 2, 0.05, 1);
+                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1);
+                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1);
+
+                leadingEdgeType = new WingProperty("Shape", nameof(leadingEdgeType), 2, 0, 1, 3);
+                rootLeadingEdge = new WingProperty("Width (root)", nameof(rootLeadingEdge), 0.24, 2, 0.01, 1.0);
+                tipLeadingEdge = new WingProperty("Width (tip)", nameof(tipLeadingEdge), 0.24, 2, 0.01, 1.0);
+
+                trailingEdgeType = new WingProperty("Shape", nameof(trailingEdgeType), 3, 0, 1, 3);
+                rootTrailingEdge = new WingProperty("Width (root)", nameof(rootTrailingEdge), 0.48, 2, 0.01, 1.0);
+                tipTrailingEdge = new WingProperty("Width (tip)", nameof(tipTrailingEdge), 0.48, 2, 0.01, 1.0);
+
+                surfTopMat = new WingProperty("Material", nameof(surfTopMat), 1, 0, 0, 3);
+                surfTopOpacity = new WingProperty("Opacity", nameof(surfTopOpacity), 0, 2, 0, 1);
+                surfTopHue = new WingProperty("Hue", nameof(surfTopHue), 0.1, 2, 0, 1);
+                surfTopSat = new WingProperty("Saturation", nameof(surfTopSat), 0.75, 2, 0, 1);
+                surfTopBright = new WingProperty("Brightness", nameof(surfTopBright), 0.6, 2, 0, 1);
+
+                surfBottomMat = new WingProperty("Material", nameof(surfBottomMat), 3, 0, 0, 3);
+                surfBottomOpacity = new WingProperty("Opacity", nameof(surfBottomOpacity), 0, 2, 0, 1);
+                surfBottomHue = new WingProperty("Hue", nameof(surfBottomHue), 0.1, 2, 0, 1);
+                surfBottomSat = new WingProperty("Saturation", nameof(surfBottomSat), 0.75, 2, 0, 1);
+                surfBottomBright = new WingProperty("Brightness", nameof(surfBottomBright), 0.6, 2, 0, 1);
+
+                surfLeadMat = new WingProperty("Material", nameof(surfLeadMat), 3, 0, 0, 3);
+                surfLeadOpacity = new WingProperty("Opacity", nameof(surfLeadOpacity), 0, 2, 0, 1);
+                surfLeadHue = new WingProperty("Hue", nameof(surfLeadHue), 0.1, 2, 0, 1);
+                surfLeadSat = new WingProperty("Saturation", nameof(surfLeadSat), 0.75, 2, 0, 1);
+                surfLeadBright = new WingProperty("Brightness", nameof(surfLeadBright), 0.6, 2, 0, 1);
+
+                surfTrailMat = new WingProperty("Material", nameof(surfTrailMat), 3, 0, 0, 3);
+                surfTrailOpacity = new WingProperty("Opacity", nameof(surfTrailOpacity), 0, 2, 0, 1);
+                surfTrailHue = new WingProperty("Hue", nameof(surfTrailHue), 0.1, 2, 0, 1);
+                surfTrailSat = new WingProperty("Saturation", nameof(surfTrailSat), 0.75, 2, 0, 1);
+                surfTrailBright = new WingProperty("Brightness", nameof(surfTrailBright), 0.6, 2, 0, 1);
+            }
+            else
+            {
+                B9_ProceduralControl wp = part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralControl>();  // all properties for symmetry will be the same object. Yay for no need to update values :D
+                length = wp.length;
+                tipOffset = wp.tipOffset;
+                rootOffset = wp.rootOffset;
+                rootWidth = wp.rootWidth;
+                tipWidth = wp.tipWidth;
+                rootThickness = wp.rootThickness;
+                tipThickness = wp.tipThickness;
+
+                leadingEdgeType = wp.leadingEdgeType;
+                rootLeadingEdge = wp.rootLeadingEdge;
+                tipLeadingEdge = wp.tipLeadingEdge;
+
+                trailingEdgeType = wp.trailingEdgeType;
+                rootTrailingEdge = wp.rootTrailingEdge;
+                tipTrailingEdge = wp.tipTrailingEdge;
+
+                surfTopMat = wp.surfTopMat;
+                surfTopOpacity = wp.surfTopOpacity;
+                surfTopHue = wp.surfTopHue;
+                surfTopSat = wp.surfTopSat;
+                surfTopBright = wp.surfTopBright;
+
+                surfBottomMat = wp.surfBottomMat;
+                surfBottomOpacity = wp.surfBottomOpacity;
+                surfBottomHue = wp.surfBottomHue;
+                surfBottomSat = wp.surfBottomSat;
+                surfBottomBright = wp.surfBottomBright;
+
+                surfLeadMat = wp.surfLeadMat;
+                surfLeadOpacity = wp.surfLeadOpacity;
+                surfLeadHue = wp.surfLeadHue;
+                surfLeadSat = wp.surfLeadSat;
+                surfLeadBright = wp.surfLeadBright;
+
+                surfTrailMat = wp.surfTrailMat;
+                surfTrailOpacity = wp.surfTrailOpacity;
+                surfTrailHue = wp.surfTrailHue;
+                surfTrailSat = wp.surfTrailSat;
+                surfTrailBright = wp.surfTrailBright;
+            }
         }
 
         public override void OnSave(ConfigNode node)
@@ -91,8 +176,8 @@ namespace ProceduralWings.B9
         #region Geometry
         public override void UpdateGeometry(bool updateAerodynamics)
         {
-            float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, rootOffset.min, rootOffset.max); // Mathf.Clamp (sharedBaseOffsetRoot, sharedBaseOffsetLimits.z, ctrlOffsetRootLimit - 0.075f);
-            float ctrlOffsetTipClamped = (float)Utils.Clamp(TipOffset, Math.Max(rootOffset.min, ctrlOffsetRootClamped - Length), rootOffset.max); // Mathf.Clamp (sharedBaseOffsetTip, -ctrlOffsetTipLimit + 0.075f, sharedBaseOffsetLimits.w);
+            float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, rootOffset.min, rootOffset.max);
+            float ctrlOffsetTipClamped = (float)Utils.Clamp(TipOffset, Math.Max(rootOffset.min, ctrlOffsetRootClamped - Length), rootOffset.max);
 
             float ctrlThicknessDeviationRoot = (float)RootThickness / 0.24f;
             float ctrlThicknessDeviationTip = (float)TipThickness / 0.24f;
@@ -261,7 +346,7 @@ namespace ProceduralWings.B9
                         else uv[i] = new Vector2(vp[i].z, uv[i].y);
 
                         // Color has to be applied there to avoid blanking out cross sections
-                        cl[i] = GetVertexColor(2);
+                        cl[i] = TrailColour;
                         uv2[i] = GetVertexUV2(TrailingEdgeType);
                     }
                 }
@@ -330,12 +415,12 @@ namespace ProceduralWings.B9
                     // Colors
                     if (vp[i].x > 0f)
                     {
-                        cl[i] = GetVertexColor(0);
+                        cl[i] = TopColour;
                         uv2[i] = GetVertexUV2(SurfTopMat);
                     }
                     else
                     {
-                        cl[i] = GetVertexColor(1);
+                        cl[i] = BottomColour;
                         uv2[i] = GetVertexUV2(SurfBottomMat);
                     }
                 }
@@ -476,65 +561,25 @@ namespace ProceduralWings.B9
             if (!FARactive)
             {
                 float stockLiftCoefficient = (float)surfaceArea / 3.52f;
-                ModuleControlSurface mCtrlSrf = part.Modules.OfType<ModuleControlSurface>().FirstOrDefault();
+                ModuleControlSurface mCtrlSrf = part.Modules.GetModule<ModuleControlSurface>();
                 mCtrlSrf.deflectionLiftCoeff = (float)Math.Round(stockLiftCoefficient, 2);
                 mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
                 part.mass = stockLiftCoefficient * (1 + mCtrlSrf.ctrlSurfaceArea) * 0.1f;
             }
             else
-            {
-                if (aeroFARModuleReference == null)
-                {
-                    if (part.Modules.Contains(FarModuleName))
-                        aeroFARModuleReference = part.Modules[FarModuleName];
-                    else if (part.Modules.Contains("FARWingAerodynamicModel"))
-                        aeroFARModuleReference = part.Modules["FARWingAerodynamicModel"];
-                }
-                if (aeroFARModuleReference != null)
-                {
-                    if (aeroFARModuleType == null)
-                        aeroFARModuleType = aeroFARModuleReference.GetType();
-                    if (aeroFARModuleType != null)
-                    {
-                        if (aeroFARFieldInfoSemispan == null)
-                            aeroFARFieldInfoSemispan = aeroFARModuleType.GetField("b_2");
-                        if (aeroFARFieldInfoSemispan_Actual == null)
-                            aeroFARFieldInfoSemispan_Actual = aeroFARModuleType.GetField("b_2_actual");
-                        if (aeroFARFieldInfoMAC == null)
-                            aeroFARFieldInfoMAC = aeroFARModuleType.GetField("MAC");
-                        if (aeroFARFieldInfoMAC_Actual == null)
-                            aeroFARFieldInfoMAC_Actual = aeroFARModuleType.GetField("MAC_actual");
-                        if (aeroFARFieldInfoMidChordSweep == null)
-                            aeroFARFieldInfoMidChordSweep = aeroFARModuleType.GetField("MidChordSweep");
-                        if (aeroFARFieldInfoTaperRatio == null)
-                            aeroFARFieldInfoTaperRatio = aeroFARModuleType.GetField("TaperRatio");
-                        if (aeroFARFieldInfoControlSurfaceFraction == null)
-                            aeroFARFieldInfoControlSurfaceFraction = aeroFARModuleType.GetField("ctrlSurfFrac");
-                        if (aeroFARFieldInfoRootChordOffset == null)
-                            aeroFARFieldInfoRootChordOffset = aeroFARModuleType.GetField("rootMidChordOffsetFromOrig");
-
-                        if (aeroFARMethodInfoUsed == null)
-                        {
-                            aeroFARMethodInfoUsed = aeroFARModuleType.GetMethod("StartInitialization");
-                        }
-                        if (aeroFARMethodInfoUsed != null)
-                        {
-                            aeroFARFieldInfoSemispan.SetValue(aeroFARModuleReference, length);
-                            aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, length);
-                            aeroFARFieldInfoMAC.SetValue(aeroFARModuleReference, MAC);
-                            aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, MAC);
-                            aeroFARFieldInfoMidChordSweep.SetValue(aeroFARModuleReference, midChordSweep);
-                            aeroFARFieldInfoTaperRatio.SetValue(aeroFARModuleReference, taperRatio);
-                            aeroFARFieldInfoControlSurfaceFraction.SetValue(aeroFARModuleReference, ctrlFraction);
-                            aeroFARFieldInfoRootChordOffset.SetValue(aeroFARModuleReference, (Vector3)aeroStatRootMidChordOffsetFromOrigin);
-
-                            aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
-                        }
-                    }
-                }
-            }
+                setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
 
             StartCoroutine(updateAeroDelayed());
+        }
+
+        public override void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
+        {
+            base.setFARModuleParams(midChordSweep, taperRatio, midChordOffset);
+            if (aeroFARFieldInfoControlSurfaceFraction != null)
+            {
+                aeroFARFieldInfoControlSurfaceFraction.SetValue(aeroFARModuleReference, ctrlFraction);
+                aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
+            }
         }
 
 
@@ -547,10 +592,7 @@ namespace ProceduralWings.B9
         {
             get
             {
-                if (ctrlFraction >= 1)
-                    return "All-moving control surface";
-                else
-                    return "Control surface";
+                return "Control surface";
             }
         }
 
@@ -558,21 +600,68 @@ namespace ProceduralWings.B9
         {
             base.ShowEditorUI();
 
-            window.FindPropertyGroup("Base").UpdatePropertyValues(rootOffset);
-            window.FindPropertyGroup("Edge (leading)").UpdatePropertyValues(leadingEdgeType, rootLeadingEdge, tipLeadingEdge);
-            window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
-            window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
-            window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
-            window.FindPropertyGroup("Surface (leading edge)").UpdatePropertyValues(surfLeadMat, surfLeadOpacity, surfLeadHue, surfLeadSat, surfLeadBright);
-            window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
+            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset);
+            WindowManager.Window.FindPropertyGroup("Edge (leading)").UpdatePropertyValues(leadingEdgeType, rootLeadingEdge, tipLeadingEdge);
+            WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
+            WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
+            WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
+            WindowManager.Window.FindPropertyGroup("Surface (leading edge)").UpdatePropertyValues(surfLeadMat, surfLeadOpacity, surfLeadHue, surfLeadSat, surfLeadBright);
+            WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
         }
 
-        public override void SetupWindowGroups()
+        public override UI.EditorWindow CreateWindow()
         {
-            base.SetupWindowGroups();
-            if (window.FindPropertyGroup("Base")?.AddProperty(rootOffset, x => ((B9_ProceduralControl)window.wing).RootOffset = x) != null)
-            { }
+            UI.EditorWindow window = new EditorWindow();
+            
+            PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
+            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
+            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
+            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
+            basegroup.AddProperty(new WingProperty(rootOffset), x => ((B9_ProceduralControl)window.wing).RootOffset = x);
+            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
+            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
+            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
 
+            UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeL));
+            leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
+                                new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
+            leadgroup.AddProperty(new WingProperty(rootLeadingEdge), x => ((B9_ProceduralWing)window.wing).RootLeadingEdge = x);
+            leadgroup.AddProperty(new WingProperty(tipLeadingEdge), x => ((B9_ProceduralWing)window.wing).TipLeadingEdge = x);
+
+            UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeT));
+            trailGroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x);
+            trailGroup.AddProperty(new WingProperty(rootLeadingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x);
+            trailGroup.AddProperty(new WingProperty(tipLeadingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x);
+
+            UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", UIUtility.ColorHSBToRGB(uiColorSliderColorsST));
+            surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x);
+            surfTGroup.AddProperty(new WingProperty(surfTopOpacity), x => ((B9_ProceduralWing)window.wing).SurfTopOpacity = x);
+            surfTGroup.AddProperty(new WingProperty(surfTopHue), x => ((B9_ProceduralWing)window.wing).SurfTopHue = x);
+            surfTGroup.AddProperty(new WingProperty(surfTopSat), x => ((B9_ProceduralWing)window.wing).SurfTopSat = x);
+            surfTGroup.AddProperty(new WingProperty(surfTopBright), x => ((B9_ProceduralWing)window.wing).SurfTopBright = x);
+
+            UI.PropertyGroup surfBGroup = window.AddPropertyGroup("Surface (bottom)", UIUtility.ColorHSBToRGB(uiColorSliderColorsSB));
+            surfBGroup.AddProperty(new WingProperty(surfBottomMat), x => ((B9_ProceduralWing)window.wing).SurfBottomMat = (int)x);
+            surfBGroup.AddProperty(new WingProperty(surfBottomOpacity), x => ((B9_ProceduralWing)window.wing).SurfBottomOpacity = x);
+            surfBGroup.AddProperty(new WingProperty(surfBottomHue), x => ((B9_ProceduralWing)window.wing).SurfBottomHue = x);
+            surfBGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfBottomSat = x);
+            surfBGroup.AddProperty(new WingProperty(surfBottomBright), x => ((B9_ProceduralWing)window.wing).SurfBottomBright = x);
+
+            UI.PropertyGroup surfLGroup = window.AddPropertyGroup("Surface (leading edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsEL));
+            surfLGroup.AddProperty(new WingProperty(surfLeadMat), x => ((B9_ProceduralWing)window.wing).SurfLeadMat = (int)x);
+            surfLGroup.AddProperty(new WingProperty(surfLeadOpacity), x => ((B9_ProceduralWing)window.wing).SurfLeadOpacity = x);
+            surfLGroup.AddProperty(new WingProperty(surfLeadHue), x => ((B9_ProceduralWing)window.wing).SurfLeadHue = x);
+            surfLGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfLeadSat = x);
+            surfLGroup.AddProperty(new WingProperty(surfLeadBright), x => ((B9_ProceduralWing)window.wing).SurfLeadBright = x);
+
+            UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsET));
+            surfRGroup.AddProperty(new WingProperty(surfTrailMat), x => ((B9_ProceduralWing)window.wing).SurfTrailMat = (int)x);
+            surfRGroup.AddProperty(new WingProperty(surfTrailOpacity), x => ((B9_ProceduralWing)window.wing).SurfTrailOpacity = x);
+            surfRGroup.AddProperty(new WingProperty(surfTrailHue), x => ((B9_ProceduralWing)window.wing).SurfTrailHue = x);
+            surfRGroup.AddProperty(new WingProperty(surfTrailSat), x => ((B9_ProceduralWing)window.wing).SurfTrailSat = x);
+            surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
+
+            return window;
         }
 
         #endregion

@@ -59,6 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="B9PWing\B9_ProceduralControl.cs" />
+    <Compile Include="B9PWing\B9_ProceduralControlAllMoving.cs" />
+    <Compile Include="B9PWing\B9_ProceduralPanel.cs" />
     <Compile Include="Base_ProceduralWing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PWing Original\ControlManipulator.cs" />
@@ -66,6 +68,8 @@
     <Compile Include="UI\EditorWindow.cs" />
     <Compile Include="UI\PropertyGroup.cs" />
     <Compile Include="UI\PropertySlider.cs" />
+    <Compile Include="UI\PropertySlider_ValueArray.cs" />
+    <Compile Include="UI\WindowManager.cs" />
     <Compile Include="Utility\UIUtility.cs" />
     <Compile Include="B9PWing\B9_ProceduralWing.cs" />
     <Compile Include="PWing Original\WingManipulator.cs" />
