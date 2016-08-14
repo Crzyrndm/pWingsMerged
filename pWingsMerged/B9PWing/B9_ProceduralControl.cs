@@ -31,7 +31,7 @@ namespace ProceduralWings.B9PWing
 
         public static string[] sharedFieldGroupBaseArrayCtrl = new string[] { "sharedBaseOffsetRoot" };
 
-        public override bool isCtrlSrf
+        public override bool IsCtrlSrf
         {
             get { return true; }
         }
@@ -44,7 +44,7 @@ namespace ProceduralWings.B9PWing
         /// <summary>
         /// control surfaces cant carry fuel
         /// </summary>
-        public override bool canBeFueled
+        public override bool CanBeFueled
         {
             get
             {

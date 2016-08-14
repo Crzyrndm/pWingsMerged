@@ -19,7 +19,7 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        public override bool isCtrlSrf
+        public override bool IsCtrlSrf
         {
             get
             {
@@ -27,7 +27,7 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        public override bool canBeFueled
+        public override bool CanBeFueled
         {
             get
             {

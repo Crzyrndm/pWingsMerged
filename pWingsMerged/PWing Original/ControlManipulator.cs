@@ -6,7 +6,7 @@ namespace ProceduralWings.Original
 {
     class ControlManipulator : WingManipulator
     {
-        public override bool isCtrlSrf
+        public override bool IsCtrlSrf
         {
             get { return true; }
         }
@@ -27,7 +27,7 @@ namespace ProceduralWings.Original
         /// <summary>
         /// control surfaces cant carry fuel
         /// </summary>
-        public override bool canBeFueled
+        public override bool CanBeFueled
         {
             get
             {
