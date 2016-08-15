@@ -8,6 +8,15 @@ namespace ProceduralWings.B9PWing
     using UI;
     class B9_ProceduralControl : B9_ProceduralWing
     {
+        public override bool IsCtrlSrf
+        {
+            get { return true; }
+        }
+
+        #region physical dimensions
+        [KSPField]
+        public float ctrlFraction = 1f;
+
         protected WingProperty rootOffset;
         public double RootOffset
         {
@@ -19,44 +28,23 @@ namespace ProceduralWings.B9PWing
             }
 
         }
-        public MeshFilter meshFilterCtrlFrame;
-        public MeshFilter meshFilterCtrlSurface;
-        public List<MeshFilter> meshFiltersCtrlEdge = new List<MeshFilter>();
+        #endregion
 
-        public static MeshReference meshReferenceCtrlFrame;
-        public static MeshReference meshReferenceCtrlSurface;
-        public static List<MeshReference> meshReferencesCtrlEdge = new List<MeshReference>();
-
-        public static int meshTypeCountEdgeCtrl = 3;
-
-        public static string[] sharedFieldGroupBaseArrayCtrl = new string[] { "sharedBaseOffsetRoot" };
-
-        public override bool IsCtrlSrf
+        #region entry points
+        public override void OnSave(ConfigNode node)
         {
-            get { return true; }
-        }
-
-        [KSPField]
-        public float ctrlFraction = 1f;
-
-        public const float costDensityControl = 6500f;
-
-        /// <summary>
-        /// control surfaces cant carry fuel
-        /// </summary>
-        public override bool CanBeFueled
-        {
-            get
+            base.OnSave(node);
+            try
             {
-                return false;
+                rootOffset.Save(node);
             }
+            catch
+            { }
         }
 
-        public override float updateCost()
-        {
-            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
-        }
+        #endregion
 
+        #region setting up
         public override void SetupProperties()
         {
             if (length != null)
@@ -148,17 +136,6 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        public override void OnSave(ConfigNode node)
-        {
-            base.OnSave(node);
-            try
-            {
-                rootOffset.Save(node);
-            }
-            catch
-            { }
-        }
-
         public override void LoadWingProperty(ConfigNode n)
         {
             switch (n.GetValue("ID"))
@@ -172,6 +149,7 @@ namespace ProceduralWings.B9PWing
             }
         }
 
+        #endregion
 
         #region Geometry
         public override void UpdateGeometry(bool updateAerodynamics)
@@ -185,7 +163,7 @@ namespace ProceduralWings.B9PWing
             float ctrlEdgeWidthDeviationRoot = (float)RootTrailingEdge / 0.24f;
             float ctrlEdgeWidthDeviationTip = (float)TipTrailingEdge / 0.24f;
 
-            if (meshFilterCtrlFrame != null)
+            if (meshFilterWingSection != null)
             {
                 int length = meshReferenceCtrlFrame.vp.Length;
                 Vector3[] vp = new Vector3[length];
@@ -260,17 +238,17 @@ namespace ProceduralWings.B9PWing
                     uv2[i] = Vector2.zero;
                 }
 
-                meshFilterCtrlFrame.mesh.vertices = vp;
-                meshFilterCtrlFrame.mesh.uv = uv;
-                meshFilterCtrlFrame.mesh.uv2 = uv2;
-                meshFilterCtrlFrame.mesh.colors = cl;
-                meshFilterCtrlFrame.mesh.RecalculateBounds();
+                meshFilterWingSection.mesh.vertices = vp;
+                meshFilterWingSection.mesh.uv = uv;
+                meshFilterWingSection.mesh.uv2 = uv2;
+                meshFilterWingSection.mesh.colors = cl;
+                meshFilterWingSection.mesh.RecalculateBounds();
 
-                MeshCollider meshCollider = meshFilterCtrlFrame.gameObject.GetComponent<MeshCollider>();
+                MeshCollider meshCollider = meshFilterWingSection.gameObject.GetComponent<MeshCollider>();
                 if (meshCollider == null)
-                    meshCollider = meshFilterCtrlFrame.gameObject.AddComponent<MeshCollider>();
+                    meshCollider = meshFilterWingSection.gameObject.AddComponent<MeshCollider>();
                 meshCollider.sharedMesh = null;
-                meshCollider.sharedMesh = meshFilterCtrlFrame.mesh;
+                meshCollider.sharedMesh = meshFilterWingSection.mesh;
                 meshCollider.convex = true;
             }
 
@@ -279,18 +257,18 @@ namespace ProceduralWings.B9PWing
             // As UI only works with floats, we have to cast selections into ints too
 
             int ctrlEdgeTypeInt = Mathf.RoundToInt(TrailingEdgeType - 1);
-            for (int i = 0; i < meshTypeCountEdgeCtrl; ++i)
+            for (int i = 0; i < meshTypeCountEdgeWing; ++i)
             {
                 if (i != ctrlEdgeTypeInt)
-                    meshFiltersCtrlEdge[i].gameObject.SetActive(false);
+                    meshFiltersWingEdgeTrailing[i].gameObject.SetActive(false);
                 else
-                    meshFiltersCtrlEdge[i].gameObject.SetActive(true);
+                    meshFiltersWingEdgeTrailing[i].gameObject.SetActive(true);
             }
 
             // Now we can modify geometry
             // Copy-pasted frame deformation sequence at the moment, to be pruned later
 
-            if (meshFiltersCtrlEdge[ctrlEdgeTypeInt] != null)
+            if (meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt] != null)
             {
                 MeshReference meshReference = meshReferencesCtrlEdge[ctrlEdgeTypeInt];
                 int length = meshReference.vp.Length;
@@ -351,16 +329,16 @@ namespace ProceduralWings.B9PWing
                     }
                 }
 
-                meshFiltersCtrlEdge[ctrlEdgeTypeInt].mesh.vertices = vp;
-                meshFiltersCtrlEdge[ctrlEdgeTypeInt].mesh.uv = uv;
-                meshFiltersCtrlEdge[ctrlEdgeTypeInt].mesh.uv2 = uv2;
-                meshFiltersCtrlEdge[ctrlEdgeTypeInt].mesh.colors = cl;
-                meshFiltersCtrlEdge[ctrlEdgeTypeInt].mesh.RecalculateBounds();
+                meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.vertices = vp;
+                meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.uv = uv;
+                meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.uv2 = uv2;
+                meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.colors = cl;
+                meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.RecalculateBounds();
             }
 
             // Finally, simple top/bottom surface changes
 
-            if (meshFilterCtrlSurface != null)
+            if (meshFilterWingSurface != null)
             {
                 int length = meshReferenceCtrlSurface.vp.Length;
                 Vector3[] vp = new Vector3[length];
@@ -424,11 +402,11 @@ namespace ProceduralWings.B9PWing
                         uv2[i] = GetVertexUV2(SurfBottomMat);
                     }
                 }
-                meshFilterCtrlSurface.mesh.vertices = vp;
-                meshFilterCtrlSurface.mesh.uv = uv;
-                meshFilterCtrlSurface.mesh.uv2 = uv2;
-                meshFilterCtrlSurface.mesh.colors = cl;
-                meshFilterCtrlSurface.mesh.RecalculateBounds();
+                meshFilterWingSurface.mesh.vertices = vp;
+                meshFilterWingSurface.mesh.uv = uv;
+                meshFilterWingSurface.mesh.uv2 = uv2;
+                meshFilterWingSurface.mesh.colors = cl;
+                meshFilterWingSurface.mesh.RecalculateBounds();
             }
             if (updateAerodynamics)
                 CalculateAerodynamicValues();
@@ -436,15 +414,24 @@ namespace ProceduralWings.B9PWing
 
         #endregion
 
-        #region Mesh Setup and Checking
+        #region Mesh
+        public override int meshTypeCountEdgeWing
+        {
+            get { return 3; }
+        }
+
+        public static MeshReference meshReferenceCtrlFrame;
+        public static MeshReference meshReferenceCtrlSurface;
+        public static List<MeshReference> meshReferencesCtrlEdge = new List<MeshReference>();
+
         public override void SetupMeshFilters()
         {
-            meshFilterCtrlFrame = CheckMeshFilter(meshFilterCtrlFrame, "frame");
-            meshFilterCtrlSurface = CheckMeshFilter(meshFilterCtrlSurface, "surface");
-            for (int i = 0; i < meshTypeCountEdgeCtrl; ++i)
+            meshFilterWingSection = CheckMeshFilter(meshFilterWingSection, "frame");
+            meshFilterWingSurface = CheckMeshFilter(meshFilterWingSurface, "surface");
+            for (int i = 0; i < meshTypeCountEdgeWing; ++i)
             {
                 MeshFilter meshFilterCtrlEdge = CheckMeshFilter("edge_type" + i);
-                meshFiltersCtrlEdge.Add(meshFilterCtrlEdge);
+                meshFiltersWingEdgeTrailing.Add(meshFilterCtrlEdge);
             }
         }
 
@@ -452,13 +439,13 @@ namespace ProceduralWings.B9PWing
         {
             if (meshReferenceCtrlFrame == null || meshReferenceCtrlFrame.vp.Length == 0
                 || meshReferenceCtrlSurface != null || meshReferenceCtrlSurface.vp.Length > 0
-                || meshReferencesCtrlEdge[meshTypeCountEdgeCtrl - 1] != null || meshReferencesCtrlEdge[meshTypeCountEdgeCtrl - 1].vp.Length > 0)
+                || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1] != null || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1].vp.Length > 0)
             {
-                meshReferenceCtrlFrame = FillMeshRefererence(meshFilterCtrlFrame);
-                meshReferenceCtrlSurface = FillMeshRefererence(meshFilterCtrlSurface);
-                for (int i = 0; i < meshTypeCountEdgeCtrl; ++i)
+                meshReferenceCtrlFrame = FillMeshRefererence(meshFilterWingSection);
+                meshReferenceCtrlSurface = FillMeshRefererence(meshFilterWingSurface);
+                for (int i = 0; i < meshTypeCountEdgeWing; ++i)
                 {
-                    MeshReference meshReferenceCtrlEdge = FillMeshRefererence(meshFiltersCtrlEdge[i]);
+                    MeshReference meshReferenceCtrlEdge = FillMeshRefererence(meshFiltersWingEdgeTrailing[i]);
                     meshReferencesCtrlEdge.Add(meshReferenceCtrlEdge);
                 }
 
@@ -473,11 +460,11 @@ namespace ProceduralWings.B9PWing
                 SetMaterialReferences();
             if (materialLayeredSurface != null)
             {
-                SetMaterial(meshFilterCtrlSurface, materialLayeredSurface);
-                SetMaterial(meshFilterCtrlFrame, materialLayeredEdge);
-                for (int i = 0; i < meshTypeCountEdgeCtrl; ++i)
+                SetMaterial(meshFilterWingSurface, materialLayeredSurface);
+                SetMaterial(meshFilterWingSection, materialLayeredEdge);
+                for (int i = 0; i < meshTypeCountEdgeWing; ++i)
                 {
-                    SetMaterial(meshFiltersCtrlEdge[i], materialLayeredEdge);
+                    SetMaterial(meshFiltersWingEdgeTrailing[i], materialLayeredEdge);
                 }
             }
         }
@@ -490,7 +477,7 @@ namespace ProceduralWings.B9PWing
             if (materialLayeredEdge == null)
                 materialLayeredEdge = new Material(StaticWingGlobals.B9WingShader);
 
-            SetTextures(meshFilterCtrlSurface, meshFilterCtrlFrame);
+            SetTextures(meshFilterWingSurface, meshFilterWingSection);
 
             if (materialLayeredSurfaceTextureMain != null && materialLayeredSurfaceTextureMask != null)
             {
@@ -506,6 +493,17 @@ namespace ProceduralWings.B9PWing
                 materialLayeredEdge.SetTexture("_Emissive", materialLayeredEdgeTextureMask);
                 materialLayeredEdge.SetFloat("_Shininess", materialPropertyShininess);
                 materialLayeredEdge.SetColor("_SpecColor", materialPropertySpecular);
+            }
+        }
+
+        #endregion
+
+        #region fuel
+        public override bool CanBeFueled
+        {
+            get
+            {
+                return false;
             }
         }
 
@@ -585,9 +583,15 @@ namespace ProceduralWings.B9PWing
 
         #endregion
 
-        #region Alternative UI/input
+        #region stock interfacing
+        public override float updateCost()
+        {
+            return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (Base_ProceduralWing.costDensity * (1f - ctrlFraction) + costDensity * ctrlFraction), 1);
+        }
 
+        #endregion
 
+        #region UI stuff
         public override string WindowTitle
         {
             get

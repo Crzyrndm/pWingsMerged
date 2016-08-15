@@ -11,12 +11,10 @@ namespace ProceduralWings
     using Fuel;
 
     /// <summary>
-    /// methods and properties common to both wing variants. Some implementation details will be specific to the wing type
+    /// methods and properties common to all wing variants. Some implementation details will be specific to the wing type
     /// </summary>
     abstract public class Base_ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
-        public static bool loadedConfig;
-
         public virtual bool IsCtrlSrf
         {
             get { return false; }
@@ -160,6 +158,8 @@ namespace ProceduralWings
         #endregion        
 
         #region entry points
+        public static bool loadedConfig;
+
         /// <summary>
         /// helper bool that prevents anything running when the start sequence hasn't fired yet (happens for various events -.-)
         /// </summary>
@@ -658,9 +658,9 @@ namespace ProceduralWings
 
             // Stock-only values
             if (!FARactive)
-                SetStockModuleParams();
-            else
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
+            else
+                SetStockModuleParams();
 
             StartCoroutine(updateAeroDelayed());
         }

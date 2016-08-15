@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ProceduralWings.Original
 {
-    public class WingManipulator : Base_ProceduralWing
+    public class ManipulatorWing : Base_ProceduralWing
     {
         // PartModule Dimensions
         [KSPField]
@@ -26,25 +27,14 @@ namespace ProceduralWings.Original
         [KSPField()]
         public bool IgnoreSnapping = false;
 
-        public void MatchTaperEvent()
-        {
-            // Check for a valid parent
-                // Get parents taper
-            WingManipulator parentWing = part.parent?.Modules.GetModule<WingManipulator>();
-            if (parentWing == null)
-                return;
-
-            TipThickness = RootThickness * (Length / parentWing.Length) * (parentWing.TipThickness - parentWing.RootThickness);
-            TipWidth = RootWidth * (Length / parentWing.Length) * (parentWing.TipWidth - parentWing.RootWidth);
-        }
-
-        #region Common Methods
+        #region Geometry
 
         public void SetupCollider()
         {
             baked = new Mesh();
             wingSMR.BakeMesh(baked);
-            wingSMR.enabled = false;
+            wingSMR.enabled = true;
+
             Transform modelTransform = transform.FindChild("model");
             if (modelTransform.GetComponent<MeshCollider>() == null)
                 modelTransform.gameObject.AddComponent<MeshCollider>();
@@ -52,21 +42,8 @@ namespace ProceduralWings.Original
             meshCol.sharedMesh = null;
             meshCol.sharedMesh = baked;
             meshCol.convex = true;
-            if (FARactive)
-                TriggerFARColliderUpdate();
-        }
 
-        public override void TriggerFARColliderUpdate()
-        {
-            CalculateAerodynamicValues();
-            PartModule FARmodule = null;
-            if (part.Modules.Contains(FarModuleName))
-                FARmodule = part.Modules[FarModuleName];
-            if (FARmodule != null)
-            {
-                Type FARtype = FARmodule.GetType();
-                FARtype.GetMethod("TriggerPartColliderUpdate").Invoke(FARmodule, null);
-            }
+            wingSMR.updateWhenOffscreen = true;
         }
 
         public override void UpdateGeometry()
@@ -81,6 +58,8 @@ namespace ProceduralWings.Original
                 part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
             }
 
+            SetupCollider();
+
             CalculateAerodynamicValues();
         }
 
@@ -92,21 +71,14 @@ namespace ProceduralWings.Original
             {
                 Part p = part.children[i];
                 // Check that it is a pWing and that it is affected by parent snapping
-                WingManipulator wing = p?.Modules.GetModule<WingManipulator>();
+                ManipulatorWing wing = p?.Modules.GetModule<ManipulatorWing>();
                 if (wing != null && !wing.IgnoreSnapping)
                 {
                     // Update its positions and refresh the collider
                     wing.UpdateGeometry();
-                    wing.SetupCollider();
-                    // If its a wing, refresh its aerodynamic values
-                    wing.CalculateAerodynamicValues();
                 }
             }
         }
-
-        #endregion
-
-        #region PartModule
 
         public override void SetupGeometryAndAppearance()
         {
@@ -114,13 +86,35 @@ namespace ProceduralWings.Original
             Root = part.FindModelTransform("Root");
             SMRcontainer = part.FindModelTransform("Collider");
             wingSMR = SMRcontainer.GetComponent<SkinnedMeshRenderer>();
+        }
 
-            SetupCollider();
+        public void MatchTaperEvent()
+        {
+            // Check for a valid parent
+            // Get parents taper
+            ManipulatorWing parentWing = part.parent?.Modules.GetModule<ManipulatorWing>();
+            if (parentWing == null)
+                return;
 
-            // Enable root-matching events
-            //if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null)
-            //    Events["MatchTaperEvent"].guiActiveEditor = true;
+            TipThickness = RootThickness * (Length / parentWing.Length) * (parentWing.TipThickness - parentWing.RootThickness);
+            TipWidth = RootWidth * (Length / parentWing.Length) * (parentWing.TipWidth - parentWing.RootWidth);
         }
         #endregion
+
+        public override IEnumerator translateTip()
+        {
+            deformWing = true;
+            Vector3 diff;
+            while (Input.GetKey(keyTranslation))
+            {
+                yield return null;
+                diff = UpdateMouseDiff(false);
+
+                TipOffset += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
+                length.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+                Length = Math.Max(length.value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+            }
+            deformWing = false;
+        }
     }
 }

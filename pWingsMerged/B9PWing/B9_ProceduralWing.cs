@@ -10,6 +10,7 @@ namespace ProceduralWings.B9PWing
     using UI;
     public class B9_ProceduralWing : Base_ProceduralWing
     {
+        #region physical dimensions
         public bool isMirrored;
 
         public override double MAC
@@ -19,28 +20,6 @@ namespace ProceduralWings.B9PWing
                 return Length * (TipWidth + TipLeadingEdge + TipTrailingEdge + RootWidth + RootLeadingEdge + RootTrailingEdge) / 2;
             }
         }
-
-        #region Mesh properties
-
-        [System.Serializable]
-        public class MeshReference
-        {
-            public Vector3[] vp;
-            public Vector3[] nm;
-            public Vector2[] uv;
-        }
-
-        public MeshFilter meshFilterWingSection;
-        public MeshFilter meshFilterWingSurface;
-        public List<MeshFilter> meshFiltersWingEdgeTrailing = new List<MeshFilter>();
-        public List<MeshFilter> meshFiltersWingEdgeLeading = new List<MeshFilter>();
-
-        public static MeshReference meshReferenceWingSection;
-        public static MeshReference meshReferenceWingSurface;
-        public static List<MeshReference> meshReferencesWingEdge = new List<MeshReference>();
-
-        public const int meshTypeCountEdgeWing = 4;
-        #endregion
 
         #region Shared properties / Edge / Leading
 
@@ -347,36 +326,9 @@ namespace ProceduralWings.B9PWing
 
         #endregion
 
+        #endregion
+
         #region Unity stuff and Callbacks/events
-
-        // Attachment handling
-        public override void OnAttach()
-        {
-            base.OnAttach();
-            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
-        }
-
-        public void UpdateOnEditorDetach()
-        {
-            if (this.part.parent != null)
-            {
-                B9_ProceduralWing parentModule = this.part.parent.Modules.GetModule<B9_ProceduralWing>();
-                if (parentModule != null)
-                {
-                    parentModule.FuelUpdateVolume();
-                    parentModule.CalculateAerodynamicValues();
-                }
-            }
-        }
-
-        public virtual void UpdateSymmetricAppearance()
-        {
-            UpdateGeometry(false);
-            for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
-            {
-                part.symmetryCounterparts[i].Modules.GetModule<B9_ProceduralWing>().UpdateGeometry(false);
-            }
-        }
 
         public override void OnSave(ConfigNode node)
         {
@@ -424,101 +376,9 @@ namespace ProceduralWings.B9PWing
             node.TryGetValue("mirrorTexturing", ref isMirrored);
         }
 
-        public override void LoadWingProperty(ConfigNode n)
-        {
-            switch (n.GetValue("ID"))
-            {
-                case nameof(leadingEdgeType):
-                    leadingEdgeType.Load(n);
-                    break;
-                case nameof(rootLeadingEdge):
-                    rootLeadingEdge.Load(n);
-                    break;
-                case nameof(tipLeadingEdge):
-                    tipLeadingEdge.Load(n);
-                    break;
-                case nameof(trailingEdgeType):
-                    trailingEdgeType.Load(n);
-                    break;
-                case nameof(rootTrailingEdge):
-                    rootTrailingEdge.Load(n);
-                    break;
-                case nameof(tipTrailingEdge):
-                    tipTrailingEdge.Load(n);
-                    break;
-                case nameof(surfTopMat):
-                    surfTopMat.Load(n);
-                    break;
-                case nameof(surfTopOpacity):
-                    surfTopOpacity.Load(n);
-                    break;
-                case nameof(surfTopHue):
-                    surfTopHue.Load(n);
-                    break;
-                case nameof(surfTopSat):
-                    surfTopSat.Load(n);
-                    break;
-                case nameof(surfTopBright):
-                    surfTopBright.Load(n);
-                    break;
-                case nameof(surfBottomMat):
-                    surfBottomMat.Load(n);
-                    break;
-                case nameof(surfBottomOpacity):
-                    surfBottomOpacity.Load(n);
-                    break;
-                case nameof(surfBottomHue):
-                    surfBottomHue.Load(n);
-                    break;
-                case nameof(surfBottomSat):
-                    surfBottomSat.Load(n);
-                    break;
-                case nameof(surfBottomBright):
-                    surfBottomBright.Load(n);
-                    break;
-                case nameof(surfLeadMat):
-                    surfLeadMat.Load(n);
-                    break;
-                case nameof(surfLeadOpacity):
-                    surfLeadOpacity.Load(n);
-                    break;
-                case nameof(surfLeadHue):
-                    surfLeadHue.Load(n);
-                    break;
-                case nameof(surfLeadSat):
-                    surfLeadSat.Load(n);
-                    break;
-                case nameof(surfLeadBright):
-                    surfLeadBright.Load(n);
-                    break;
-                case nameof(surfTrailMat):
-                    surfTrailMat.Load(n);
-                    break;
-                case nameof(surfTrailOpacity):
-                    surfTrailOpacity.Load(n);
-                    break;
-                case nameof(surfTrailHue):
-                    surfTrailHue.Load(n);
-                    break;
-                case nameof(surfTrailSat):
-                    surfTrailSat.Load(n);
-                    break;
-                case nameof(surfTrailBright):
-                    surfTrailBright.Load(n);
-                    break;
-                default:
-                    base.LoadWingProperty(n);
-                    break;
-            }
-        }
-
-        public override void SetupGeometryAndAppearance()
-        {
-            SetupMeshFilters();
-            SetupMeshReferences();
-            UpdateMaterials();
-        }
         #endregion
+
+        #region Setting up
 
         public override void SetupProperties()
         {
@@ -609,6 +469,103 @@ namespace ProceduralWings.B9PWing
                 surfTrailBright = pw.surfTrailBright;
             }
         }
+
+        public override void SetupGeometryAndAppearance()
+        {
+            SetupMeshFilters();
+            SetupMeshReferences();
+            UpdateMaterials();
+        }
+
+        public override void LoadWingProperty(ConfigNode n)
+        {
+            switch (n.GetValue("ID"))
+            {
+                case nameof(leadingEdgeType):
+                    leadingEdgeType.Load(n);
+                    break;
+                case nameof(rootLeadingEdge):
+                    rootLeadingEdge.Load(n);
+                    break;
+                case nameof(tipLeadingEdge):
+                    tipLeadingEdge.Load(n);
+                    break;
+                case nameof(trailingEdgeType):
+                    trailingEdgeType.Load(n);
+                    break;
+                case nameof(rootTrailingEdge):
+                    rootTrailingEdge.Load(n);
+                    break;
+                case nameof(tipTrailingEdge):
+                    tipTrailingEdge.Load(n);
+                    break;
+                case nameof(surfTopMat):
+                    surfTopMat.Load(n);
+                    break;
+                case nameof(surfTopOpacity):
+                    surfTopOpacity.Load(n);
+                    break;
+                case nameof(surfTopHue):
+                    surfTopHue.Load(n);
+                    break;
+                case nameof(surfTopSat):
+                    surfTopSat.Load(n);
+                    break;
+                case nameof(surfTopBright):
+                    surfTopBright.Load(n);
+                    break;
+                case nameof(surfBottomMat):
+                    surfBottomMat.Load(n);
+                    break;
+                case nameof(surfBottomOpacity):
+                    surfBottomOpacity.Load(n);
+                    break;
+                case nameof(surfBottomHue):
+                    surfBottomHue.Load(n);
+                    break;
+                case nameof(surfBottomSat):
+                    surfBottomSat.Load(n);
+                    break;
+                case nameof(surfBottomBright):
+                    surfBottomBright.Load(n);
+                    break;
+                case nameof(surfLeadMat):
+                    surfLeadMat.Load(n);
+                    break;
+                case nameof(surfLeadOpacity):
+                    surfLeadOpacity.Load(n);
+                    break;
+                case nameof(surfLeadHue):
+                    surfLeadHue.Load(n);
+                    break;
+                case nameof(surfLeadSat):
+                    surfLeadSat.Load(n);
+                    break;
+                case nameof(surfLeadBright):
+                    surfLeadBright.Load(n);
+                    break;
+                case nameof(surfTrailMat):
+                    surfTrailMat.Load(n);
+                    break;
+                case nameof(surfTrailOpacity):
+                    surfTrailOpacity.Load(n);
+                    break;
+                case nameof(surfTrailHue):
+                    surfTrailHue.Load(n);
+                    break;
+                case nameof(surfTrailSat):
+                    surfTrailSat.Load(n);
+                    break;
+                case nameof(surfTrailBright):
+                    surfTrailBright.Load(n);
+                    break;
+                default:
+                    base.LoadWingProperty(n);
+                    break;
+            }
+        }
+
+        #endregion
 
         #region Inheritance
         public bool inheritancePossibleOnShape = false;
@@ -735,6 +692,36 @@ namespace ProceduralWings.B9PWing
         #endregion
 
         #region Geometry
+
+        // Attachment handling
+        public override void OnAttach()
+        {
+            base.OnAttach();
+            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
+        }
+
+        public void UpdateOnEditorDetach()
+        {
+            if (this.part.parent != null)
+            {
+                B9_ProceduralWing parentModule = this.part.parent.Modules.GetModule<B9_ProceduralWing>();
+                if (parentModule != null)
+                {
+                    parentModule.FuelUpdateVolume();
+                    parentModule.CalculateAerodynamicValues();
+                }
+            }
+        }
+
+        public virtual void UpdateSymmetricAppearance()
+        {
+            UpdateGeometry(false);
+            for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
+            {
+                part.symmetryCounterparts[i].Modules.GetModule<B9_ProceduralWing>().UpdateGeometry(false);
+            }
+        }
+
         public override void UpdateGeometry()
         {
             UpdateGeometry(true);
@@ -984,7 +971,26 @@ namespace ProceduralWings.B9PWing
 
         #endregion
 
-        #region Mesh Setup and Checking
+        #region Mesh
+        [System.Serializable]
+        public class MeshReference
+        {
+            public Vector3[] vp;
+            public Vector3[] nm;
+            public Vector2[] uv;
+        }
+
+        public MeshFilter meshFilterWingSection;
+        public MeshFilter meshFilterWingSurface;
+        public List<MeshFilter> meshFiltersWingEdgeTrailing = new List<MeshFilter>();
+        public List<MeshFilter> meshFiltersWingEdgeLeading = new List<MeshFilter>();
+
+        public static MeshReference meshReferenceWingSection;
+        public static MeshReference meshReferenceWingSurface;
+        public static List<MeshReference> meshReferencesWingEdge = new List<MeshReference>();
+
+        public virtual int meshTypeCountEdgeWing { get { return 4; } }
+
         public virtual void SetupMeshFilters()
         {
             meshFilterWingSurface = CheckMeshFilter(meshFilterWingSurface, "surface");
@@ -1151,76 +1157,7 @@ namespace ProceduralWings.B9PWing
         #endregion
 
         #region Aero
-
-        // Delayed aero value setup
-        // Must be run after all geometry setups, otherwise FAR checks will be done before surrounding parts take shape, producing incorrect results
-        public IEnumerator SetupReorderedForFlight()
-        {
-            // First we need to determine whether the vessel this part is attached to is included into the status list
-            // If it's included, we need to fetch it's index in that list
-
-            bool vesselListInclusive = false;
-            int vesselID = vessel.GetInstanceID();
-            int vesselStatusIndex = 0;
-            int vesselListCount = vesselList.Count;
-            for (int i = 0; i < vesselListCount; ++i)
-            {
-                if (vesselList[i].vessel.GetInstanceID() == vesselID)
-                {
-                    vesselListInclusive = true;
-                    vesselStatusIndex = i;
-                    break;
-                }
-            }
-
-            // If it was not included, we add it to the list
-            // Correct index is then fairly obvious
-
-            if (!vesselListInclusive)
-            {
-                vesselList.Add(new VesselStatus(vessel, false));
-                vesselStatusIndex = vesselList.Count - 1;
-            }
-
-            // Using the index for the status list we obtained, we check whether it was updated yet
-            // So that only one part can run the following part
-
-            if (!vesselList[vesselStatusIndex].isUpdated)
-            {
-                vesselList[vesselStatusIndex].isUpdated = true;
-                List<B9_ProceduralWing> moduleList = new List<B9_ProceduralWing>();
-
-                // First we get a list of all relevant parts in the vessel
-                // Found modules are added to a list
-
-                int vesselPartsCount = vessel.parts.Count;
-                for (int i = 0; i < vesselPartsCount; ++i)
-                {
-                    if (vessel.parts[i].Modules.Contains<B9_ProceduralWing>())
-                        moduleList.Add(vessel.parts[i].Modules.GetModule<B9_ProceduralWing>());
-                }
-
-                // After that we make two separate runs through that list
-                // First one setting up all geometry and second one setting up aerodynamic values
-                int moduleListCount = moduleList.Count;
-                for (int i = 0; i < moduleListCount; ++i)
-                {
-                    moduleList[i].Setup();
-                }
-
-                yield return new WaitForFixedUpdate();
-                yield return new WaitForFixedUpdate();
-
-                for (int i = 0; i < moduleListCount; ++i)
-                {
-                    moduleList[i].CalculateAerodynamicValues();
-                }
-            }
-        }
-
-
-
-
+        
         public override void CalculateAerodynamicValues()
         {
             CheckAssemblies();
@@ -1288,6 +1225,8 @@ namespace ProceduralWings.B9PWing
             StartCoroutine(updateAeroDelayed());
         }
         #endregion
+
+        #region UI Stuff
 
         public static float sharedIncrementColor = 0.01f;
         public static float sharedIncrementColorLarge = 0.10f;
@@ -1423,5 +1362,7 @@ namespace ProceduralWings.B9PWing
 
             return window;
         }
+
+        #endregion
     }
 }

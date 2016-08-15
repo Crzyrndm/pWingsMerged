@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ProceduralWings.Original
 {
-    class ControlManipulator : WingManipulator
+    class ManipulatorControl : ManipulatorWing
     {
         public override bool IsCtrlSrf
         {
