@@ -33,7 +33,7 @@ namespace ProceduralWings.Original
         {
             baked = new Mesh();
             wingSMR.BakeMesh(baked);
-            wingSMR.enabled = true;
+            wingSMR.enabled = false;
 
             Transform modelTransform = transform.FindChild("model");
             if (modelTransform.GetComponent<MeshCollider>() == null)
@@ -52,11 +52,11 @@ namespace ProceduralWings.Original
             Tip.localScale = new Vector3(0, (float)TipWidth / modelChordLength, (float)TipThickness / modelThickness);
             Tip.localPosition = new Vector3((float)TipOffset + TipSpawnOffset.x, 0, (float)Length - TipSpawnOffset.z);
 
-            if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null && !IgnoreSnapping)
-            {
-                Base_ProceduralWing Parent = part.parent.Modules.GetModule<Base_ProceduralWing>();
-                part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
-            }
+            //if (part?.parent?.Modules.GetModule<Base_ProceduralWing>() != null && !IgnoreSnapping)
+            //{
+            //    Base_ProceduralWing Parent = part.parent.Modules.GetModule<Base_ProceduralWing>();
+            //    part.transform.position = Parent.tipPos + 0.1f * Parent.transform.right; // set the new part inward just a little bit
+            //}
 
             SetupCollider();
 

@@ -51,7 +51,7 @@ namespace ProceduralWings.Original
 
             if (symmetricMovement)
             {
-                Tip.localPosition = new Vector3(0, ((float)Length - TipSpawnOffset.z) / 2, 0);
+                Tip.localPosition = new Vector3(0, 0, ((float)Length - TipSpawnOffset.z) / 2);
                 Root.localPosition = -Tip.localPosition;
             }
         }
