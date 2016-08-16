@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ProceduralWings.Fuel
+﻿namespace ProceduralWings.Fuel
 {
     public class WingTankResource : IConfigNode
     {
         public PartResourceDefinition resource;
-        public float unitsPerVolume; // resource units per 1m^3 of wing
+        public float ratio; // resource units per 1m^3 of wing
+        public float fraction; // the fraction of the volume used by this resource in this set. Calculated
 
         public WingTankResource(ConfigNode node)
         {
@@ -18,9 +14,15 @@ namespace ProceduralWings.Fuel
         public void Load(ConfigNode node)
         {
             resource = PartResourceLibrary.Instance.resourceDefinitions[node.GetValue("name").GetHashCode()];
-            float.TryParse(node.GetValue("unitsPerVolume"), out unitsPerVolume);
+            float.TryParse(node.GetValue("ratio"), out ratio);
         }
 
-        public void Save(ConfigNode node) { }
+        public void Save(ConfigNode node)
+        {
+            ConfigNode newNode = new ConfigNode("Resource");
+            newNode.AddValue("name", resource.name);
+            newNode.AddValue("ratio", ratio);
+            node.AddNode(newNode);
+        }
     }
 }

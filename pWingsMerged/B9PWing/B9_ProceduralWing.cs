@@ -971,6 +971,32 @@ namespace ProceduralWings.B9PWing
 
         #endregion
 
+        #region Fuel
+        public override void FuelUpdateVolume()
+        {
+            if (!HighLogic.LoadedSceneIsEditor)
+                return;
+            if (!CanBeFueled)
+            {
+                fuelVolume = 0;
+                return;
+            }
+
+            fuelVolume = 0.7 * Length * (RootWidth + TipWidth) * (RootThickness + TipThickness) / 4; // MAC includes edges
+            Fuel.WingTankConfiguration wtc = StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup];
+            for (int i = part.Resources.Count - 1; i >= 0; --i)
+            {
+                PartResource res = part.Resources[i];
+                double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
+
+
+                res.maxAmount = 1000 * wtc.resources[res.resourceName].fraction * fuelVolume / wtc.resources[res.resourceName].resource.volume;
+                res.amount = res.maxAmount * fillPct;
+            }
+            part.Resources.UpdateList();
+        }
+        #endregion
+
         #region Mesh
         [System.Serializable]
         public class MeshReference

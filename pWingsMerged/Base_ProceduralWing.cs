@@ -493,7 +493,7 @@ namespace ProceduralWings
         /// <summary>
         /// calculate the volume of the wing fuel tank and updates and existing resources. Independent of all other fuel methods
         /// </summary>
-        public void FuelUpdateVolume()
+        public virtual void FuelUpdateVolume()
         {
             if (!HighLogic.LoadedSceneIsEditor)
                 return;
@@ -503,12 +503,15 @@ namespace ProceduralWings
                 return;
             }
 
-            fuelVolume = Length * MAC * (RootThickness + TipThickness) / 2;
+            fuelVolume = 0.7 * Length * MAC * (RootThickness + TipThickness) / 2;
+            WingTankConfiguration wtc = StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup];
             for (int i = part.Resources.Count - 1; i >= 0; --i)
             {
                 PartResource res = part.Resources[i];
                 double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
-                res.maxAmount = 1000 * fuelVolume / PartResourceLibrary.Instance.resourceDefinitions[res.name].volume;
+                
+
+                res.maxAmount = 1000 * wtc.resources[res.resourceName].fraction * fuelVolume / wtc.resources[res.resourceName].resource.volume;
                 res.amount = res.maxAmount * fillPct;
             }
             part.Resources.UpdateList();
