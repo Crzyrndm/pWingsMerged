@@ -1315,7 +1315,6 @@ namespace ProceduralWings.B9PWing
             basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
             basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
 
-            Log(leadingEdgeType);
             UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeL));
             leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
                                         new string[] { "No Edge", "Rounded", "Biconvex", "Triangular" });
@@ -1359,6 +1358,8 @@ namespace ProceduralWings.B9PWing
             surfRGroup.AddProperty(new WingProperty(surfTrailHue), x => ((B9_ProceduralWing)window.wing).SurfTrailHue = x);
             surfRGroup.AddProperty(new WingProperty(surfTrailSat), x => ((B9_ProceduralWing)window.wing).SurfTrailSat = x);
             surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
+
+            WindowAddFuel(window);
 
             return window;
         }

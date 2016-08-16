@@ -552,19 +552,7 @@ namespace ProceduralWings
             if (!(CanBeFueled && HighLogic.LoadedSceneIsEditor)) // resources cant be modified on an unfueled wing or outside the editor
                 return;
 
-            if (!useStockFuel)
-            {
-                PartModule module = part.Modules["ModuleFuelTanks"];
-                if (module == null)
-                    return;
-
-                Type type = module.GetType();
-
-                double volumeRF = fuelVolume * (RFactive ? 1000 : 173.9);
-                type.GetField("volume").SetValue(module, volumeRF);
-                type.GetMethod("ChangeVolume").Invoke(module, new object[] { volumeRF });
-            }
-            else
+            if (useStockFuel)
             {
                 part.Resources.list.Clear();
                 PartResource[] partResources = part.GetComponents<PartResource>();
@@ -575,11 +563,25 @@ namespace ProceduralWings
                 {
                     ConfigNode newResourceNode = new ConfigNode("RESOURCE");
                     newResourceNode.AddValue("name", kvp.Value.resource.name);
-                    newResourceNode.AddValue("amount", kvp.Value.unitsPerVolume * fuelVolume);
-                    newResourceNode.AddValue("maxAmount", kvp.Value.unitsPerVolume * fuelVolume);
+                    newResourceNode.AddValue("amount", 1000 * fuelVolume / kvp.Value.resource.volume);
+                    newResourceNode.AddValue("maxAmount", 1000 * fuelVolume / kvp.Value.resource.volume);
+
+                    Log(newResourceNode.GetValue("name"));
                     part.AddResource(newResourceNode);
                 }
                 part.Resources.UpdateList();
+            }
+            else
+            {
+                PartModule module = part.Modules["ModuleFuelTanks"];
+                if (module == null)
+                    return;
+
+                Type type = module.GetType();
+
+                double volumeRF = fuelVolume * (RFactive ? 1000 : 173.9);
+                type.GetField("volume").SetValue(module, volumeRF);
+                type.GetMethod("ChangeVolume").Invoke(module, new object[] { volumeRF });
             }
         }
 
@@ -592,7 +594,7 @@ namespace ProceduralWings
             float result = 0f;
             foreach(PartResource pr in part.Resources)
             {
-                result += (float)pr.amount * PartResourceLibrary.Instance.resourceDefinitions[pr.name].unitCost;
+                result += (float)pr.amount * PartResourceLibrary.Instance.resourceDefinitions[pr.resourceName].unitCost;
             }
             return result;
         }
@@ -992,7 +994,15 @@ namespace ProceduralWings
             basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
             basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
 
+            WindowAddFuel(window);
+
             return window;
+        }
+
+        public virtual void WindowAddFuel(EditorWindow window)
+        {
+            if (CanBeFueled)
+                window.AddFuelPanel();
         }
         #endregion
 

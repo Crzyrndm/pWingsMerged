@@ -43,7 +43,7 @@ namespace ProceduralWings
         {
             Base_ProceduralWing.Log("Aquiring bundle data");
             using (WWW www = new WWW("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
-                + Path.DirectorySeparatorChar + "B9_Aerospace_ProceduralWings" + Path.DirectorySeparatorChar + "wingshader.ksp"))
+                + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader.ksp"))
             {
                 yield return www;
 

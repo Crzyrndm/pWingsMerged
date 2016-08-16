@@ -97,9 +97,20 @@ namespace ProceduralWings.UI
             closeButton.onClick.AddListener(closeWindow);
         }
 
-        void AddFuelPanel()
+        public void AddFuelPanel()
         {
+            GameObject fuelPanel = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_FuelPanel);
+            fuelPanel.transform.SetParent(mainPanel.transform, false); // parented onto the window
 
+            Dropdown drop = fuelPanel.GetChild("Dropdown").GetComponent<Dropdown>();
+
+            for (int i = 0; i < StaticWingGlobals.wingTankConfigurations.Count; ++i)
+            {
+                drop.options.Add(new Dropdown.OptionData(StaticWingGlobals.wingTankConfigurations[i].ConfigurationName));
+            }
+            drop.value = 1;
+            drop.value = 0; // refresh stuff?
+            drop.onValueChanged.AddListener(fuelSelectedChanged);
         }
 
         #region Event callbacks
@@ -112,6 +123,12 @@ namespace ProceduralWings.UI
         public void closeWindow()
         {
             canvas.enabled = false;
+        }
+
+        public void fuelSelectedChanged(int index)
+        {
+            wing.fuelSelectedTankSetup = index;
+            wing.FuelTankTypeChanged();
         }
 
         #endregion
