@@ -566,10 +566,9 @@ namespace ProceduralWings
                 {
                     ConfigNode newResourceNode = new ConfigNode("RESOURCE");
                     newResourceNode.AddValue("name", kvp.Value.resource.name);
-                    newResourceNode.AddValue("amount", 1000 * fuelVolume / kvp.Value.resource.volume);
-                    newResourceNode.AddValue("maxAmount", 1000 * fuelVolume / kvp.Value.resource.volume);
+                    newResourceNode.AddValue("amount", 1000 * fuelVolume * kvp.Value.fraction / kvp.Value.resource.volume);
+                    newResourceNode.AddValue("maxAmount", 1000 * fuelVolume * kvp.Value.fraction / kvp.Value.resource.volume);
 
-                    Log(newResourceNode.GetValue("name"));
                     part.AddResource(newResourceNode);
                 }
                 part.Resources.UpdateList();
