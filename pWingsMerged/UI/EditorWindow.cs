@@ -24,6 +24,11 @@ namespace ProceduralWings.UI
                 if (!visible)
                 {
                     wing = null;
+                    StaticWingGlobals.uiRectWindowEditor.position = windowPosition.rect.position;
+                }
+                else
+                {
+                    windowPosition.localPosition = StaticWingGlobals.uiRectWindowEditor.position;
                 }
                 canvas.enabled = visible;
             }

@@ -655,6 +655,7 @@ namespace ProceduralWings
             connectionForce = Math.Round(Math.Max(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum), 0);
 
             updateCost();
+            //part.CoMOffset = part.CoLOffset = part.CoPOffset = (tipPos - rootPos) / 2;
 
             // should really do something about the joint torque here, not just its limits
             part.breakingForce = Mathf.Round((float)connectionForce);
@@ -677,6 +678,7 @@ namespace ProceduralWings
         /// <param name="midChordOffset"></param>
         public virtual void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
+            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0);
             if (aeroFARModuleReference == null)
             {
                 if (part.Modules.Contains(FarModuleName))
@@ -732,7 +734,7 @@ namespace ProceduralWings
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
             float stockLiftCoefficient = (float)(Length * MAC / 3.52);
-            part.CoMOffset.Set(Vector3.Dot(tipPos - rootPos, part.transform.right) / 2, Vector3.Dot(tipPos - rootPos, part.transform.up) / 2, 0); // CoL/P matches CoM unless otherwise specified
+            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0);
             part.Modules.GetModule<ModuleLiftingSurface>().deflectionLiftCoeff = stockLiftCoefficient;
             part.mass = stockLiftCoefficient * 0.1f;
         }

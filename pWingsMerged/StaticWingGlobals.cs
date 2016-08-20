@@ -21,16 +21,10 @@ namespace ProceduralWings
         public static GameObject UI_PropertyValArrayPrefab;
         public static GameObject UI_FuelPanel;
 
-        public static KSP.IO.PluginConfiguration config;
         public static Rect uiRectWindowEditor = new Rect();
 
         public void Start()
         {
-            config = KSP.IO.PluginConfiguration.CreateForType<StaticWingGlobals>();
-            config.load();
-
-            uiRectWindowEditor = config.GetValue("uiRectWindowEditor", new Rect(Screen.height / 2, Screen.width / 2, 10, 10));
-
             foreach (ConfigNode node in GameDatabase.Instance.GetConfigNodes("ProceduralWingFuelSetups"))
             {
                 ConfigNode[] fuelNodes = node.GetNodes("FuelSet");
@@ -95,7 +89,8 @@ namespace ProceduralWings
 
         public static void LoadConfigs()
         {
-            ConfigNode node = GameDatabase.Instance.GetConfigNodes("PWingsSettings").FirstOrDefault();
+            ConfigNode node = ConfigNode.Load(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg");
+            node = node.GetNode("PWingsSettings");
             if (node == null)
                 return;
 
@@ -114,18 +109,24 @@ namespace ProceduralWings
             if (node.HasValue("scaleSpeed"))
                 float.TryParse(node.GetValue("scaleSpeed"), out Base_ProceduralWing.scaleSpeed);
 
+            if (!node.TryGetValue(nameof(uiRectWindowEditor), ref uiRectWindowEditor))
+                uiRectWindowEditor = Utility.UIUtility.SetToScreenCenter(new Rect());
+
             Base_ProceduralWing.loadedConfig = true;
         }
 
         public static void SaveConfigs()
         {
-            config.SetValue("uiRectWindowEditor", uiRectWindowEditor);
-            config.save();
-        }
+            ConfigNode node = new ConfigNode();
+            ConfigNode settings = node.AddNode("PWingsSettings");
+            settings.AddValue("keyTranslation", Base_ProceduralWing.keyTranslation.ToString());
+            settings.AddValue("keyTipScale", Base_ProceduralWing.keyTipScale.ToString());
+            settings.AddValue("keyRootScale", Base_ProceduralWing.keyRootScale.ToString());
+            settings.AddValue("moveSpeed", Base_ProceduralWing.moveSpeed);
+            settings.AddValue("scaleSpeed", Base_ProceduralWing.scaleSpeed);
+            settings.AddValue(nameof(uiRectWindowEditor), uiRectWindowEditor);
 
-        private void OnDestroy()
-        {
-            SaveConfigs();
+            node.Save(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg");
         }
     }
 }

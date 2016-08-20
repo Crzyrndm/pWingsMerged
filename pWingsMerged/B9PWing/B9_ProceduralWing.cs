@@ -1230,7 +1230,6 @@ namespace ProceduralWings.B9PWing
             // Shared parameters
 
             updateCost();
-            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0f);
 
             part.breakingForce = Mathf.Round((float)connectionForce);
             part.breakingTorque = Mathf.Round((float)connectionForce);
