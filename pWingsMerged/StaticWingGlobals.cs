@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using KSP;
 
 namespace ProceduralWings
 {
@@ -42,7 +43,7 @@ namespace ProceduralWings
         public IEnumerator LoadBundleAssets()
         {
             using (WWW www = new WWW("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
-                + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader.ksp"))
+                    + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader.ksp"))
             {
                 yield return www;
 
@@ -86,10 +87,7 @@ namespace ProceduralWings
                             break;
                     }
                 }
-
-                yield return null; // unknown how neccesary this is
-                yield return null; // unknown how neccesary this is
-
+                yield return new WaitForSeconds(1.0f);
                 Debug.Log("[B9PW] unloading bundle");
                 bundle.Unload(false); // unload the raw asset bundle
             }
