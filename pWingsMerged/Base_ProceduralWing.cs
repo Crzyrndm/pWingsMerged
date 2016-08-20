@@ -987,6 +987,8 @@ namespace ProceduralWings
         public virtual EditorWindow CreateWindow()
         {
             EditorWindow window = new EditorWindow();
+            window.WindowTitle = WindowTitle;
+            window.wing = this;
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
             basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);

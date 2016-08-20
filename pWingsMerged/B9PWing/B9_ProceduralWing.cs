@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace ProceduralWings.B9PWing
 {
-    using Utility;
     using UI;
+    using Utility;
     public class B9_ProceduralWing : Base_ProceduralWing
     {
         #region physical dimensions
@@ -729,7 +727,6 @@ namespace ProceduralWings.B9PWing
 
         public virtual void UpdateGeometry(bool updateAerodynamics)
         {
-            
             isMirrored = Vector3.Dot(HighLogic.LoadedSceneIsEditor ? EditorLogic.SortedShipList[0].transform.forward : vessel.rootPart.transform.forward, part.transform.forward) < 0;
             float wingThicknessDeviationRoot = (float)RootThickness / 0.24f;
             float wingThicknessDeviationTip = (float)TipThickness / 0.24f;
@@ -1331,6 +1328,7 @@ namespace ProceduralWings.B9PWing
         public override UI.EditorWindow CreateWindow()
         {
             EditorWindow window = new EditorWindow();
+            window.WindowTitle = WindowTitle;
             window.wing = this;
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));

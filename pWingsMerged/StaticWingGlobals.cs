@@ -41,7 +41,6 @@ namespace ProceduralWings
 
         public IEnumerator LoadBundleAssets()
         {
-            Base_ProceduralWing.Log("Aquiring bundle data");
             using (WWW www = new WWW("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
                 + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader.ksp"))
             {

@@ -616,6 +616,8 @@ namespace ProceduralWings.B9PWing
         public override UI.EditorWindow CreateWindow()
         {
             UI.EditorWindow window = new EditorWindow();
+            window.WindowTitle = WindowTitle;
+            window.wing = this;
             
             PropertyGroup basegroup = window.AddPropertyGroup("Base", new Color(0.25f, 0.5f, 0.4f, 1f));
             basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
