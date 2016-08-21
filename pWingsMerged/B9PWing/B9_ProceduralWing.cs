@@ -391,37 +391,37 @@ namespace ProceduralWings.B9PWing
                 rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.24, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
                 tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.24, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
 
-                leadingEdgeType = new WingProperty("Shape", nameof(leadingEdgeType), 2, 0, 1, 4);
-                rootLeadingEdge = new WingProperty("Width (root)", nameof(rootLeadingEdge), 0.24, 2, 0.01, 1.0);
-                tipLeadingEdge = new WingProperty("Width (tip)", nameof(tipLeadingEdge), 0.24, 2, 0.01, 1.0);
+                leadingEdgeType = new WingProperty("Shape", nameof(leadingEdgeType), 2, 0, 1, 4, "Shape of the leading edge cross \nsection (round/biconvex/sharp)");
+                rootLeadingEdge = new WingProperty("Width (root)", nameof(rootLeadingEdge), 0.24, 2, 0.01, 1.0, "Longitudinal measurement of the leading \nedge cross section at wing root");
+                tipLeadingEdge = new WingProperty("Width (tip)", nameof(tipLeadingEdge), 0.24, 2, 0.01, 1.0, "Longitudinal measurement of the leading \nedge cross section at with tip");
 
-                trailingEdgeType = new WingProperty("Shape", nameof(trailingEdgeType), 3, 0, 1, 4);
-                rootTrailingEdge = new WingProperty("Width (root)", nameof(rootTrailingEdge), 0.48, 2, 0.01, 1.0);
-                tipTrailingEdge = new WingProperty("Width (tip)", nameof(tipTrailingEdge), 0.48, 2, 0.01, 1.0);
+                trailingEdgeType = new WingProperty("Shape", nameof(trailingEdgeType), 3, 0, 1, 4, "Shape of the trailing edge cross \nsection (round/biconvex/sharp)");
+                rootTrailingEdge = new WingProperty("Width (root)", nameof(rootTrailingEdge), 0.48, 2, 0.01, 1.0, "Longitudinal measurement of the trailing \nedge cross section at wing root");
+                tipTrailingEdge = new WingProperty("Width (tip)", nameof(tipTrailingEdge), 0.48, 2, 0.01, 1.0, "Longitudinal measurement of the trailing \nedge cross section at wing tip");
 
-                surfTopMat = new WingProperty("Material", nameof(surfTopMat), 1, 0, 0, 4);
-                surfTopOpacity = new WingProperty("Opacity", nameof(surfTopOpacity), 0, 2, 0, 1);
-                surfTopHue = new WingProperty("Hue", nameof(surfTopHue), 0.1, 2, 0, 1);
-                surfTopSat = new WingProperty("Saturation", nameof(surfTopSat), 0.75, 2, 0, 1);
-                surfTopBright = new WingProperty("Brightness", nameof(surfTopBright), 0.6, 2, 0, 1);
+                surfTopMat = new WingProperty("Material", nameof(surfTopMat), 1, 0, 0, 4, "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)");
+                surfTopOpacity = new WingProperty("Opacity", nameof(surfTopOpacity), 0, 2, 0, 1, "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1");
+                surfTopHue = new WingProperty("Hue", nameof(surfTopHue), 0.1, 2, 0, 1, "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle");
+                surfTopSat = new WingProperty("Saturation", nameof(surfTopSat), 0.75, 2, 0, 1, "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1");
+                surfTopBright = new WingProperty("Brightness", nameof(surfTopBright), 0.6, 2, 0, 1, "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5");
 
-                surfBottomMat = new WingProperty("Material", nameof(surfBottomMat), 4, 0, 0, 4);
-                surfBottomOpacity = new WingProperty("Opacity", nameof(surfBottomOpacity), 0, 2, 0, 1);
-                surfBottomHue = new WingProperty("Hue", nameof(surfBottomHue), 0.1, 2, 0, 1);
-                surfBottomSat = new WingProperty("Saturation", nameof(surfBottomSat), 0.75, 2, 0, 1);
-                surfBottomBright = new WingProperty("Brightness", nameof(surfBottomBright), 0.6, 2, 0, 1);
+                surfBottomMat = new WingProperty("Material", nameof(surfBottomMat), 4, 0, 0, 4, "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)");
+                surfBottomOpacity = new WingProperty("Opacity", nameof(surfBottomOpacity), 0, 2, 0, 1, "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1");
+                surfBottomHue = new WingProperty("Hue", nameof(surfBottomHue), 0.1, 2, 0, 1, "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle");
+                surfBottomSat = new WingProperty("Saturation", nameof(surfBottomSat), 0.75, 2, 0, 1, "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1");
+                surfBottomBright = new WingProperty("Brightness", nameof(surfBottomBright), 0.6, 2, 0, 1, "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5");
 
-                surfLeadMat = new WingProperty("Material", nameof(surfLeadMat), 4, 0, 0, 4);
-                surfLeadOpacity = new WingProperty("Opacity", nameof(surfLeadOpacity), 0, 2, 0, 1);
-                surfLeadHue = new WingProperty("Hue", nameof(surfLeadHue), 0.1, 2, 0, 1);
-                surfLeadSat = new WingProperty("Saturation", nameof(surfLeadSat), 0.75, 2, 0, 1);
-                surfLeadBright = new WingProperty("Brightness", nameof(surfLeadBright), 0.6, 2, 0, 1);
+                surfLeadMat = new WingProperty("Material", nameof(surfLeadMat), 4, 0, 0, 4, "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)");
+                surfLeadOpacity = new WingProperty("Opacity", nameof(surfLeadOpacity), 0, 2, 0, 1, "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1");
+                surfLeadHue = new WingProperty("Hue", nameof(surfLeadHue), 0.1, 2, 0, 1, "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle");
+                surfLeadSat = new WingProperty("Saturation", nameof(surfLeadSat), 0.75, 2, 0, 1, "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1");
+                surfLeadBright = new WingProperty("Brightness", nameof(surfLeadBright), 0.6, 2, 0, 1, "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5");
 
-                surfTrailMat = new WingProperty("Material", nameof(surfTrailMat), 4, 0, 0, 4);
-                surfTrailOpacity = new WingProperty("Opacity", nameof(surfTrailOpacity), 0, 2, 0, 1);
-                surfTrailHue = new WingProperty("Hue", nameof(surfTrailHue), 0.1, 2, 0, 1);
-                surfTrailSat = new WingProperty("Saturation", nameof(surfTrailSat), 0.75, 2, 0, 1);
-                surfTrailBright = new WingProperty("Brightness", nameof(surfTrailBright), 0.6, 2, 0, 1);
+                surfTrailMat = new WingProperty("Material", nameof(surfTrailMat), 4, 0, 0, 4, "Surface material (uniform fill, plating, \nLRSI/HRSI tiles and so on)");
+                surfTrailOpacity = new WingProperty("Opacity", nameof(surfTrailOpacity), 0, 2, 0, 1, "Fairly self-explanatory, controls the paint \nopacity: no paint at 0, full coverage at 1");
+                surfTrailHue = new WingProperty("Hue", nameof(surfTrailHue), 0.1, 2, 0, 1, "Controls the paint hue (HSB axis): \nvalues from zero to one make full circle");
+                surfTrailSat = new WingProperty("Saturation", nameof(surfTrailSat), 0.75, 2, 0, 1, "Controls the paint saturation (HSB axis): \ncolorless at 0, full color at 1");
+                surfTrailBright = new WingProperty("Brightness", nameof(surfTrailBright), 0.6, 2, 0, 1, "Controls the paint brightness (HSB axis): black at 0, white at 1, primary at 0.5");
             }
             else
             {
