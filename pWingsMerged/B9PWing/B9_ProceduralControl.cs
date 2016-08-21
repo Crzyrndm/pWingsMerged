@@ -20,10 +20,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty rootOffset;
         public double RootOffset
         {
-            get { return rootOffset.value; }
+            get { return rootOffset.Value; }
             set
             {
-                rootOffset.value = value;
+                rootOffset.Value = value;
                 UpdateSymmetricGeometry();
             }
 

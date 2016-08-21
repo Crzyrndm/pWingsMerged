@@ -172,6 +172,12 @@ namespace ProceduralWings.UI
             }
         }
 
+        public void SetLastModifiedProperty(WingProperty wp)
+        {
+            lastModifiedPropertyTooltip.text = wp.tooltip;
+            lastModifiedProperty.text = wp.name;
+        }
+
         #region Properties
         public string WindowTitle
         {

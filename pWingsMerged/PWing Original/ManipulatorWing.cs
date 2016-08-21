@@ -111,8 +111,8 @@ namespace ProceduralWings.Original
                 diff = UpdateMouseDiff(false);
 
                 TipOffset += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-                length.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                Length = Math.Max(length.value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+                Length = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
             deformWing = false;
         }

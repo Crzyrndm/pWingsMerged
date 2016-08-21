@@ -39,11 +39,11 @@ namespace ProceduralWings
         {
             get
             {
-                return length.value;
+                return length.Value;
             }
             set
             {
-                length.value = value;
+                length.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -54,11 +54,11 @@ namespace ProceduralWings
         {
             get
             {
-                return tipWidth.value;
+                return tipWidth.Value;
             }
             set
             {
-                tipWidth.value = value;
+                tipWidth.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -68,11 +68,11 @@ namespace ProceduralWings
         {
             get
             {
-                return tipThickness.value;
+                return tipThickness.Value;
             }
             set
             {
-                tipThickness.value = value;
+                tipThickness.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -82,11 +82,11 @@ namespace ProceduralWings
         {
             get
             {
-                return tipOffset.value;
+                return tipOffset.Value;
             }
             set
             {
-                tipOffset.value = value;
+                tipOffset.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -96,11 +96,11 @@ namespace ProceduralWings
         {
             get
             {
-                return rootWidth.value;
+                return rootWidth.Value;
             }
             set
             {
-                rootWidth.value = value;
+                rootWidth.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -110,11 +110,11 @@ namespace ProceduralWings
         {
             get
             {
-                return rootThickness.value;
+                return rootThickness.Value;
             }
             set
             {
-                rootThickness.value = value;
+                rootThickness.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -123,7 +123,7 @@ namespace ProceduralWings
         {
             get
             {
-                return new Vector3(-(float)tipOffset.value, 0, (float)length.value);
+                return new Vector3(-(float)tipOffset.Value, 0, (float)length.Value);
             }
             set
             {
@@ -354,12 +354,12 @@ namespace ProceduralWings
                 return;
             if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<Base_ProceduralWing>().length == null)
             {
-                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16);
-                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8);
-                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16);
-                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16);
-                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1);
-                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1);
+                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16, "Lateral measurement of the wing, \nalso referred to as semispan");
+                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8, "Distance between midpoints of the cross \nsections on the longitudinal axis");
+                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the root cross section");
+                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the tip cross section");
+                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
+                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
             }
             else
             {
@@ -641,9 +641,9 @@ namespace ProceduralWings
         /// </summary>
         public virtual void CalculateAerodynamicValues()
         {
-            double midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length.value));
-            double taperRatio = tipWidth.value / rootWidth.value;
-            double aspectRatio = 2.0 * length.value / MAC;
+            double midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length.Value));
+            double taperRatio = tipWidth.Value / rootWidth.Value;
+            double aspectRatio = 2.0 * length.Value / MAC;
             ArSweepScale = (2.0 * Math.PI) / (2.0 + Math.Sqrt(Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0) + 4.0)) * aspectRatio;
 
             wingMass = Math.Max(0.01, massFudgeNumber * MAC * Length * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
@@ -853,8 +853,8 @@ namespace ProceduralWings
                 diff = UpdateMouseDiff(false);
                 
                 TipOffset -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-                length.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                Length = Math.Max(length.value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+                Length = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
             deformWing = false;
         }
@@ -868,10 +868,10 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(true);
 
-                tipWidth.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                TipWidth = Math.Max(tipWidth.value, 0.01);
-                tipThickness.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-                TipThickness = Math.Max(tipThickness.value, 0.01);
+                tipWidth.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+                TipWidth = Math.Max(tipWidth.Value, 0.01);
+                tipThickness.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
+                TipThickness = Math.Max(tipThickness.Value, 0.01);
             }
             deformWing = false;
         }
@@ -891,8 +891,8 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(true);
 
-                rootWidth.value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                RootWidth = Math.Max(rootWidth.value, 0.01);
+                rootWidth.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+                RootWidth = Math.Max(rootWidth.Value, 0.01);
                 RootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
                 RootThickness = Math.Max(RootThickness, 0.01);
             }

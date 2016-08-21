@@ -155,7 +155,7 @@ namespace ProceduralWings.UI
             AsInt = p.decPlaces == 0; // 0 dec places => integer values only
             Min = p.min;
             Max = p.max;
-            Value = p.value;
+            Value = p.Value;
             SetText(Value);
         }
     }

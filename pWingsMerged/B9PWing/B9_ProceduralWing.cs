@@ -24,10 +24,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty leadingEdgeType;
         public int LeadingEdgeType
         {
-            get { return (int)leadingEdgeType.value; }
+            get { return (int)leadingEdgeType.Value; }
             set
             {
-                leadingEdgeType.value = value;
+                leadingEdgeType.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -35,10 +35,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty rootLeadingEdge;
         public double RootLeadingEdge
         {
-            get { return LeadingEdgeType != 0 ? rootLeadingEdge.value : 0; }
+            get { return LeadingEdgeType != 0 ? rootLeadingEdge.Value : 0; }
             set
             {
-                rootLeadingEdge.value = value;
+                rootLeadingEdge.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -46,10 +46,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty tipLeadingEdge;
         public double TipLeadingEdge
         {
-            get { return LeadingEdgeType != 0 ? tipLeadingEdge.value : 0; }
+            get { return LeadingEdgeType != 0 ? tipLeadingEdge.Value : 0; }
             set
             {
-                tipLeadingEdge.value = value;
+                tipLeadingEdge.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -60,10 +60,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty trailingEdgeType;
         public int TrailingEdgeType
         {
-            get { return (int)trailingEdgeType.value; }
+            get { return (int)trailingEdgeType.Value; }
             set
             {
-                trailingEdgeType.value = value;
+                trailingEdgeType.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -71,10 +71,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty rootTrailingEdge;
         public double RootTrailingEdge
         {
-            get { return TrailingEdgeType != 0 ? rootTrailingEdge.value : 0; }
+            get { return TrailingEdgeType != 0 ? rootTrailingEdge.Value : 0; }
             set
             {
-                rootTrailingEdge.value = value;
+                rootTrailingEdge.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -82,10 +82,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty tipTrailingEdge;
         public double TipTrailingEdge
         {
-            get { return TrailingEdgeType != 0 ? tipTrailingEdge.value : 0; }
+            get { return TrailingEdgeType != 0 ? tipTrailingEdge.Value : 0; }
             set
             {
-                tipTrailingEdge.value = value;
+                tipTrailingEdge.Value = value;
                 UpdateSymmetricGeometry();
             }
         }
@@ -97,10 +97,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTopMat;
         public int SurfTopMat
         {
-            get { return (int)surfTopMat.value; }
+            get { return (int)surfTopMat.Value; }
             set
             {
-                surfTopMat.value = value;
+                surfTopMat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -108,10 +108,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTopOpacity;
         public double SurfTopOpacity
         {
-            get { return surfTopOpacity.value; }
+            get { return surfTopOpacity.Value; }
             set
             {
-                surfTopOpacity.value = value;
+                surfTopOpacity.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -119,10 +119,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTopHue;
         public double SurfTopHue
         {
-            get { return surfTopHue.value; }
+            get { return surfTopHue.Value; }
             set
             {
-                surfTopHue.value = value;
+                surfTopHue.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -130,10 +130,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTopSat;
         public double SurfTopSat
         {
-            get { return surfTopSat.value; }
+            get { return surfTopSat.Value; }
             set
             {
-                surfTopSat.value = value;
+                surfTopSat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -141,10 +141,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTopBright;
         public double SurfTopBright
         {
-            get { return surfTopBright.value; }
+            get { return surfTopBright.Value; }
             set
             {
-                surfTopBright.value = value;
+                surfTopBright.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -155,10 +155,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfBottomMat;
         public int SurfBottomMat
         {
-            get { return (int)surfBottomMat.value; }
+            get { return (int)surfBottomMat.Value; }
             set
             {
-                surfBottomMat.value = value;
+                surfBottomMat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -166,10 +166,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfBottomOpacity;
         public double SurfBottomOpacity
         {
-            get { return surfBottomOpacity.value; }
+            get { return surfBottomOpacity.Value; }
             set
             {
-                surfBottomOpacity.value = value;
+                surfBottomOpacity.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -177,10 +177,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfBottomHue;
         public double SurfBottomHue
         {
-            get { return surfBottomHue.value; }
+            get { return surfBottomHue.Value; }
             set
             {
-                surfBottomHue.value = value;
+                surfBottomHue.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -188,20 +188,20 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfBottomSat;
         public double SurfBottomSat
         {
-            get { return surfBottomSat.value; }
+            get { return surfBottomSat.Value; }
             set
             {
-                surfBottomSat.value = value;
+                surfBottomSat.Value = value;
             }
         }
 
         protected WingProperty surfBottomBright;
         public double SurfBottomBright
         {
-            get { return surfBottomBright.value; }
+            get { return surfBottomBright.Value; }
             set
             {
-                surfBottomBright.value = value;
+                surfBottomBright.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -212,10 +212,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTrailMat;
         public int SurfTrailMat
         {
-            get { return (int)surfTrailMat.value; }
+            get { return (int)surfTrailMat.Value; }
             set
             {
-                surfTrailMat.value = value;
+                surfTrailMat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -223,10 +223,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTrailOpacity;
         public double SurfTrailOpacity
         {
-            get { return surfTrailOpacity.value; }
+            get { return surfTrailOpacity.Value; }
             set
             {
-                surfTrailOpacity.value = value;
+                surfTrailOpacity.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -234,10 +234,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTrailHue;
         public double SurfTrailHue
         {
-            get { return surfTrailHue.value; }
+            get { return surfTrailHue.Value; }
             set
             {
-                surfTrailHue.value = value;
+                surfTrailHue.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -245,10 +245,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTrailSat;
         public double SurfTrailSat
         {
-            get { return surfTrailSat.value; }
+            get { return surfTrailSat.Value; }
             set
             {
-                surfTrailSat.value = value;
+                surfTrailSat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -256,10 +256,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfTrailBright;
         public double SurfTrailBright
         {
-            get { return surfTrailBright.value; }
+            get { return surfTrailBright.Value; }
             set
             {
-                surfTrailBright.value = value;
+                surfTrailBright.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -270,10 +270,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfLeadMat;
         public int SurfLeadMat
         {
-            get { return (int)surfLeadMat.value; }
+            get { return (int)surfLeadMat.Value; }
             set
             {
-                surfLeadMat.value = value;
+                surfLeadMat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -281,10 +281,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfLeadOpacity;
         public double SurfLeadOpacity
         {
-            get { return surfLeadOpacity.value; }
+            get { return surfLeadOpacity.Value; }
             set
             {
-                surfLeadOpacity.value = value;
+                surfLeadOpacity.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -292,10 +292,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfLeadHue;
         public double SurfLeadHue
         {
-            get { return surfLeadHue.value; }
+            get { return surfLeadHue.Value; }
             set
             {
-                surfLeadHue.value = value;
+                surfLeadHue.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -303,10 +303,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfLeadSat;
         public double SurfLeadSat
         {
-            get { return surfLeadSat.value; }
+            get { return surfLeadSat.Value; }
             set
             {
-                surfLeadSat.value = value;
+                surfLeadSat.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -314,10 +314,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty surfLeadBright;
         public double SurfLeadBright
         {
-            get { return surfLeadBright.value; }
+            get { return surfLeadBright.Value; }
             set
             {
-                surfLeadBright.value = value;
+                surfLeadBright.Value = value;
                 UpdateSymmetricAppearance();
             }
         }
@@ -384,12 +384,12 @@ namespace ProceduralWings.B9PWing
                 return;
             if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralWing>().length == null)
             {
-                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16);
-                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8);
-                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16);
-                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16);
-                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.24, 2, 0.01, 1);
-                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.24, 2, 0.01, 1);
+                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16, "Lateral measurement of the wing, \nalso referred to as semispan");
+                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8, "Distance between midpoints of the cross \nsections on the longitudinal axis");
+                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the root cross section");
+                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the tip cross section");
+                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.24, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
+                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.24, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
 
                 leadingEdgeType = new WingProperty("Shape", nameof(leadingEdgeType), 2, 0, 1, 4);
                 rootLeadingEdge = new WingProperty("Width (root)", nameof(rootLeadingEdge), 0.24, 2, 0.01, 1.0);
