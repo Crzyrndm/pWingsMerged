@@ -63,6 +63,7 @@
     <Compile Include="B9PWing\B9_ProceduralPanel.cs" />
     <Compile Include="Base_ProceduralWing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PWing Original\ManipulatorAllMoving.cs" />
     <Compile Include="PWing Original\ManipulatorControl.cs" />
     <Compile Include="StaticWingGlobals.cs" />
     <Compile Include="UI\EditorWindow.cs" />
@@ -70,12 +71,14 @@
     <Compile Include="UI\PropertySlider.cs" />
     <Compile Include="UI\PropertySlider_ValueArray.cs" />
     <Compile Include="UI\WindowManager.cs" />
+    <Compile Include="UpgradeModules\WingManipulator.cs" />
     <Compile Include="Utility\UIUtility.cs" />
     <Compile Include="B9PWing\B9_ProceduralWing.cs" />
     <Compile Include="PWing Original\ManipulatorWing.cs" />
     <Compile Include="Utility\Utils.cs" />
     <Compile Include="Fuel\WingTankConfiguration.cs" />
     <Compile Include="Fuel\WingTankResource.cs" />
+    <Compile Include="UpgradeModules\WingProcedural.cs" />
     <Compile Include="WingProperty.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
