@@ -159,6 +159,11 @@ namespace ProceduralWings.UpgradeModules
             wing.SurfTrailSat = sharedColorETSaturation;
             wing.SurfTrailBright = sharedColorETBrightness;
 
+            if (wing is B9_ProceduralControl)
+            {
+                ((B9_ProceduralControl)wing).RootOffset = sharedBaseOffsetRoot;
+            }
+
         }
     }
 }
