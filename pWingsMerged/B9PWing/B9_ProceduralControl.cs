@@ -585,11 +585,9 @@ namespace ProceduralWings.B9PWing
             base.ShowEditorUI();
 
             WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset);
-            WindowManager.Window.FindPropertyGroup("Edge (leading)").UpdatePropertyValues(leadingEdgeType, rootLeadingEdge, tipLeadingEdge);
             WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
             WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
             WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
-            WindowManager.Window.FindPropertyGroup("Surface (leading edge)").UpdatePropertyValues(surfLeadMat, surfLeadOpacity, surfLeadHue, surfLeadSat, surfLeadBright);
             WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
         }
 
@@ -608,16 +606,10 @@ namespace ProceduralWings.B9PWing
             basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
             basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
 
-            UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeL));
-            leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
-                                new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
-            leadgroup.AddProperty(new WingProperty(rootLeadingEdge), x => ((B9_ProceduralWing)window.wing).RootLeadingEdge = x);
-            leadgroup.AddProperty(new WingProperty(tipLeadingEdge), x => ((B9_ProceduralWing)window.wing).TipLeadingEdge = x);
-
             UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeT));
-            trailGroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x);
-            trailGroup.AddProperty(new WingProperty(rootLeadingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x);
-            trailGroup.AddProperty(new WingProperty(tipLeadingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x);
+            trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x);
+            trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x);
+            trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x);
 
             UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", UIUtility.ColorHSBToRGB(uiColorSliderColorsST));
             surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x);
@@ -632,13 +624,6 @@ namespace ProceduralWings.B9PWing
             surfBGroup.AddProperty(new WingProperty(surfBottomHue), x => ((B9_ProceduralWing)window.wing).SurfBottomHue = x);
             surfBGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfBottomSat = x);
             surfBGroup.AddProperty(new WingProperty(surfBottomBright), x => ((B9_ProceduralWing)window.wing).SurfBottomBright = x);
-
-            UI.PropertyGroup surfLGroup = window.AddPropertyGroup("Surface (leading edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsEL));
-            surfLGroup.AddProperty(new WingProperty(surfLeadMat), x => ((B9_ProceduralWing)window.wing).SurfLeadMat = (int)x);
-            surfLGroup.AddProperty(new WingProperty(surfLeadOpacity), x => ((B9_ProceduralWing)window.wing).SurfLeadOpacity = x);
-            surfLGroup.AddProperty(new WingProperty(surfLeadHue), x => ((B9_ProceduralWing)window.wing).SurfLeadHue = x);
-            surfLGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfLeadSat = x);
-            surfLGroup.AddProperty(new WingProperty(surfLeadBright), x => ((B9_ProceduralWing)window.wing).SurfLeadBright = x);
 
             UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsET));
             surfRGroup.AddProperty(new WingProperty(surfTrailMat), x => ((B9_ProceduralWing)window.wing).SurfTrailMat = (int)x);
