@@ -164,6 +164,7 @@ namespace ProceduralWings.UpgradeModules
                 ((B9_ProceduralControl)wing).RootOffset = sharedBaseOffsetRoot;
             }
 
+            wing.fuelSelectedTankSetup = fuelSelectedTankSetup;
         }
     }
 }
