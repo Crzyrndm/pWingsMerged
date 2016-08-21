@@ -305,7 +305,7 @@ namespace ProceduralWings.B9PWing
 
                         // Color has to be applied there to avoid blanking out cross sections
                         cl[i] = TrailColour;
-                        uv2[i] = GetVertexUV2(TrailingEdgeType);
+                        uv2[i] = GetVertexUV2(SurfTrailMat);
                     }
                 }
 
@@ -582,13 +582,16 @@ namespace ProceduralWings.B9PWing
 
         public override void ShowEditorUI()
         {
-            base.ShowEditorUI();
+            WindowManager.GetWindow(this);
+            WindowManager.Window.wing = this;
 
             WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset);
             WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
             WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
             WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
             WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
+
+            WindowManager.Window.Visible = true;
         }
 
         public override UI.EditorWindow CreateWindow()
@@ -608,7 +611,7 @@ namespace ProceduralWings.B9PWing
 
             UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeT));
             trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x,
-                                        new string[] { "No Edge", "Rounded", "Biconvex", "Triangular" });
+                                        new string[] { "Rounded", "Biconvex", "Triangular" });
             trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x);
             trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x);
 
