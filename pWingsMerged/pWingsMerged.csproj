@@ -72,6 +72,7 @@
     <Compile Include="UI\PropertySlider.cs" />
     <Compile Include="UI\PropertySlider_ValueArray.cs" />
     <Compile Include="UI\WindowManager.cs" />
+    <Compile Include="UpgradeModules\Module_DeprecatedWingModule.cs" />
     <Compile Include="UpgradeModules\WingManipulator.cs" />
     <Compile Include="Utility\UIUtility.cs" />
     <Compile Include="B9PWing\B9_ProceduralWing.cs" />

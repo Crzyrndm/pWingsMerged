@@ -12,6 +12,9 @@ namespace ProceduralWings
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class StaticWingGlobals : MonoBehaviour
     {
+        // version for any save upgrading
+        public static readonly int version = 1;
+
         // fuel configuration
         public static List<Fuel.WingTankConfiguration> wingTankConfigurations = new List<Fuel.WingTankConfiguration>();
 

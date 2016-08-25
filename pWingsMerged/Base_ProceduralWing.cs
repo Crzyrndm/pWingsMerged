@@ -15,6 +15,9 @@ namespace ProceduralWings
     /// </summary>
     abstract public class Base_ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
     {
+        [KSPField(isPersistant = true)]
+        public int lastLoadedVersion;
+
         public virtual bool IsCtrlSrf
         {
             get { return false; }
@@ -178,7 +181,7 @@ namespace ProceduralWings
         public virtual void Start()
         {
             GameEvents.onGameSceneLoadRequested.Add(OnSceneSwitch);
-
+            CheckAndUpgradeVersion();
             if (HighLogic.LoadedSceneIsEditor)
             {
                 Setup();
@@ -281,6 +284,27 @@ namespace ProceduralWings
                 }
                 assembliesChecked = true;
             }
+        }
+
+        public bool CheckAndUpgradeVersion()
+        {
+            if (lastLoadedVersion > 0)
+            {
+                if (lastLoadedVersion < StaticWingGlobals.version)
+                {
+                    // do save upgrading from a previous version of this plugin
+                }
+            }
+            else
+            {
+                UpgradeModules.Module_DeprecatedWingModule dw = part.Modules.GetModule<UpgradeModules.Module_DeprecatedWingModule>();
+                if (dw != null)
+                {
+                    dw.UpgradeModule(this);
+                }
+            }
+            lastLoadedVersion = StaticWingGlobals.version;
+            return true;
         }
 
         /// <summary>
@@ -798,8 +822,8 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(false);
                 
-                TipOffset -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+                TipOffset -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.up, part.transform.up);
+                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.up, part.transform.right);
                 Length = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
             deformWing = false;
@@ -958,12 +982,12 @@ namespace ProceduralWings
 
         public static void Log(object formatted)
         {
-            Debug.Log("[B9PW] " + formatted);
+            Debug.Log("[PWP] " + formatted);
         }
 
         public static void Log(string toBeFormatted, params object[] args)
         {
-            Debug.Log("[B9PW] " + string.Format(toBeFormatted, args));
+            Debug.Log("[PWP] " + string.Format(toBeFormatted, args));
         }
     }
 }

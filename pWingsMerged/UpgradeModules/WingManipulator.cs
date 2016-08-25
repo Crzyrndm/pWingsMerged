@@ -7,7 +7,7 @@ namespace ProceduralWings.UpgradeModules
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingManipulator : PartModule
+    class WingManipulator : Module_DeprecatedWingModule
     {
         [KSPField]
         public float modelChordLength = 2f;
@@ -33,20 +33,19 @@ namespace ProceduralWings.UpgradeModules
         [KSPField(isPersistant = true)] // otherwise revert to editor does silly things
         public int fuelSelectedTankSetup = -1;
 
-        public void Start()
+        public override void UpgradeModule(Base_ProceduralWing newModule)
         {
-            ManipulatorWing wing = part.Modules.GetModule<ManipulatorWing>();
             // assign all the variables
-            wing.RootWidth = rootScale.y * modelChordLength;
-            wing.RootThickness = rootScale.z * modelThickness;
+            newModule.RootWidth = rootScale.y * modelChordLength;
+            newModule.RootThickness = rootScale.z * modelThickness;
 
-            wing.TipWidth = tipScale.y * modelChordLength;
-            wing.TipThickness = tipScale.z * modelThickness;
+            newModule.TipWidth = tipScale.y * modelChordLength;
+            newModule.TipThickness = tipScale.z * modelThickness;
 
-            wing.TipOffset = tipPosition.x - TipSpawnOffset.x;
-            wing.Length = tipPosition.z - TipSpawnOffset.z;
+            newModule.TipOffset = tipPosition.x - TipSpawnOffset.x;
+            newModule.Length = tipPosition.z - TipSpawnOffset.z;
 
-            wing.fuelSelectedTankSetup = fuelSelectedTankSetup;
+            newModule.fuelSelectedTankSetup = fuelSelectedTankSetup;
         }
     }
 }

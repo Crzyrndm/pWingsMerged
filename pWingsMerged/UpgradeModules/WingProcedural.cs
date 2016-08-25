@@ -11,7 +11,7 @@ namespace ProceduralWings.UpgradeModules
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingProcedural : PartModule
+    class WingProcedural : Module_DeprecatedWingModule
     {
         [KSPField(isPersistant = true)]
         public float sharedBaseLength = 4f;
@@ -115,56 +115,56 @@ namespace ProceduralWings.UpgradeModules
         [KSPField(isPersistant = true)]
         public int fuelSelectedTankSetup = 0;
 
-        public void Start()
+        public override void UpgradeModule(Base_ProceduralWing newModule)
         {
-            B9_ProceduralWing wing = part.Modules.GetModule<B9_ProceduralWing>();
+            B9_ProceduralWing newModule_B9 = (B9_ProceduralWing)newModule;
             // assign all the variables
-            wing.Length = sharedBaseLength;
-            wing.TipOffset = sharedBaseOffsetTip;
-            wing.RootWidth = sharedBaseWidthRoot;
-            wing.TipWidth = sharedBaseWidthTip;
-            wing.RootThickness = sharedBaseThicknessRoot;
-            wing.TipThickness = sharedBaseThicknessTip;
+            newModule_B9.Length = sharedBaseLength;
+            newModule_B9.TipOffset = sharedBaseOffsetTip;
+            newModule_B9.RootWidth = sharedBaseWidthRoot;
+            newModule_B9.TipWidth = sharedBaseWidthTip;
+            newModule_B9.RootThickness = sharedBaseThicknessRoot;
+            newModule_B9.TipThickness = sharedBaseThicknessTip;
 
-            wing.LeadingEdgeType = (int)sharedEdgeTypeLeading;
-            wing.RootLeadingEdge = sharedEdgeWidthLeadingRoot;
-            wing.TipLeadingEdge = sharedEdgeWidthLeadingTip;
+            newModule_B9.LeadingEdgeType = (int)sharedEdgeTypeLeading;
+            newModule_B9.RootLeadingEdge = sharedEdgeWidthLeadingRoot;
+            newModule_B9.TipLeadingEdge = sharedEdgeWidthLeadingTip;
 
-            wing.TrailingEdgeType = (int)sharedEdgeTypeTrailing;
-            wing.RootTrailingEdge = sharedEdgeWidthTrailingRoot;
-            wing.RootLeadingEdge = sharedEdgeWidthTrailingTip;
+            newModule_B9.TrailingEdgeType = (int)sharedEdgeTypeTrailing;
+            newModule_B9.RootTrailingEdge = sharedEdgeWidthTrailingRoot;
+            newModule_B9.RootLeadingEdge = sharedEdgeWidthTrailingTip;
 
-            wing.SurfTopMat = (int)sharedMaterialST;
-            wing.SurfTopOpacity = sharedColorSTOpacity;
-            wing.SurfTopHue = sharedColorSTHue;
-            wing.SurfTopSat = sharedColorSTSaturation;
-            wing.SurfTopBright = sharedColorSTBrightness;
+            newModule_B9.SurfTopMat = (int)sharedMaterialST;
+            newModule_B9.SurfTopOpacity = sharedColorSTOpacity;
+            newModule_B9.SurfTopHue = sharedColorSTHue;
+            newModule_B9.SurfTopSat = sharedColorSTSaturation;
+            newModule_B9.SurfTopBright = sharedColorSTBrightness;
 
 
-            wing.SurfBottomMat = (int)sharedMaterialSB;
-            wing.SurfBottomOpacity = sharedColorSBOpacity;
-            wing.SurfBottomHue = sharedColorSBHue;
-            wing.SurfBottomSat = sharedColorSBSaturation;
-            wing.SurfBottomBright = sharedColorSBBrightness;
+            newModule_B9.SurfBottomMat = (int)sharedMaterialSB;
+            newModule_B9.SurfBottomOpacity = sharedColorSBOpacity;
+            newModule_B9.SurfBottomHue = sharedColorSBHue;
+            newModule_B9.SurfBottomSat = sharedColorSBSaturation;
+            newModule_B9.SurfBottomBright = sharedColorSBBrightness;
 
-            wing.SurfLeadMat = (int)sharedMaterialEL;
-            wing.SurfLeadOpacity = sharedColorELOpacity;
-            wing.SurfLeadHue = sharedColorELHue;
-            wing.SurfLeadSat = sharedColorELSaturation;
-            wing.SurfLeadBright = sharedColorELBrightness;
+            newModule_B9.SurfLeadMat = (int)sharedMaterialEL;
+            newModule_B9.SurfLeadOpacity = sharedColorELOpacity;
+            newModule_B9.SurfLeadHue = sharedColorELHue;
+            newModule_B9.SurfLeadSat = sharedColorELSaturation;
+            newModule_B9.SurfLeadBright = sharedColorELBrightness;
 
-            wing.SurfTrailMat = (int)sharedMaterialET;
-            wing.SurfTrailOpacity = sharedColorETOpacity;
-            wing.SurfTrailHue = sharedColorETHue;
-            wing.SurfTrailSat = sharedColorETSaturation;
-            wing.SurfTrailBright = sharedColorETBrightness;
+            newModule_B9.SurfTrailMat = (int)sharedMaterialET;
+            newModule_B9.SurfTrailOpacity = sharedColorETOpacity;
+            newModule_B9.SurfTrailHue = sharedColorETHue;
+            newModule_B9.SurfTrailSat = sharedColorETSaturation;
+            newModule_B9.SurfTrailBright = sharedColorETBrightness;
 
-            if (wing is B9_ProceduralControl)
+            if (newModule_B9 is B9_ProceduralControl)
             {
-                ((B9_ProceduralControl)wing).RootOffset = sharedBaseOffsetRoot;
+                ((B9_ProceduralControl)newModule_B9).RootOffset = sharedBaseOffsetRoot;
             }
 
-            wing.fuelSelectedTankSetup = fuelSelectedTankSetup;
+            newModule_B9.fuelSelectedTankSetup = fuelSelectedTankSetup;
         }
     }
 }
