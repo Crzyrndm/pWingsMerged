@@ -8,11 +8,14 @@ using KSP;
 
 namespace ProceduralWings
 {
+    using Utility;
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class StaticWingGlobals : MonoBehaviour
     {
+        // fuel configuration
         public static List<Fuel.WingTankConfiguration> wingTankConfigurations = new List<Fuel.WingTankConfiguration>();
 
+        // prefabs from bundle
         public static Shader B9WingShader;
 
         public static GameObject UI_WindowPrefab;
@@ -21,7 +24,15 @@ namespace ProceduralWings
         public static GameObject UI_PropertyValArrayPrefab;
         public static GameObject UI_FuelPanel;
 
+        // User settings
         public static Rect uiRectWindowEditor = new Rect();
+        public static KeyCode keyTranslation;
+        public static KeyCode keyTipScale;
+        public static KeyCode keyRootScale;
+        public static float moveSpeed;
+        public static float scaleSpeed;
+
+        public static KeyCode uiKeyCodeEdit = KeyCode.J;
 
         public void Start()
         {
@@ -89,42 +100,36 @@ namespace ProceduralWings
 
         public static void LoadConfigs()
         {
-            ConfigNode node = ConfigNode.Load(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg");
-            node = node.GetNode("PWingsSettings");
-            if (node == null)
-                return;
+            ConfigNode node = ConfigNode.Load(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar
+                                                + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg")?.GetNode("PWingsSettings");
 
-            if (node.HasValue("keyTranslation"))
-                Base_ProceduralWing.keyTranslation = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTranslation"), true);
-
-            if (node.HasValue("keyTipScale"))
-                Base_ProceduralWing.keyTipScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyTipScale"), true);
-
-            if (node.HasValue("keyRootScale"))
-                Base_ProceduralWing.keyRootScale = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("keyRootScale"), true);
-
-            if (node.HasValue("moveSpeed"))
-                float.TryParse(node.GetValue("moveSpeed"), out Base_ProceduralWing.moveSpeed);
-
-            if (node.HasValue("scaleSpeed"))
-                float.TryParse(node.GetValue("scaleSpeed"), out Base_ProceduralWing.scaleSpeed);
-
-            if (!node.TryGetValue(nameof(uiRectWindowEditor), ref uiRectWindowEditor))
-                uiRectWindowEditor = Utility.UIUtility.SetToScreenCenter(new Rect());
-
-            Base_ProceduralWing.loadedConfig = true;
+            if (node == null || !node.TryGetValue(nameof(keyTranslation), ref keyTranslation))
+                keyTranslation = KeyCode.G;
+            if (node == null || !node.TryGetValue(nameof(keyTipScale), ref keyTipScale))
+                keyTipScale = KeyCode.T;
+            if (node == null || !node.TryGetValue(nameof(keyRootScale), ref keyRootScale))
+                keyRootScale = KeyCode.B;
+            if (node == null || !node.TryGetValue(nameof(moveSpeed), ref moveSpeed))
+                moveSpeed = 5;
+            if (node == null || !node.TryGetValue(nameof(scaleSpeed), ref scaleSpeed))
+                scaleSpeed = 0.25f;
+            if (node == null || !node.TryGetValue(nameof(uiRectWindowEditor), ref uiRectWindowEditor))
+                uiRectWindowEditor = UIUtility.SetToScreenCenter(new Rect());
+            if (node == null || !node.TryGetValue(nameof(uiKeyCodeEdit), ref uiKeyCodeEdit))
+                uiKeyCodeEdit = KeyCode.J;
         }
 
         public static void SaveConfigs()
         {
             ConfigNode node = new ConfigNode();
             ConfigNode settings = node.AddNode("PWingsSettings");
-            settings.AddValue("keyTranslation", Base_ProceduralWing.keyTranslation.ToString());
-            settings.AddValue("keyTipScale", Base_ProceduralWing.keyTipScale.ToString());
-            settings.AddValue("keyRootScale", Base_ProceduralWing.keyRootScale.ToString());
-            settings.AddValue("moveSpeed", Base_ProceduralWing.moveSpeed);
-            settings.AddValue("scaleSpeed", Base_ProceduralWing.scaleSpeed);
+            settings.AddValue(nameof(keyTranslation), keyTranslation.ToString());
+            settings.AddValue(nameof(keyTipScale), keyTipScale.ToString());
+            settings.AddValue(nameof(keyRootScale), keyRootScale.ToString());
+            settings.AddValue(nameof(moveSpeed), moveSpeed);
+            settings.AddValue(nameof(scaleSpeed), scaleSpeed);
             settings.AddValue(nameof(uiRectWindowEditor), uiRectWindowEditor);
+            settings.AddValue(nameof(uiKeyCodeEdit), uiKeyCodeEdit.ToString());
 
             node.Save(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg");
         }

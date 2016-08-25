@@ -105,7 +105,7 @@ namespace ProceduralWings.Original
         {
             deformWing = true;
             Vector3 diff;
-            while (Input.GetKey(keyTranslation))
+            while (Input.GetKey(StaticWingGlobals.keyTranslation))
             {
                 yield return null;
                 diff = UpdateMouseDiff(false);

@@ -20,7 +20,8 @@
             set
             {
                 this.value = value;
-                UI.WindowManager.Window.SetLastModifiedProperty(this);
+                if (UI.WindowManager.Window != null)
+                    UI.WindowManager.Window.SetLastModifiedProperty(this);
             }
         }
 

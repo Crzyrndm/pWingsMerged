@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace ProceduralWings.Utility
 {
@@ -16,6 +17,24 @@ namespace ProceduralWings.Utility
             if (val.CompareTo(max) > 0) // val greater than max
                 return max;
             return val;
+        }
+
+        public static bool TryGetValue(this ConfigNode node, string name, ref KeyCode key)
+        {
+            if (!node.HasValue(name))
+            {
+                return false;
+            }
+            try
+            {
+                key = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue(name), true);
+            }
+            catch
+            {
+                Debug.Log($"Failed to parse \"{name}, {node.GetValue(name)}\" to KeyCode");
+                return false;
+            }
+            return true;
         }
     }
 }

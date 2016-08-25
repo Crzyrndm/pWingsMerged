@@ -62,6 +62,7 @@
     <Compile Include="B9PWing\B9_ProceduralControlAllMoving.cs" />
     <Compile Include="B9PWing\B9_ProceduralPanel.cs" />
     <Compile Include="Base_ProceduralWing.cs" />
+    <Compile Include="ProceduralWing_VesselModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PWing Original\ManipulatorAllMoving.cs" />
     <Compile Include="PWing Original\ManipulatorControl.cs" />

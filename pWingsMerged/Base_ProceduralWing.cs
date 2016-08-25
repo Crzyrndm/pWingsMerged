@@ -158,7 +158,6 @@ namespace ProceduralWings
         #endregion        
 
         #region entry points
-        public static bool loadedConfig;
 
         /// <summary>
         /// helper bool that prevents anything running when the start sequence hasn't fired yet (happens for various events -.-)
@@ -186,10 +185,6 @@ namespace ProceduralWings
 
                 part.OnEditorAttach += new Callback(OnAttach);
                 part.OnEditorDetach += new Callback(OnDetach);
-            }
-            else if (HighLogic.LoadedSceneIsFlight)
-            {
-                StartCoroutine(flightAeroSetup());
             }
             isStarted = true;
         }
@@ -243,9 +238,6 @@ namespace ProceduralWings
                     rootThickness.Save(node);
                     tipThickness.Save(node);
                 }
-
-                if (HighLogic.LoadedSceneIsFlight)
-                    vesselList.Remove(vessel.GetInstanceID());
             }
             catch
             {
@@ -370,47 +362,6 @@ namespace ProceduralWings
                 tipWidth = wp.tipWidth;
                 rootThickness = wp.rootThickness;
                 tipThickness = wp.tipThickness;
-            }
-        }
-
-        /// <summary>
-        /// all vessels in flight that are loaded with this wing module are part of this set
-        /// </summary>
-        public static HashSet<int> vesselList = new HashSet<int>();
-
-        /// <summary>
-        /// setup the wing ready for flight
-        /// </summary>
-        /// <returns></returns>
-        public virtual IEnumerator flightAeroSetup()
-        {
-            // First we need to determine whether the vessel this part is attached to is updated
-            int vesselID = vessel.GetInstanceID();
-            if (vesselList.Contains(vesselID))
-                yield break;
-            else
-                vesselList.Add(vesselID);
-
-            Base_ProceduralWing w;
-            for (int i = vessel.parts.Count - 1; i >= 0; --i)
-            {
-                w = vessel.parts[i].Modules.GetModule<Base_ProceduralWing>();
-                if (w != null)
-                {
-                    w.Setup();
-                }
-            }
-
-            // delay to ensure FAR is initialised
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            for (int i = vessel.parts.Count - 1; i >= 0; --i)
-            {
-                w = vessel.parts[i].Modules.GetModule<Base_ProceduralWing>();
-                if (w != null)
-                {
-                    w.CalculateAerodynamicValues();
-                }
             }
         }
         #endregion
@@ -810,18 +761,13 @@ namespace ProceduralWings
 
         #region Wing deformation
 
-        public static KeyCode keyTranslation = KeyCode.G;
-        public static KeyCode keyTipScale = KeyCode.T;
-        public static KeyCode keyRootScale = KeyCode.B;
-        public static float moveSpeed = 5.0f;
-        public static float scaleSpeed = 0.25f;
 
         public virtual void OnMouseOver()
         {
             if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
 
-            if (Input.GetKeyDown(uiKeyCodeEdit))
+            if (Input.GetKeyDown(StaticWingGlobals.uiKeyCodeEdit))
             {
                 ShowEditorUI();
             }
@@ -829,11 +775,11 @@ namespace ProceduralWings
             if (!deformWing)
             {
                 lastMousePos = Input.mousePosition;
-                if (Input.GetKeyDown(keyTranslation))
+                if (Input.GetKeyDown(StaticWingGlobals.keyTranslation))
                     StartCoroutine(translateTip());
-                else if (Input.GetKeyDown(keyTipScale))
+                else if (Input.GetKeyDown(StaticWingGlobals.keyTipScale))
                     StartCoroutine(scaleTip());
-                else if (Input.GetKeyDown(keyRootScale))
+                else if (Input.GetKeyDown(StaticWingGlobals.keyRootScale))
                     StartCoroutine(scaleRoot());
             }
         }
@@ -847,7 +793,7 @@ namespace ProceduralWings
         {
             deformWing = true;
             Vector3 diff;
-            while (Input.GetKey(keyTranslation))
+            while (Input.GetKey(StaticWingGlobals.keyTranslation))
             {
                 yield return null;
                 diff = UpdateMouseDiff(false);
@@ -863,7 +809,7 @@ namespace ProceduralWings
         {
             deformWing = true;
             Vector3 diff;
-            while (Input.GetKey(keyTipScale))
+            while (Input.GetKey(StaticWingGlobals.keyTipScale))
             {
                 yield return null;
                 diff = UpdateMouseDiff(true);
@@ -879,14 +825,14 @@ namespace ProceduralWings
         public virtual IEnumerator scaleRoot()
         {
             // root scale requires that we aren't the child part of a PWing
-            if (part.parent == null || part.parent.Modules.GetModule<Base_ProceduralWing>() == null)
+            if (part.parent != null && part.parent.Modules.GetModule<Base_ProceduralWing>() != null)
                 yield break;
                 
             deformWing = true;
             // Root scaling
             // only if the root part is not a pWing, in which case the root will snap to the parent tip
             Vector3 diff;
-            while (Input.GetKey(keyRootScale))
+            while (Input.GetKey(StaticWingGlobals.keyRootScale))
             {
                 yield return null;
                 diff = UpdateMouseDiff(true);
@@ -903,7 +849,7 @@ namespace ProceduralWings
         public virtual Vector3 UpdateMouseDiff(bool scaleMode)
         {
             float depth = EditorCamera.Instance.GetComponentCached(ref editorCam).WorldToScreenPoint(tipPos).z; // distance of tip transform from camera
-            Vector3 diff = (scaleMode ? scaleSpeed * 20 : moveSpeed) * depth * (Input.mousePosition - lastMousePos) / 4500;
+            Vector3 diff = (scaleMode ? StaticWingGlobals.scaleSpeed * 20 : StaticWingGlobals.moveSpeed) * depth * (Input.mousePosition - lastMousePos) / 4500;
             lastMousePos = Input.mousePosition;
             return diff;
         }
@@ -973,8 +919,6 @@ namespace ProceduralWings
         #endregion
 
         #region UI stuff
-        public static KeyCode uiKeyCodeEdit = KeyCode.J;
-
         public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
 
         public virtual void ShowEditorUI()
