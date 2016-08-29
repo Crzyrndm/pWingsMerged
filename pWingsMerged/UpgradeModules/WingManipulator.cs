@@ -7,7 +7,7 @@ namespace ProceduralWings.UpgradeModules
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingManipulator : Module_DeprecatedWingModule
+    class WingManipulator : PartModule, IDeprecatedWingModule
     {
         [KSPField]
         public float modelChordLength = 2f;
@@ -33,7 +33,7 @@ namespace ProceduralWings.UpgradeModules
         [KSPField(isPersistant = true)] // otherwise revert to editor does silly things
         public int fuelSelectedTankSetup = -1;
 
-        public override void UpgradeModule(Base_ProceduralWing newModule)
+        public void UpgradeModule(Base_ProceduralWing newModule)
         {
             // assign all the variables
             newModule.RootWidth = rootScale.y * modelChordLength;

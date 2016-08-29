@@ -1,4 +1,31 @@
-﻿using System;
+﻿/* A procedural wing class that implements all the common Unity/KSP interfacing and a number of common features
+ * Including:
+ *  - Symmetry updating
+ *  - Editing through UI
+ *  - Geometry manipulation through hover and mouse drag
+ *  - Fuel carrying capabilities
+ *  - Stock and FAR aero interop
+ *  - Save/load methods
+ *  - KSP interfaces for mass/cost/size
+ *  
+ * Common methods to override for derivatives are:
+ *  - UpdateGeometry()
+ *      * Manipulation of physical parameters and appearance
+ *  - SetupGeometryAndAppearance()
+ *      * Initialisation for any model/visual requirements
+ *  - CreateUI()
+ *      * Specify the appearance of the UI window for this module class
+ *  - ShowEditorUI()
+ *      * Changes the wing target for the UI and updates property values to match the new wing
+ *  - LoadWingProperty()
+ *  - SaveWingProperty()
+ *      * The serialisation methods using WingProperty nodes
+ *  - SetupProperties()
+ *      * Initialisation of wing properties for this type
+ */
+
+
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
@@ -181,7 +208,6 @@ namespace ProceduralWings
         public virtual void Start()
         {
             GameEvents.onGameSceneLoadRequested.Add(OnSceneSwitch);
-            CheckAndUpgradeVersion();
             if (HighLogic.LoadedSceneIsEditor)
             {
                 Setup();
@@ -189,7 +215,6 @@ namespace ProceduralWings
                 part.OnEditorAttach += new Callback(OnAttach);
                 part.OnEditorDetach += new Callback(OnDetach);
             }
-            isStarted = true;
         }
 
         /// <summary>
@@ -255,6 +280,8 @@ namespace ProceduralWings
         public void OnSceneSwitch(GameScenes scene)
         {
             isStarted = false; // fixes annoying nullrefs when switching scenes and things haven't been destroyed yet
+            if (WindowManager.Window != null)
+                WindowManager.Window.Visible = false;
         }
         #endregion
 
@@ -297,10 +324,14 @@ namespace ProceduralWings
             }
             else
             {
-                UpgradeModules.Module_DeprecatedWingModule dw = part.Modules.GetModule<UpgradeModules.Module_DeprecatedWingModule>();
-                if (dw != null)
+                for (int i = part.Modules.Count - 1; i >= 0; --i)
                 {
-                    dw.UpgradeModule(this);
+                    UpgradeModules.IDeprecatedWingModule dw = part.Modules[i] as UpgradeModules.IDeprecatedWingModule;
+                    if (dw != null)
+                    {
+                        dw.UpgradeModule(this);
+                        break;
+                    }
                 }
             }
             lastLoadedVersion = StaticWingGlobals.version;
@@ -315,6 +346,9 @@ namespace ProceduralWings
             SetupProperties();
             CheckAssemblies();
             SetupGeometryAndAppearance();
+
+            CheckAndUpgradeVersion();
+
             UpdateGeometry();
 
             if (fuelSelectedTankSetup < 0)
@@ -397,6 +431,8 @@ namespace ProceduralWings
         /// </summary>
         public virtual void UpdateSymmetricGeometry()
         {
+            if (!isStarted)
+                return;
             UpdateGeometry();
             for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
             {
@@ -483,11 +519,15 @@ namespace ProceduralWings
             for (int i = part.Resources.Count - 1; i >= 0; --i)
             {
                 PartResource res = part.Resources[i];
-                double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
-                
+                WingTankResource wres;
+                if (wtc.resources.TryGetValue(part.Resources[i].resourceName, out wres))
+                {
+                    double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
 
-                res.maxAmount = 1000 * wtc.resources[res.resourceName].fraction * fuelVolume / wtc.resources[res.resourceName].resource.volume;
-                res.amount = res.maxAmount * fillPct;
+
+                    res.maxAmount = 1000 * wres.fraction * fuelVolume / wres.resource.volume;
+                    res.amount = res.maxAmount * fillPct;
+                }
             }
             part.Resources.UpdateList();
         }
@@ -950,7 +990,10 @@ namespace ProceduralWings
             WindowManager.GetWindow(this);
 
             WindowManager.Window.wing = this;
-            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
+
+            PropertyGroup group = WindowManager.Window.FindPropertyGroup("Base");
+            if (group != null)
+                group.UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
             WindowManager.Window.Visible = true;
         }
 
@@ -980,14 +1023,14 @@ namespace ProceduralWings
         }
         #endregion
 
-        public static void Log(object formatted)
+        public void Log(object formatted)
         {
-            Debug.Log("[PWP] " + formatted);
+            Debug.Log($"[PW Plugin: {moduleName}] " + formatted);
         }
 
-        public static void Log(string toBeFormatted, params object[] args)
+        public void Log(string toBeFormatted, params object[] args)
         {
-            Debug.Log("[PWP] " + string.Format(toBeFormatted, args));
+            Debug.Log($"[PW Plugin: {moduleName}] " + string.Format(toBeFormatted, args));
         }
     }
 }

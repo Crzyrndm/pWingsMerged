@@ -713,6 +713,8 @@ namespace ProceduralWings.B9PWing
 
         public virtual void UpdateSymmetricAppearance()
         {
+            if (!isStarted)
+                return;
             UpdateGeometry(false);
             for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
             {

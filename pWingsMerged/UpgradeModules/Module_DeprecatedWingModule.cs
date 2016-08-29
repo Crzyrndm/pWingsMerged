@@ -5,8 +5,8 @@ using System.Text;
 
 namespace ProceduralWings.UpgradeModules
 {
-    public abstract class Module_DeprecatedWingModule : PartModule
+    public interface IDeprecatedWingModule
     {
-        public abstract void UpgradeModule(Base_ProceduralWing newModule);
+        void UpgradeModule(Base_ProceduralWing newModule);
     }
 }

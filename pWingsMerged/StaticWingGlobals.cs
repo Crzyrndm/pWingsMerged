@@ -63,7 +63,7 @@ namespace ProceduralWings
                     {
                         case "KSP/Specular Layered":
                             B9WingShader = shaders[i] as Shader;
-                            Base_ProceduralWing.Log($"Wing shader \"{shaders[i].name}\" loaded. Supported? {B9WingShader.isSupported}");
+                            Log($"Wing shader \"{shaders[i].name}\" loaded. Supported? {B9WingShader.isSupported}");
                             break;
                     }
                 }
@@ -75,23 +75,23 @@ namespace ProceduralWings
                     {
                         case "FuelPanelPrefab":
                             UI_FuelPanel = objects[i] as GameObject;
-                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "MainEditorPanel":
                             UI_WindowPrefab = objects[i] as GameObject;
-                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "PropertyGroup":
                             UI_PropertyGroupPrefab = objects[i] as GameObject;
-                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "PropertySelector":
                             UI_PropertyPrefab = objects[i] as GameObject;
-                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                         case "PropertySelector_ValArray":
                             UI_PropertyValArrayPrefab = objects[i] as GameObject;
-                            Base_ProceduralWing.Log($"Prefab \"{objects[i].name}\" loaded");
+                            Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
                     }
                 }
@@ -135,6 +135,11 @@ namespace ProceduralWings
             settings.AddValue(nameof(uiKeyCodeEdit), uiKeyCodeEdit.ToString());
 
             node.Save(KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "PluginData" + Path.DirectorySeparatorChar + "settings.cfg");
+        }
+
+        public void Log(object formatted)
+        {
+            Debug.Log($"[PW Plugin] " + formatted);
         }
     }
 }

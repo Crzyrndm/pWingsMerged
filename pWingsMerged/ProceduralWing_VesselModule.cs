@@ -13,6 +13,9 @@ namespace ProceduralWings
             Vessel vessel = GetComponent<Vessel>();
 
             Base_ProceduralWing w;
+
+            // delay to ensure all part modules have started
+            yield return new WaitForFixedUpdate();
             for (int i = vessel.parts.Count - 1; i >= 0; --i)
             {
                 w = vessel.parts[i].Modules.GetModule<Base_ProceduralWing>();
@@ -23,7 +26,6 @@ namespace ProceduralWings
             }
 
             // delay to ensure FAR is initialised
-            yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             for (int i = vessel.parts.Count - 1; i >= 0; --i)
             {

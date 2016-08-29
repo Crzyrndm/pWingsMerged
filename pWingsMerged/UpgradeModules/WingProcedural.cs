@@ -11,7 +11,7 @@ namespace ProceduralWings.UpgradeModules
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingProcedural : Module_DeprecatedWingModule
+    class WingProcedural : PartModule, IDeprecatedWingModule
     {
         [KSPField(isPersistant = true)]
         public float sharedBaseLength = 4f;
@@ -115,8 +115,9 @@ namespace ProceduralWings.UpgradeModules
         [KSPField(isPersistant = true)]
         public int fuelSelectedTankSetup = 0;
 
-        public override void UpgradeModule(Base_ProceduralWing newModule)
+        public void UpgradeModule(Base_ProceduralWing newModule)
         {
+            Debug.Log($"Upgrading B9_PWing");
             B9_ProceduralWing newModule_B9 = (B9_ProceduralWing)newModule;
             // assign all the variables
             newModule_B9.Length = sharedBaseLength;
@@ -126,13 +127,16 @@ namespace ProceduralWings.UpgradeModules
             newModule_B9.RootThickness = sharedBaseThicknessRoot;
             newModule_B9.TipThickness = sharedBaseThicknessTip;
 
-            newModule_B9.LeadingEdgeType = (int)sharedEdgeTypeLeading;
-            newModule_B9.RootLeadingEdge = sharedEdgeWidthLeadingRoot;
-            newModule_B9.TipLeadingEdge = sharedEdgeWidthLeadingTip;
+            if (!(newModule_B9 is B9_ProceduralControl))
+            {
+                newModule_B9.LeadingEdgeType = (int)sharedEdgeTypeLeading;
+                newModule_B9.RootLeadingEdge = sharedEdgeWidthLeadingRoot;
+                newModule_B9.TipLeadingEdge = sharedEdgeWidthLeadingTip;
+            }
 
             newModule_B9.TrailingEdgeType = (int)sharedEdgeTypeTrailing;
             newModule_B9.RootTrailingEdge = sharedEdgeWidthTrailingRoot;
-            newModule_B9.RootLeadingEdge = sharedEdgeWidthTrailingTip;
+            newModule_B9.RootTrailingEdge = sharedEdgeWidthTrailingTip;
 
             newModule_B9.SurfTopMat = (int)sharedMaterialST;
             newModule_B9.SurfTopOpacity = sharedColorSTOpacity;
@@ -147,11 +151,14 @@ namespace ProceduralWings.UpgradeModules
             newModule_B9.SurfBottomSat = sharedColorSBSaturation;
             newModule_B9.SurfBottomBright = sharedColorSBBrightness;
 
-            newModule_B9.SurfLeadMat = (int)sharedMaterialEL;
-            newModule_B9.SurfLeadOpacity = sharedColorELOpacity;
-            newModule_B9.SurfLeadHue = sharedColorELHue;
-            newModule_B9.SurfLeadSat = sharedColorELSaturation;
-            newModule_B9.SurfLeadBright = sharedColorELBrightness;
+            if (!(newModule_B9 is B9_ProceduralControl))
+            {
+                newModule_B9.SurfLeadMat = (int)sharedMaterialEL;
+                newModule_B9.SurfLeadOpacity = sharedColorELOpacity;
+                newModule_B9.SurfLeadHue = sharedColorELHue;
+                newModule_B9.SurfLeadSat = sharedColorELSaturation;
+                newModule_B9.SurfLeadBright = sharedColorELBrightness;
+            }
 
             newModule_B9.SurfTrailMat = (int)sharedMaterialET;
             newModule_B9.SurfTrailOpacity = sharedColorETOpacity;
@@ -159,12 +166,12 @@ namespace ProceduralWings.UpgradeModules
             newModule_B9.SurfTrailSat = sharedColorETSaturation;
             newModule_B9.SurfTrailBright = sharedColorETBrightness;
 
+            newModule_B9.fuelSelectedTankSetup = fuelSelectedTankSetup;
+
             if (newModule_B9 is B9_ProceduralControl)
             {
                 ((B9_ProceduralControl)newModule_B9).RootOffset = sharedBaseOffsetRoot;
             }
-
-            newModule_B9.fuelSelectedTankSetup = fuelSelectedTankSetup;
         }
     }
 }

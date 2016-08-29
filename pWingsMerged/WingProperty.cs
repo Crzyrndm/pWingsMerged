@@ -2,7 +2,7 @@
 {
     public class WingProperty :IConfigNode
     {
-        string ID;
+        public string ID { get; }
         public string name;
         public double defaultValue;
         public int decPlaces;
@@ -38,6 +38,7 @@
 
         public WingProperty(WingProperty prop)
         {
+            ID = prop.ID;
             Update(prop);
         }
 

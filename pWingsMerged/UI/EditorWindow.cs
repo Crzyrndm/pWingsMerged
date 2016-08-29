@@ -24,11 +24,10 @@ namespace ProceduralWings.UI
                 if (!visible)
                 {
                     wing = null;
-                    StaticWingGlobals.uiRectWindowEditor.position = windowPosition.rect.position;
                 }
                 else
                 {
-                    windowPosition.localPosition = StaticWingGlobals.uiRectWindowEditor.position;
+                    windowPosition.position = StaticWingGlobals.uiRectWindowEditor.position;
                 }
                 canvas.enabled = visible;
             }
@@ -72,7 +71,15 @@ namespace ProceduralWings.UI
         /// </summary>
         Button closeButton;
 
-        Dictionary<string, PropertyGroup> propertyGroupList = new Dictionary<string, PropertyGroup>();
+        /// <summary>
+        /// a list of the propertyGroups that this window is using
+        /// </summary>
+        List<PropertyGroup> propertyGroupList = new List<PropertyGroup>();
+
+        // can do lookups by property ID into this when the edited property changes
+        Dictionary<string, PropertySlider> propertiesDict = new Dictionary<string, PropertySlider>();
+        // store the last edited property for quick reference when continuously updating
+        PropertySlider lastEditedPropertyRef;
 
         /// <summary>
         /// Constructor
@@ -123,6 +130,7 @@ namespace ProceduralWings.UI
         public void windowDrag(UnityEngine.EventSystems.BaseEventData data)
         {
             windowPosition.position += new Vector3(((PointerEventData)data).delta.x, ((PointerEventData)data).delta.y);
+            StaticWingGlobals.uiRectWindowEditor.position = windowPosition.position;
         }
 
         public void closeWindow()
@@ -137,20 +145,13 @@ namespace ProceduralWings.UI
         }
 
         #endregion
-
-        public void UpdateLastModifiedProperty(string PropertyLabel, string PropertyTooltip)
-        {
-            lastModifiedProperty.text = PropertyLabel;
-            lastModifiedPropertyTooltip.text = PropertyTooltip;
-        }
-
         public PropertyGroup AddPropertyGroup(string name, Color groupColour)
         {
             PropertyGroup newGroup = FindPropertyGroup(name);
             if (newGroup == null)
             {
-                newGroup = new PropertyGroup(name, groupColour);
-                propertyGroupList.Add(name, newGroup);
+                newGroup = new PropertyGroup(name, groupColour, this);
+                propertyGroupList.Add(newGroup);
                 newGroup.groupInstance.transform.SetParent(mainPanel.transform, false);
             }
             return newGroup;
@@ -158,17 +159,32 @@ namespace ProceduralWings.UI
 
         public PropertyGroup FindPropertyGroup(string groupName)
         {
-            PropertyGroup testGroup;
-            if (propertyGroupList.TryGetValue(groupName, out testGroup))
-                return testGroup;
-            return null;
+            return propertyGroupList.Find(g => g.Name == groupName);
         }
 
         public void ResetGroups()
         {
-            foreach (var kvp in propertyGroupList)
+            foreach (PropertyGroup group in propertyGroupList)
             {
-                kvp.Value.groupInstance.SetActive(false);
+                group.groupInstance.SetActive(false);
+            }
+        }
+
+        public void UpdateProperty(WingProperty wp)
+        {
+            if (lastEditedPropertyRef.propertyRef.ID == wp.ID)
+            {
+                lastEditedPropertyRef.Refresh(wp);
+            }
+            else
+            {
+                PropertySlider slider;
+                if (propertiesDict.TryGetValue(wp.ID, out slider))
+                {
+                    lastEditedPropertyRef = slider;
+                    lastEditedPropertyRef.Refresh(wp);
+                    SetLastModifiedProperty(wp);
+                }
             }
         }
 
@@ -176,6 +192,14 @@ namespace ProceduralWings.UI
         {
             lastModifiedPropertyTooltip.text = wp.tooltip;
             lastModifiedProperty.text = wp.name;
+        }
+
+        public void GroupAddProperty(PropertySlider slider)
+        {
+            if (slider?.propertyRef?.ID != null && !propertiesDict.ContainsKey(slider.propertyRef.ID))
+            {
+                propertiesDict.Add(slider.propertyRef.ID, slider);
+            }
         }
 
         #region Properties

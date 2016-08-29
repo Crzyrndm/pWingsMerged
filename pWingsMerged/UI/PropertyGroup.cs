@@ -16,6 +16,9 @@ namespace ProceduralWings.UI
         /// </summary>
         public GameObject groupInstance;
 
+        /// <summary>
+        /// 
+        /// </summary>
         Color groupColour;
 
         /// <summary>
@@ -29,6 +32,11 @@ namespace ProceduralWings.UI
         GameObject propertiesListGroup;
 
         /// <summary>
+        /// the window this group is attached to
+        /// </summary>
+        EditorWindow myWindow;
+
+        /// <summary>
         /// true if the properties in the list are visible
         /// </summary>
         bool propertiesVisible;
@@ -36,13 +44,13 @@ namespace ProceduralWings.UI
         /// <summary>
         /// List of all properties added to this group
         /// </summary>
-        Dictionary<string, PropertySlider> properties = new Dictionary<string, PropertySlider>();
+        List<PropertySlider> properties = new List<PropertySlider>();
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="prefab"></param>
-        public PropertyGroup(string name, Color GroupColour)
+        public PropertyGroup(string name, Color GroupColour, EditorWindow window)
         {
             groupInstance = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_PropertyGroupPrefab); // create a copy
 
@@ -54,6 +62,8 @@ namespace ProceduralWings.UI
             propertiesListGroup.SetActive(false);
 
             groupColour = GroupColour;
+
+            myWindow = window;
         }
 
         /// <summary>
@@ -67,26 +77,28 @@ namespace ProceduralWings.UI
 
         public PropertySlider AddProperty(WingProperty propertyRef, Action<float> onChanged)
         {
-            PropertySlider newProp;
-            if (!properties.TryGetValue(propertyRef.name, out newProp)) // prevent adding duplicate properties for some reason
+            PropertySlider slider = properties.Find(sl => sl.propertyRef.ID == propertyRef.ID);
+            if (slider == null) // prevent adding duplicate properties for some reason
             {
-                newProp = new PropertySlider(propertyRef, groupColour, onChanged);
-                properties.Add(propertyRef.name, newProp);
-                newProp.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+                slider = new PropertySlider(propertyRef, groupColour, onChanged);
+                slider.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+                properties.Add(slider);
+                myWindow.GroupAddProperty(slider);
             }
-            return newProp;
+            return slider;
         }
 
         public PropertySlider AddProperty<T>(WingProperty propertyRef, Action<float> onChanged, T[] values)
         {
-            PropertySlider newProp;
-            if (!properties.TryGetValue(propertyRef.name, out newProp)) // prevent adding duplicate properties for some reason
+            PropertySlider slider = properties.Find(sl => sl.propertyRef.ID == propertyRef.ID);
+            if (slider == null) // prevent adding duplicate properties for some reason
             {
-                newProp = new PropertySlider_ValueArray<T>(values, propertyRef, groupColour, onChanged);
-                properties.Add(propertyRef.name, newProp);
-                newProp.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+                slider = new PropertySlider_ValueArray<T>(values, propertyRef, groupColour, onChanged);
+                slider.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
+                properties.Add(slider);
+                myWindow.GroupAddProperty(slider);
             }
-            return newProp;
+            return slider;
         }
 
         public void UpdatePropertyValues(params WingProperty[] props)
@@ -94,8 +106,8 @@ namespace ProceduralWings.UI
             groupInstance.SetActive(true);
             for (int i = props.Length - 1; i >= 0; --i)
             {
-                PropertySlider prop;
-                if (properties.TryGetValue(props[i].name, out prop))
+                PropertySlider prop = properties.Find(sl => sl.propertyRef.ID == props[i].ID);
+                if (prop != null)
                 {
                     prop.Refresh(props[i]);
                 }
@@ -107,7 +119,7 @@ namespace ProceduralWings.UI
             groupColour = c;
             foreach (var slide in properties)
             {
-                slide.Value.UpdateColour(c);
+                slide.UpdateColour(c);
             }
         }
 
@@ -115,7 +127,7 @@ namespace ProceduralWings.UI
         {
             get
             {
-                return groupButton.GetComponent<Text>().text;
+                return groupButton?.GetComponent<Text>()?.text ?? string.Empty;
             }
         }
     }
