@@ -103,7 +103,7 @@ namespace ProceduralWings.UI
 
             Refresh(propRef);
 
-            input.onValueChange.AddListener(TextValueChanged);
+            input.onValueChanged.AddListener(TextValueChanged);
             inputSlider.onValueChanged.AddListener(SliderValueChanged);
             onValueChanged += onChange;
         }

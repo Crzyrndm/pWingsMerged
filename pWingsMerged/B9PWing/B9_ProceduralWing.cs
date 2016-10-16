@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 namespace ProceduralWings.B9PWing
@@ -28,7 +29,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 leadingEdgeType.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -39,7 +40,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 rootLeadingEdge.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -50,7 +51,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 tipLeadingEdge.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
         #endregion
@@ -64,7 +65,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 trailingEdgeType.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -75,7 +76,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 rootTrailingEdge.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -86,7 +87,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 tipTrailingEdge.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -101,7 +102,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTopMat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -112,7 +113,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTopOpacity.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -123,7 +124,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTopHue.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -134,7 +135,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTopSat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -145,7 +146,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTopBright.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -159,7 +160,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfBottomMat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -170,7 +171,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfBottomOpacity.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -181,7 +182,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfBottomHue.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -202,7 +203,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfBottomBright.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
         #endregion
@@ -216,7 +217,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTrailMat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -227,7 +228,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTrailOpacity.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -238,7 +239,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTrailHue.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -249,7 +250,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTrailSat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -260,7 +261,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfTrailBright.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -274,7 +275,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfLeadMat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -285,7 +286,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfLeadOpacity.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -296,7 +297,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfLeadHue.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -307,7 +308,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfLeadSat.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -318,7 +319,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 surfLeadBright.Value = value;
-                UpdateSymmetricAppearance();
+                StartCoroutine(UpdateSymmetricAppearance());
             }
         }
 
@@ -711,15 +712,20 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        public virtual void UpdateSymmetricAppearance()
+        bool appearanceLock;
+        public virtual IEnumerator UpdateSymmetricAppearance()
         {
-            if (!isStarted)
-                return;
+            if (!isStarted || appearanceLock)
+                yield break;
+            appearanceLock = true;
+
+            yield return null;
             UpdateGeometry(false);
             for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
             {
                 part.symmetryCounterparts[i].Modules.GetModule<B9_ProceduralWing>().UpdateGeometry(false);
             }
+            appearanceLock = false;
         }
 
         public override void UpdateGeometry()
@@ -992,7 +998,6 @@ namespace ProceduralWings.B9PWing
                 res.maxAmount = 1000 * wtc.resources[res.resourceName].fraction * fuelVolume / wtc.resources[res.resourceName].resource.volume;
                 res.amount = res.maxAmount * fillPct;
             }
-            part.Resources.UpdateList();
         }
         #endregion
 
@@ -1185,8 +1190,6 @@ namespace ProceduralWings.B9PWing
         
         public override void CalculateAerodynamicValues()
         {
-            CheckAssemblies();
-
             double sharedWidthTipSum = TipWidth;
             double sharedWidthRootSum = RootWidth;
 
@@ -1237,7 +1240,7 @@ namespace ProceduralWings.B9PWing
             part.breakingTorque = Mathf.Round((float)connectionForce);
 
             // Stock-only values
-            if (!FARactive)
+            if (!StaticWingGlobals.FARactive)
             {
                 SetStockModuleParams();
             }
@@ -1267,12 +1270,12 @@ namespace ProceduralWings.B9PWing
         public static Vector4 sharedBaseThicknessTipDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
 
 
-        public static Vector4 uiColorSliderEdgeL = new Vector4(0.20f, 0.5f, 0.4f, 1f);
-        public static Vector4 uiColorSliderEdgeT = new Vector4(0.15f, 0.5f, 0.4f, 1f);
-        public static Vector4 uiColorSliderColorsST = new Vector4(0.10f, 0.5f, 0.4f, 1f);
-        public static Vector4 uiColorSliderColorsSB = new Vector4(0.05f, 0.5f, 0.4f, 1f);
-        public static Vector4 uiColorSliderColorsET = new Vector4(0.00f, 0.5f, 0.4f, 1f);
-        public static Vector4 uiColorSliderColorsEL = new Vector4(0.95f, 0.5f, 0.4f, 1f);
+        public static Color uiColorSliderEdgeL = new Color(0.36f, 0.4f, 0.2f, 1);
+        public static Color uiColorSliderEdgeT = new Color(0.4f, 0.38f, 0.2f, 1);
+        public static Color uiColorSliderColorsST = new Color(0.4f, 0.32f, 0.2f, 1);
+        public static Color uiColorSliderColorsSB = new Color(0.4f, 0.28f, 0.2f, 1);
+        public static Color uiColorSliderColorsET = new Color(0.4f, 0.2f, 0.2f, 1);
+        public static Color uiColorSliderColorsEL = new Color(0.4f, 0.2f, 0.28f, 1);
 
         public static double incrementMain = 0.125, incrementSmall = 0.04;
         public static Vector2d uiLengthLimit = new Vector2d(0.125, 16);
@@ -1317,13 +1320,13 @@ namespace ProceduralWings.B9PWing
         public override void ShowEditorUI()
         {
             base.ShowEditorUI();
-
             WindowManager.Window.FindPropertyGroup("Edge (leading)").UpdatePropertyValues(leadingEdgeType, rootLeadingEdge, tipLeadingEdge);
             WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
             WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
             WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
             WindowManager.Window.FindPropertyGroup("Surface (leading edge)").UpdatePropertyValues(surfLeadMat, surfLeadOpacity, surfLeadHue, surfLeadSat, surfLeadBright);
             WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
+            WindowManager.Window.Visible = true;
         }
 
         public override UI.EditorWindow CreateWindow()
@@ -1340,19 +1343,19 @@ namespace ProceduralWings.B9PWing
             basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
             basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
 
-            UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeL));
+            UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", uiColorSliderEdgeL);
             leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
                                         new string[] { "No Edge", "Rounded", "Biconvex", "Triangular" });
             leadgroup.AddProperty(new WingProperty(rootLeadingEdge), x => ((B9_ProceduralWing)window.wing).RootLeadingEdge = x);
             leadgroup.AddProperty(new WingProperty(tipLeadingEdge), x => ((B9_ProceduralWing)window.wing).TipLeadingEdge = x);
 
-            UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", UIUtility.ColorHSBToRGB(uiColorSliderEdgeT));
+            UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", uiColorSliderEdgeT);
             trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x,
                                         new string[] { "No Edge", "Rounded", "Biconvex", "Triangular" });
             trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x);
             trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x);
 
-            UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", UIUtility.ColorHSBToRGB(uiColorSliderColorsST));
+            UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", uiColorSliderColorsST);
             surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x,
                                         new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
             surfTGroup.AddProperty(new WingProperty(surfTopOpacity), x => ((B9_ProceduralWing)window.wing).SurfTopOpacity = x);
@@ -1360,7 +1363,7 @@ namespace ProceduralWings.B9PWing
             surfTGroup.AddProperty(new WingProperty(surfTopSat), x => ((B9_ProceduralWing)window.wing).SurfTopSat = x);
             surfTGroup.AddProperty(new WingProperty(surfTopBright), x => ((B9_ProceduralWing)window.wing).SurfTopBright = x);
 
-            UI.PropertyGroup surfBGroup = window.AddPropertyGroup("Surface (bottom)", UIUtility.ColorHSBToRGB(uiColorSliderColorsSB));
+            UI.PropertyGroup surfBGroup = window.AddPropertyGroup("Surface (bottom)", uiColorSliderColorsSB);
             surfBGroup.AddProperty(new WingProperty(surfBottomMat), x => ((B9_ProceduralWing)window.wing).SurfBottomMat = (int)x,
                                         new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
             surfBGroup.AddProperty(new WingProperty(surfBottomOpacity), x => ((B9_ProceduralWing)window.wing).SurfBottomOpacity = x);
@@ -1368,7 +1371,7 @@ namespace ProceduralWings.B9PWing
             surfBGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfBottomSat = x);
             surfBGroup.AddProperty(new WingProperty(surfBottomBright), x => ((B9_ProceduralWing)window.wing).SurfBottomBright = x);
 
-            UI.PropertyGroup surfLGroup = window.AddPropertyGroup("Surface (leading edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsEL));
+            UI.PropertyGroup surfLGroup = window.AddPropertyGroup("Surface (leading edge)", uiColorSliderColorsEL);
             surfLGroup.AddProperty(new WingProperty(surfLeadMat), x => ((B9_ProceduralWing)window.wing).SurfLeadMat = (int)x,
                                         new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
             surfLGroup.AddProperty(new WingProperty(surfLeadOpacity), x => ((B9_ProceduralWing)window.wing).SurfLeadOpacity = x);
@@ -1376,7 +1379,7 @@ namespace ProceduralWings.B9PWing
             surfLGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfLeadSat = x);
             surfLGroup.AddProperty(new WingProperty(surfLeadBright), x => ((B9_ProceduralWing)window.wing).SurfLeadBright = x);
 
-            UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", UIUtility.ColorHSBToRGB(uiColorSliderColorsET));
+            UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", uiColorSliderColorsET);
             surfRGroup.AddProperty(new WingProperty(surfTrailMat), x => ((B9_ProceduralWing)window.wing).SurfTrailMat = (int)x,
                                         new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
             surfRGroup.AddProperty(new WingProperty(surfTrailOpacity), x => ((B9_ProceduralWing)window.wing).SurfTrailOpacity = x);

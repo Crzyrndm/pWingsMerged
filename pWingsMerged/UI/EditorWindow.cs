@@ -29,7 +29,7 @@ namespace ProceduralWings.UI
                 {
                     windowPosition.position = StaticWingGlobals.uiRectWindowEditor.position;
                 }
-                canvas.enabled = visible;
+                canvas.enabled = true;
             }
         }
 
@@ -81,14 +81,16 @@ namespace ProceduralWings.UI
         // store the last edited property for quick reference when continuously updating
         PropertySlider lastEditedPropertyRef;
 
+        GameObject go;
         /// <summary>
         /// Constructor
         /// </summary>
         public EditorWindow()
         {
             // get references to all useful components
-            canvas = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab.GetComponent<Canvas>());
-            canvas.enabled = false;
+            go = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab);
+            go.transform.SetParent(KSP.UI.UIMasterController.Instance.appCanvas.transform, false);
+            canvas = go.GetComponent<Canvas>();
             
             mainPanel = canvas.gameObject.GetChild("MainPanel");
             windowPosition = mainPanel.GetComponent<RectTransform>();
@@ -115,13 +117,11 @@ namespace ProceduralWings.UI
             fuelPanel.transform.SetParent(mainPanel.transform, false); // parented onto the window
 
             Dropdown drop = fuelPanel.GetChild("Dropdown").GetComponent<Dropdown>();
-
             for (int i = 0; i < StaticWingGlobals.wingTankConfigurations.Count; ++i)
             {
                 drop.options.Add(new Dropdown.OptionData(StaticWingGlobals.wingTankConfigurations[i].ConfigurationName));
             }
-            drop.value = 1;
-            drop.value = 0; // refresh stuff?
+            drop.RefreshShownValue();
             drop.onValueChanged.AddListener(fuelSelectedChanged);
         }
 

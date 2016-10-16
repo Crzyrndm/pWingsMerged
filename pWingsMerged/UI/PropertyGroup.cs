@@ -46,6 +46,8 @@ namespace ProceduralWings.UI
         /// </summary>
         List<PropertySlider> properties = new List<PropertySlider>();
 
+        string name;
+
         /// <summary>
         /// constructor
         /// </summary>
@@ -56,6 +58,7 @@ namespace ProceduralWings.UI
 
             groupButton = groupInstance.GetChild("GroupButton").GetComponent<Button>();
             groupButton.onClick.AddListener(GroupButtonClicked);
+            this.name = name;
             groupButton.GetComponentInChildren<Text>().text = name;
 
             propertiesListGroup = groupInstance.GetChild("PropertiesList");
@@ -127,7 +130,7 @@ namespace ProceduralWings.UI
         {
             get
             {
-                return groupButton?.GetComponent<Text>()?.text ?? string.Empty;
+                return name;
             }
         }
     }

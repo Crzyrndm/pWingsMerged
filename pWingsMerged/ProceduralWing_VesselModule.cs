@@ -8,7 +8,22 @@ namespace ProceduralWings
 {
     class ProceduralWing_VesselModule : VesselModule
     {
-        public System.Collections.IEnumerator Start()
+        public override Activation GetActivation()
+        {
+            return Activation.LoadedVessels;
+        }
+
+        public override bool ShouldBeActive()
+        {
+            return Vessel.loaded;
+        }
+
+        protected override void OnStart()
+        {
+            StartCoroutine(Startup());
+        }
+
+        public System.Collections.IEnumerator Startup()
         {
             Vessel vessel = GetComponent<Vessel>();
 

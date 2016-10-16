@@ -74,7 +74,7 @@ namespace ProceduralWings
             set
             {
                 length.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -89,7 +89,7 @@ namespace ProceduralWings
             set
             {
                 tipWidth.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -103,7 +103,7 @@ namespace ProceduralWings
             set
             {
                 tipThickness.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -117,7 +117,7 @@ namespace ProceduralWings
             set
             {
                 tipOffset.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -131,7 +131,7 @@ namespace ProceduralWings
             set
             {
                 rootWidth.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -145,7 +145,7 @@ namespace ProceduralWings
             set
             {
                 rootThickness.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -183,6 +183,36 @@ namespace ProceduralWings
             set
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        public virtual double LeadingAngle
+        {
+            get
+            {
+                return Math.Atan(Length / ((TipWidth - RootWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
+            }
+            set
+            {
+                double leadInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
+                double trailInv = 1 / Math.Tan(Utils.Deg2Rad * TrailingAngle) * Length;
+                TipWidth = RootWidth - leadInv + trailInv;
+                TipOffset = leadInv + 0.5 * trailInv;
+            }
+        }
+
+        public virtual double TrailingAngle
+        {
+            get
+            {
+                return Math.Atan(Length / ((RootWidth - TipWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
+            }
+            set
+            {
+                double leadInv = 1 / Math.Tan(Utils.Deg2Rad * LeadingAngle) * Length;
+                double trailInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
+                TipWidth = RootWidth - leadInv + trailInv;
+                TipOffset = leadInv + 0.5 * trailInv;
             }
         }
         #endregion        
@@ -286,33 +316,6 @@ namespace ProceduralWings
         #endregion
 
         #region Setting up
-        // active assemblies
-        public static bool assembliesChecked;
-        public static bool FARactive;
-        public static bool RFactive;
-        public static bool MFTactive;
-
-        /// <summary>
-        /// checks for presence of FAR, MFT, and RF
-        /// </summary>
-        public static void CheckAssemblies()
-        {
-            if (!assembliesChecked)
-            {
-                for (int i = AssemblyLoader.loadedAssemblies.Count - 1; i >= 0; --i)
-                {
-                    AssemblyLoader.LoadedAssembly test = AssemblyLoader.loadedAssemblies[i];
-                    if (test.assembly.GetName().Name.Equals("FerramAerospaceResearch", StringComparison.InvariantCultureIgnoreCase))
-                        FARactive = true;
-                    else if (test.assembly.GetName().Name.Equals("RealFuels", StringComparison.InvariantCultureIgnoreCase))
-                        RFactive = true;
-                    else if (test.assembly.GetName().Name.Equals("modularFuelTanks", StringComparison.InvariantCultureIgnoreCase))
-                        MFTactive = true;
-                }
-                assembliesChecked = true;
-            }
-        }
-
         public bool CheckAndUpgradeVersion()
         {
             if (lastLoadedVersion > 0)
@@ -344,7 +347,6 @@ namespace ProceduralWings
         public virtual void Setup()
         {
             SetupProperties();
-            CheckAssemblies();
             SetupGeometryAndAppearance();
 
             CheckAndUpgradeVersion();
@@ -356,6 +358,8 @@ namespace ProceduralWings
                 fuelSelectedTankSetup = 0;
                 FuelTankTypeChanged();
             }
+
+            isStarted = true;
         }
 
         /// <summary>
@@ -428,16 +432,22 @@ namespace ProceduralWings
 
         /// <summary>
         /// calls UpdateGeometry() on this module and any symmetry counterparts. Should replace all calls to UpdateGeometry()
+        /// locked to prevent geometry update being called multiple times per frame 
         /// </summary>
-        public virtual void UpdateSymmetricGeometry()
+        bool geometryUpdateLock;
+        public virtual IEnumerator UpdateSymmetricGeometry()
         {
-            if (!isStarted)
-                return;
+            if (!isStarted || geometryUpdateLock)
+                yield break;
+            geometryUpdateLock = true;
+            yield return null;
+
             UpdateGeometry();
             for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
             {
                 part.symmetryCounterparts[i].Modules.GetModule<Base_ProceduralWing>().UpdateGeometry();
             }
+            geometryUpdateLock = false;
         }
 
         /// <summary>
@@ -497,7 +507,7 @@ namespace ProceduralWings
         {
             get
             {
-                return !(RFactive || MFTactive);
+                return !(StaticWingGlobals.RFactive || StaticWingGlobals.MFTactive);
             }
         }
 
@@ -529,7 +539,6 @@ namespace ProceduralWings
                     res.amount = res.maxAmount * fillPct;
                 }
             }
-            part.Resources.UpdateList();
         }
 
         /// <summary>
@@ -572,10 +581,10 @@ namespace ProceduralWings
 
             if (useStockFuel)
             {
-                part.Resources.list.Clear();
-                PartResource[] partResources = part.GetComponents<PartResource>();
-                for (int i = 0; i < partResources.Length; i++)
-                    DestroyImmediate(partResources[i]);
+                for (int i = part.Resources.Count - 1; i >= 0; --i)
+                {
+                    part.Resources.Remove(part.Resources[i]);
+                }
 
                 foreach (KeyValuePair<string, WingTankResource> kvp in StaticWingGlobals.wingTankConfigurations[fuelSelectedTankSetup].resources)
                 {
@@ -586,7 +595,6 @@ namespace ProceduralWings
 
                     part.AddResource(newResourceNode);
                 }
-                part.Resources.UpdateList();
             }
             else
             {
@@ -596,7 +604,7 @@ namespace ProceduralWings
 
                 Type type = module.GetType();
 
-                double volumeRF = fuelVolume * (RFactive ? 1000 : 173.9);
+                double volumeRF = fuelVolume * (StaticWingGlobals.RFactive ? 1000 : 173.9);
                 type.GetField("volume").SetValue(module, volumeRF);
                 type.GetMethod("ChangeVolume").Invoke(module, new object[] { volumeRF });
             }
@@ -677,7 +685,7 @@ namespace ProceduralWings
             part.breakingTorque = Mathf.Round((float)connectionForce);
 
             // Stock-only values
-            if (!FARactive)
+            if (!StaticWingGlobals.FARactive)
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
             else
                 SetStockModuleParams();
@@ -770,7 +778,7 @@ namespace ProceduralWings
                 updateTimeDelay -= TimeWarp.deltaTime;
                 yield return null;
             }
-            if (FARactive)
+            if (StaticWingGlobals.FARactive)
             {
                 if (part.Modules.Contains(FarModuleName))
                 {
@@ -942,7 +950,7 @@ namespace ProceduralWings
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            if (FARactive)
+            if (StaticWingGlobals.FARactive)
                 return 0;
             return (float)wingMass - defaultMass;
         }
@@ -989,11 +997,7 @@ namespace ProceduralWings
         {
             WindowManager.GetWindow(this);
 
-            WindowManager.Window.wing = this;
-
-            PropertyGroup group = WindowManager.Window.FindPropertyGroup("Base");
-            if (group != null)
-                group.UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
+            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
             WindowManager.Window.Visible = true;
         }
 

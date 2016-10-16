@@ -24,7 +24,7 @@ namespace ProceduralWings.B9PWing
             set
             {
                 rootOffset.Value = value;
-                UpdateSymmetricGeometry();
+                StartCoroutine(UpdateSymmetricGeometry());
             }
 
         }
@@ -495,8 +495,6 @@ namespace ProceduralWings.B9PWing
         // More or less lifted from pWings, so credit goes to DYJ and Taverius
         public override void CalculateAerodynamicValues()
         {
-            CheckAssemblies();
-
             double sharedWidthTipSum = TipWidth + TipTrailingEdge;
             double sharedWidthRootSum = RootWidth + RootTrailingEdge;
 
@@ -528,7 +526,6 @@ namespace ProceduralWings.B9PWing
 
 
             // Shared parameters
-
             updateCost();
             part.CoMOffset = new Vector3(0f, -(float)(sharedWidthRootSum + sharedWidthTipSum) / 4f, 0f);
 
@@ -536,7 +533,7 @@ namespace ProceduralWings.B9PWing
             part.breakingTorque = Mathf.Round((float)connectionForce);
 
             // Stock-only values
-            if (!FARactive)
+            if (!StaticWingGlobals.FARactive)
             {
                 float stockLiftCoefficient = (float)surfaceArea / 3.52f;
                 ModuleControlSurface mCtrlSrf = part.Modules.GetModule<ModuleControlSurface>();

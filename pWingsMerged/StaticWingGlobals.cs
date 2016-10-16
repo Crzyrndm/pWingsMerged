@@ -9,7 +9,7 @@ using KSP;
 namespace ProceduralWings
 {
     using Utility;
-    [KSPAddon(KSPAddon.Startup.MainMenu, false)]
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class StaticWingGlobals : MonoBehaviour
     {
         // version for any save upgrading
@@ -37,8 +37,32 @@ namespace ProceduralWings
 
         public static KeyCode uiKeyCodeEdit = KeyCode.J;
 
+        public static bool assembliesChecked;
+        public static bool FARactive;
+        public static bool RFactive;
+        public static bool MFTactive;
+        public static bool originalPWingPlugins;
+
         public void Start()
         {
+            // checks for presence of FAR, MFT, RF, or original PWings plugins
+            for (int i = AssemblyLoader.loadedAssemblies.Count - 1; i >= 0; --i)
+            {
+                AssemblyLoader.LoadedAssembly test = AssemblyLoader.loadedAssemblies[i];
+                if (test.assembly.GetName().Name.Equals("FerramAerospaceResearch", StringComparison.InvariantCultureIgnoreCase))
+                    FARactive = true;
+                else if (test.assembly.GetName().Name.Equals("RealFuels", StringComparison.InvariantCultureIgnoreCase))
+                    RFactive = true;
+                else if (test.assembly.GetName().Name.Equals("modularFuelTanks", StringComparison.InvariantCultureIgnoreCase))
+                    MFTactive = true;
+                else if (test.assembly.GetName().Name.Equals("B9_Aerospace_WingStuff", StringComparison.InvariantCultureIgnoreCase) // B9 PWings
+                    || test.assembly.GetName().Name.Equals("pWings", StringComparison.InvariantCultureIgnoreCase)) // original pwings
+                {
+                    originalPWingPlugins = true;
+                    Log("Error : conflicting procedural wings plugin detected. PWings Plugin supercedes and conflicts with the original and B9 pwings plugins");
+                }
+            }
+
             foreach (ConfigNode node in GameDatabase.Instance.GetConfigNodes("ProceduralWingFuelSetups"))
             {
                 ConfigNode[] fuelNodes = node.GetNodes("FuelSet");
@@ -50,12 +74,9 @@ namespace ProceduralWings
 
         public IEnumerator LoadBundleAssets()
         {
-            using (WWW www = new WWW("file://" + KSPUtil.ApplicationRootPath + Path.DirectorySeparatorChar + "GameData"
-                    + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader.ksp"))
+            AssetBundle bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData" + Path.DirectorySeparatorChar + "PWingsPlugin" + Path.DirectorySeparatorChar + "wingshader");
+            if (bundle != null)
             {
-                yield return www;
-
-                AssetBundle bundle = www.assetBundle;
                 Shader[] shaders = bundle.LoadAllAssets<Shader>();
                 for (int i = 0; i < shaders.Length; ++i)
                 {
@@ -96,7 +117,7 @@ namespace ProceduralWings
                     }
                 }
                 yield return new WaitForSeconds(1.0f);
-                Debug.Log("[B9PW] unloading bundle");
+                Log("unloading bundle");
                 bundle.Unload(false); // unload the raw asset bundle
             }
         }

@@ -13,7 +13,6 @@ namespace ProceduralWings.UI
         {
             if (Window != null)
                 Window.closeWindow();
-
             if (!wingWindows.TryGetValue(forWing.ClassID, out Window))
             {
                 Window = forWing.CreateWindow();
