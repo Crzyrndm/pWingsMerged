@@ -7,8 +7,8 @@
  *  - Stock and FAR aero interop
  *  - Save/load methods
  *  - KSP interfaces for mass/cost/size
- *  
- * Common methods to override for derivatives are:
+ *
+ * Common methods to override for derivatives include:
  *  - UpdateGeometry()
  *      * Manipulation of physical parameters and appearance
  *  - SetupGeometryAndAppearance()
@@ -24,26 +24,25 @@
  *      * Initialisation of wing properties for this type
  */
 
-
 using System;
-using System.Collections.Generic;
 using System.Collections;
-using UnityEngine;
+using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace ProceduralWings
 {
+    using Fuel;
     using UI;
     using Utility;
-    using Fuel;
 
     /// <summary>
     /// methods and properties common to all wing variants. Some implementation details will be specific to the wing type
     /// </summary>
-    abstract public class Base_ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier
+    abstract public class Base_ProceduralWing : PartModule, IPartCostModifier, IPartMassModifier, IPartSizeModifier, IModuleInfo
     {
         [KSPField(isPersistant = true)]
-        public int lastLoadedVersion;
+        public int lastLoadedVersion = 0;
 
         public virtual bool IsCtrlSrf
         {
@@ -58,37 +57,93 @@ namespace ProceduralWings
             }
         }
 
-        public override string GetInfo()
+        #region physical dimensions
+
+        protected WingProperty scale;
+        public virtual double Scale // scale all parameters of this part AND any children attached to it.
         {
-            return "this is a PWing and GetInfo needs to be overridden...";
+            get
+            {
+                return scale.Value;
+            }
+            set
+            {
+                scale.Value = value;
+                StartCoroutine(updateScaleLimited());
+            }
         }
 
-        #region physical dimensions
+        private bool scaleModifiedRunning = false;
+        private bool scaleModifiedRepeat;
+        private const float RATE_LIMIT = 1 / 10;
+        /// <summary>
+        /// run the scale update at a limited rate
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator updateScaleLimited()
+        {
+            scaleModifiedRepeat = true;
+            if (scaleModifiedRunning)
+            {
+                yield break;
+            }
+            scaleModifiedRunning = true;
+            while (scaleModifiedRepeat)
+            {
+                scaleModifiedRepeat = false;
+                OnScaleModified();
+                yield return new WaitForSeconds(RATE_LIMIT);
+            }
+            scaleModifiedRunning = false;
+        }
+
+        /// <summary>
+        /// should always be called through updateScaleLimited()
+        /// </summary>
+        protected virtual void OnScaleModified()
+        {
+            foreach (Part p in part.children)
+            {
+                Base_ProceduralWing childWing = p.Modules.GetModule<Base_ProceduralWing>();
+                if (childWing != null)
+                {
+                    childWing.transform.position = part.transform.position + childWing.parentWingOffset * (float)Scale;
+                    childWing.Scale = Scale;
+                }
+            }
+            if (WindowManager.Window.wing == this)
+            {
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness); //, scale, trailingAngle, leadingAngle);
+            }
+            StartCoroutine(UpdateSymmetricGeometry());
+        }
+
         protected WingProperty length;
         public virtual double Length
         {
             get
             {
-                return length.Value;
+                return length.Value * Scale;
             }
             set
             {
-                length.Value = value;
+                length.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
         // Properties for aero calcs
         protected WingProperty tipWidth;
+
         public virtual double TipWidth
         {
             get
             {
-                return tipWidth.Value;
+                return tipWidth.Value * Scale;
             }
             set
             {
-                tipWidth.Value = value;
+                tipWidth.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -98,11 +153,11 @@ namespace ProceduralWings
         {
             get
             {
-                return tipThickness.Value;
+                return tipThickness.Value * Scale;
             }
             set
             {
-                tipThickness.Value = value;
+                tipThickness.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -112,11 +167,11 @@ namespace ProceduralWings
         {
             get
             {
-                return tipOffset.Value;
+                return tipOffset.Value * Scale;
             }
             set
             {
-                tipOffset.Value = value;
+                tipOffset.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -126,11 +181,11 @@ namespace ProceduralWings
         {
             get
             {
-                return rootWidth.Value;
+                return rootWidth.Value * Scale;
             }
             set
             {
-                rootWidth.Value = value;
+                rootWidth.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -140,11 +195,11 @@ namespace ProceduralWings
         {
             get
             {
-                return rootThickness.Value;
+                return rootThickness.Value * Scale;
             }
             set
             {
-                rootThickness.Value = value;
+                rootThickness.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -177,45 +232,44 @@ namespace ProceduralWings
             get { return (TipWidth + RootWidth) / 2; }
         }
 
-        // TODO: implement scale property
-        public virtual double Scale // scale all parameters of this part AND any children attached to it.
-        {
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
+        // NOT PERSISTENT
+        protected WingProperty leadingAngle;
 
         public virtual double LeadingAngle
         {
             get
             {
-                return Math.Atan(Length / ((TipWidth - RootWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
+                return Math.Atan2(TipOffset + (TipWidth - RootWidth) / 2, Length) * Utils.Rad2Deg;
+                //return Math.Atan(Length / ((TipWidth - RootWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
             }
             set
             {
-                double leadInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
-                double trailInv = 1 / Math.Tan(Utils.Deg2Rad * TrailingAngle) * Length;
-                TipWidth = RootWidth - leadInv + trailInv;
-                TipOffset = leadInv + 0.5 * trailInv;
+                //double leadInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
+                //double trailInv = 1 / Math.Tan(Utils.Deg2Rad * TrailingAngle) * Length;
+                //TipWidth = RootWidth - leadInv + trailInv;
+                //TipOffset = leadInv + 0.5 * trailInv;
             }
         }
+
+        // NOT PERSISTENT
+        protected WingProperty trailingAngle;
 
         public virtual double TrailingAngle
         {
             get
             {
-                return Math.Atan(Length / ((RootWidth - TipWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
+                return Math.Atan2((RootWidth - TipWidth) / 2 + TipOffset, Length) * Utils.Rad2Deg;
             }
             set
             {
-                double leadInv = 1 / Math.Tan(Utils.Deg2Rad * LeadingAngle) * Length;
-                double trailInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
-                TipWidth = RootWidth - leadInv + trailInv;
-                TipOffset = leadInv + 0.5 * trailInv;
+                //double leadInv = 1 / Math.Tan(Utils.Deg2Rad * LeadingAngle) * Length;
+                //double trailInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
+                //TipWidth = RootWidth - leadInv + trailInv;
+                //TipOffset = leadInv + 0.5 * trailInv;
             }
         }
-        #endregion        
+
+        #endregion physical dimensions
 
         #region entry points
 
@@ -295,6 +349,7 @@ namespace ProceduralWings
                     tipWidth.Save(node);
                     rootThickness.Save(node);
                     tipThickness.Save(node);
+                    scale.Save(node);
                 }
             }
             catch
@@ -313,9 +368,11 @@ namespace ProceduralWings
             if (WindowManager.Window != null)
                 WindowManager.Window.Visible = false;
         }
-        #endregion
+
+        #endregion entry points
 
         #region Setting up
+
         public bool CheckAndUpgradeVersion()
         {
             if (lastLoadedVersion > 0)
@@ -375,24 +432,34 @@ namespace ProceduralWings
         {
             switch (n.GetValue("ID"))
             {
+                case nameof(scale):
+                    scale.Load(n);
+                    break;
+
                 case nameof(length):
                     length.Load(n);
                     break;
+
                 case nameof(tipOffset):
                     tipOffset.Load(n);
                     break;
+
                 case nameof(rootWidth):
                     rootWidth.Load(n);
                     break;
+
                 case nameof(rootThickness):
                     rootThickness.Load(n);
                     break;
+
                 case nameof(tipWidth):
                     tipWidth.Load(n);
                     break;
+
                 case nameof(tipThickness):
                     tipThickness.Load(n);
                     break;
+
                 default:
                     Log($"No property of ID {n.GetValue("ID")} to load");
                     break;
@@ -408,33 +475,41 @@ namespace ProceduralWings
                 return;
             if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<Base_ProceduralWing>().length == null)
             {
+                scale = new WingProperty("Scale", nameof(scale), 1.0, 2, 0.1, 10, "Set the scale for this PWing and all of it's attached PWings");
                 length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16, "Lateral measurement of the wing, \nalso referred to as semispan");
                 tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8, "Distance between midpoints of the cross \nsections on the longitudinal axis");
                 rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the root cross section");
                 tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the tip cross section");
                 rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
                 tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
+                leadingAngle = new WingProperty("Leading Edge Angle", nameof(leadingAngle), 0, 2, -90, 90, "");
+                trailingAngle = new WingProperty("Trailing Edge Angle", nameof(trailingAngle), 0, 2, -90, 90, "");
             }
             else
             {
                 Base_ProceduralWing wp = part.symmetryCounterparts[0].Modules.GetModule<Base_ProceduralWing>();
+                scale = wp.scale;
                 length = wp.length;
                 tipOffset = wp.tipOffset;
                 rootWidth = wp.rootWidth;
                 tipWidth = wp.tipWidth;
                 rootThickness = wp.rootThickness;
                 tipThickness = wp.tipThickness;
+                leadingAngle = wp.leadingAngle;
+                trailingAngle = wp.trailingAngle;
             }
         }
-        #endregion
+
+        #endregion Setting up
 
         #region geometry
 
         /// <summary>
         /// calls UpdateGeometry() on this module and any symmetry counterparts. Should replace all calls to UpdateGeometry()
-        /// locked to prevent geometry update being called multiple times per frame 
+        /// locked to prevent geometry update being called multiple times per frame
         /// </summary>
-        bool geometryUpdateLock;
+        private bool geometryUpdateLock;
+
         public virtual IEnumerator UpdateSymmetricGeometry()
         {
             if (!isStarted || geometryUpdateLock)
@@ -443,7 +518,7 @@ namespace ProceduralWings
             yield return null;
 
             UpdateGeometry();
-            for (int i = part.symmetryCounterparts.Count - 1; i >=0; --i)
+            for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
             {
                 part.symmetryCounterparts[i].Modules.GetModule<Base_ProceduralWing>().UpdateGeometry();
             }
@@ -455,12 +530,19 @@ namespace ProceduralWings
         /// </summary>
         public abstract void UpdateGeometry();
 
+        private Vector3 parentWingOffset;
         /// <summary>
         /// called when the part is connected to a vessel in the editor. Forces a geometry rebuild
         /// </summary>
         public virtual void OnAttach()
         {
             UpdateGeometry();
+
+            Base_ProceduralWing parentWing = part.parent.Modules.GetModule<Base_ProceduralWing>();
+            if (parentWing != null)
+            {
+                parentWingOffset = (part.transform.position - part.parent.transform.position) / (float)parentWing.Scale;
+            }
         }
 
         /// <summary>
@@ -475,9 +557,10 @@ namespace ProceduralWings
             }
         }
 
-        #endregion
+        #endregion geometry
 
         #region Fuel configuration switching
+
         /// <summary>
         /// save the index of the selected fuel setup
         /// </summary>
@@ -533,7 +616,6 @@ namespace ProceduralWings
                 if (wtc.resources.TryGetValue(part.Resources[i].resourceName, out wres))
                 {
                     double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
-
 
                     res.maxAmount = 1000 * wres.fraction * fuelVolume / wres.resource.volume;
                     res.amount = res.maxAmount * fillPct;
@@ -617,17 +699,20 @@ namespace ProceduralWings
         public virtual float FuelGetAddedCost()
         {
             float result = 0f;
-            foreach(PartResource pr in part.Resources)
+            foreach (PartResource pr in part.Resources)
             {
                 result += (float)pr.amount * PartResourceLibrary.Instance.resourceDefinitions[pr.resourceName].unitCost;
             }
             return result;
         }
-        #endregion
+
+        #endregion Fuel configuration switching
 
         #region aero stuff
+
         // aero parameters
         public double ArSweepScale;
+
         public double Cd;
         public double Cl;
         public double ChildrenCl;
@@ -664,9 +749,9 @@ namespace ProceduralWings
         /// </summary>
         public virtual void CalculateAerodynamicValues()
         {
-            double midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / length.Value));
-            double taperRatio = tipWidth.Value / rootWidth.Value;
-            double aspectRatio = 2.0 * length.Value / MAC;
+            double midChordSweep = (Utils.Rad2Deg * Math.Atan((rootPos.x - tipPos.x) / Length));
+            double taperRatio = TipWidth / RootWidth;
+            double aspectRatio = 2.0 * Length / MAC;
             ArSweepScale = (2.0 * Math.PI) / (2.0 + Math.Sqrt(Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0) + 4.0)) * aspectRatio;
 
             wingMass = Math.Max(0.01, massFudgeNumber * MAC * Length * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
@@ -684,6 +769,7 @@ namespace ProceduralWings
             part.breakingForce = Mathf.Round((float)connectionForce);
             part.breakingTorque = Mathf.Round((float)connectionForce);
 
+            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0);
             // Stock-only values
             if (!StaticWingGlobals.FARactive)
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
@@ -701,7 +787,6 @@ namespace ProceduralWings
         /// <param name="midChordOffset"></param>
         public virtual void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
-            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0);
             if (aeroFARModuleReference == null)
             {
                 if (part.Modules.Contains(FarModuleName))
@@ -711,42 +796,30 @@ namespace ProceduralWings
                 return;
 
             if (aeroFARModuleType == null)
-                aeroFARModuleType = aeroFARModuleReference.GetType();
-            if (aeroFARModuleType != null)
             {
-                if (aeroFARFieldInfoSemispan == null)
-                    aeroFARFieldInfoSemispan = aeroFARModuleType.GetField("b_2");
-                if (aeroFARFieldInfoSemispan_Actual == null)
-                    aeroFARFieldInfoSemispan_Actual = aeroFARModuleType.GetField("b_2_actual");
-                if (aeroFARFieldInfoMAC == null)
-                    aeroFARFieldInfoMAC = aeroFARModuleType.GetField("MAC");
-                if (aeroFARFieldInfoMAC_Actual == null)
-                    aeroFARFieldInfoMAC_Actual = aeroFARModuleType.GetField("MAC_actual");
-                if (aeroFARFieldInfoMidChordSweep == null)
-                    aeroFARFieldInfoMidChordSweep = aeroFARModuleType.GetField("MidChordSweep");
-                if (aeroFARFieldInfoTaperRatio == null)
-                    aeroFARFieldInfoTaperRatio = aeroFARModuleType.GetField("TaperRatio");
-                if (aeroFARFieldInfoControlSurfaceFraction == null)
-                    aeroFARFieldInfoControlSurfaceFraction = aeroFARModuleType.GetField("ctrlSurfFrac");
-                if (aeroFARFieldInfoRootChordOffset == null)
-                    aeroFARFieldInfoRootChordOffset = aeroFARModuleType.GetField("rootMidChordOffsetFromOrig");
+                aeroFARModuleType = aeroFARModuleReference.GetType();
+                aeroFARFieldInfoSemispan = aeroFARModuleType.GetField("b_2");
+                aeroFARFieldInfoSemispan_Actual = aeroFARModuleType.GetField("b_2_actual");
+                aeroFARFieldInfoMAC = aeroFARModuleType.GetField("MAC");
+                aeroFARFieldInfoMAC_Actual = aeroFARModuleType.GetField("MAC_actual");
+                aeroFARFieldInfoMidChordSweep = aeroFARModuleType.GetField("MidChordSweep");
+                aeroFARFieldInfoTaperRatio = aeroFARModuleType.GetField("TaperRatio");
+                aeroFARFieldInfoControlSurfaceFraction = aeroFARModuleType.GetField("ctrlSurfFrac");
+                aeroFARFieldInfoRootChordOffset = aeroFARModuleType.GetField("rootMidChordOffsetFromOrig");
 
-                if (aeroFARMethodInfoUsed == null)
-                {
-                    aeroFARMethodInfoUsed = aeroFARModuleType.GetMethod("StartInitialization");
-                }
-                if (aeroFARMethodInfoUsed != null)
-                {
-                    aeroFARFieldInfoSemispan.SetValue(aeroFARModuleReference, length);
-                    aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, length);
-                    aeroFARFieldInfoMAC.SetValue(aeroFARModuleReference, MAC);
-                    aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, MAC);
-                    aeroFARFieldInfoMidChordSweep.SetValue(aeroFARModuleReference, midChordSweep);
-                    aeroFARFieldInfoTaperRatio.SetValue(aeroFARModuleReference, taperRatio);
-                    aeroFARFieldInfoRootChordOffset.SetValue(aeroFARModuleReference, midChordOffset);
+                aeroFARMethodInfoUsed = aeroFARModuleType.GetMethod("StartInitialization");
+            }
+            if (aeroFARMethodInfoUsed != null)
+            {
+                aeroFARFieldInfoSemispan.SetValue(aeroFARModuleReference, length);
+                aeroFARFieldInfoSemispan_Actual.SetValue(aeroFARModuleReference, length);
+                aeroFARFieldInfoMAC.SetValue(aeroFARModuleReference, MAC);
+                aeroFARFieldInfoMAC_Actual.SetValue(aeroFARModuleReference, MAC);
+                aeroFARFieldInfoMidChordSweep.SetValue(aeroFARModuleReference, midChordSweep);
+                aeroFARFieldInfoTaperRatio.SetValue(aeroFARModuleReference, taperRatio);
+                aeroFARFieldInfoRootChordOffset.SetValue(aeroFARModuleReference, midChordOffset);
 
-                    aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
-                }
+                aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
             }
         }
 
@@ -757,12 +830,12 @@ namespace ProceduralWings
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
             float stockLiftCoefficient = (float)(Length * MAC / 3.52);
-            part.CoMOffset = new Vector3((float)Length / 2f, -(float)TipOffset / 2f, 0);
             part.Modules.GetModule<ModuleLiftingSurface>().deflectionLiftCoeff = stockLiftCoefficient;
             part.mass = stockLiftCoefficient * 0.1f;
         }
 
-        float updateTimeDelay = 0;
+        private float updateTimeDelay = 0;
+
         /// <summary>
         /// Handle all the really expensive stuff once we are no longer actively modifying the wing. Doing it continuously causes lag spikes for lots of people
         /// </summary>
@@ -829,10 +902,9 @@ namespace ProceduralWings
             }
         }
 
-        #endregion
+        #endregion aero stuff
 
         #region Wing deformation
-
 
         public virtual void OnMouseOver()
         {
@@ -843,7 +915,7 @@ namespace ProceduralWings
             {
                 ShowEditorUI();
             }
-            
+
             if (!deformWing)
             {
                 lastMousePos = Input.mousePosition;
@@ -860,7 +932,9 @@ namespace ProceduralWings
         /// respond to key/mouse input used to shape the wing
         /// </summary>
         public static Camera editorCam;
+
         public bool deformWing;
+
         public virtual IEnumerator translateTip()
         {
             deformWing = true;
@@ -869,10 +943,10 @@ namespace ProceduralWings
             {
                 yield return null;
                 diff = UpdateMouseDiff(false);
-                
+
                 TipOffset -= diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.up, part.transform.up);
-                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.up, part.transform.right);
-                Length = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+                Length += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached(ref editorCam).transform.up, part.transform.right);
+                length.Value = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
             deformWing = false;
         }
@@ -886,10 +960,10 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(true);
 
-                tipWidth.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                TipWidth = Math.Max(tipWidth.Value, 0.01);
-                tipThickness.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
-                TipThickness = Math.Max(tipThickness.Value, 0.01);
+                TipWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+                tipWidth.Value = Math.Max(tipWidth.Value, 0.01);
+                TipThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
+                tipThickness.Value = Math.Max(tipThickness.Value, 0.01);
             }
             deformWing = false;
         }
@@ -899,7 +973,7 @@ namespace ProceduralWings
             // root scale requires that we aren't the child part of a PWing
             if (part.parent != null && part.parent.Modules.GetModule<Base_ProceduralWing>() != null)
                 yield break;
-                
+
             deformWing = true;
             // Root scaling
             // only if the root part is not a pWing, in which case the root will snap to the parent tip
@@ -909,8 +983,8 @@ namespace ProceduralWings
                 yield return null;
                 diff = UpdateMouseDiff(true);
 
-                rootWidth.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
-                RootWidth = Math.Max(rootWidth.Value, 0.01);
+                RootWidth += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, -part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, -part.transform.up);
+                rootWidth.Value = Math.Max(rootWidth.Value, 0.01);
                 RootThickness += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.forward) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.forward);
                 RootThickness = Math.Max(RootThickness, 0.01);
             }
@@ -918,6 +992,7 @@ namespace ProceduralWings
         }
 
         public Vector3 lastMousePos;
+
         public virtual Vector3 UpdateMouseDiff(bool scaleMode)
         {
             float depth = EditorCamera.Instance.GetComponentCached(ref editorCam).WorldToScreenPoint(tipPos).z; // distance of tip transform from camera
@@ -926,12 +1001,15 @@ namespace ProceduralWings
             return diff;
         }
 
-        #endregion
+        #endregion Wing deformation
 
         #region Stock Interfaces
+
         // module cost variables
         public float wingCost;
+
         public const float costDensity = 5300f;
+
         public virtual float updateCost()
         {
             // Values always set
@@ -962,6 +1040,7 @@ namespace ProceduralWings
 
         public Vector3 GetModuleSize(Vector3 defaultSize, ModifierStagingSituation sit)
         {
+            // todo : implement size interface...
             return Vector3.zero;
         }
 
@@ -969,7 +1048,23 @@ namespace ProceduralWings
         {
             return ModifierChangeWhen.FIXED;
         }
-        #endregion
+
+        public virtual string GetModuleTitle()
+        {
+            return "Override the Title";
+        }
+
+        public virtual Callback<Rect> GetDrawModulePanelCallback()
+        {
+            return null;
+        }
+
+        public virtual string GetPrimaryField()
+        {
+            return "Test Primary Field";
+        }
+
+        #endregion Stock Interfaces
 
         #region Parent matching
 
@@ -988,16 +1083,17 @@ namespace ProceduralWings
             RootThickness = parent.TipThickness;
         }
 
-        #endregion
+        #endregion Parent matching
 
         #region UI stuff
+
         public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
 
         public virtual void ShowEditorUI()
         {
             WindowManager.GetWindow(this);
 
-            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness);
+            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, scale, leadingAngle, trailingAngle);
             WindowManager.Window.Visible = true;
         }
 
@@ -1008,24 +1104,20 @@ namespace ProceduralWings
             window.wing = this;
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
-            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
-            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
-            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
-            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
-            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
-            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
-
-            WindowAddFuel(window);
+            basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x); // always have scale first since other methods depend on it
+            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(leadingAngle), x => window.wing.LeadingAngle = x);
+            basegroup.AddProperty(new WingProperty(trailingAngle), x => window.wing.TrailingAngle = x);
 
             return window;
         }
 
-        public virtual void WindowAddFuel(EditorWindow window)
-        {
-            if (CanBeFueled)
-                window.AddFuelPanel();
-        }
-        #endregion
+        #endregion UI stuff
 
         public void Log(object formatted)
         {

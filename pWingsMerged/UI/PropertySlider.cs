@@ -27,6 +27,7 @@ namespace ProceduralWings.UI
                 inputSlider.maxValue = (float)value;
             }
         }
+
         public double Min
         {
             get
@@ -38,6 +39,7 @@ namespace ProceduralWings.UI
                 inputSlider.minValue = (float)value;
             }
         }
+
         public bool AsInt
         {
             get
@@ -49,6 +51,7 @@ namespace ProceduralWings.UI
                 inputSlider.wholeNumbers = value;
             }
         }
+
         public double Value
         {
             get
@@ -87,7 +90,7 @@ namespace ProceduralWings.UI
         public Action<float> onValueChanged;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="prefab"></param>
         public PropertySlider(WingProperty propRef, Color foreColour, Action<float> onChange)
@@ -103,7 +106,7 @@ namespace ProceduralWings.UI
 
             Refresh(propRef);
 
-            input.onValueChanged.AddListener(TextValueChanged);
+            input.onEndEdit.AddListener(TextValueChanged);
             inputSlider.onValueChanged.AddListener(SliderValueChanged);
             onValueChanged += onChange;
         }

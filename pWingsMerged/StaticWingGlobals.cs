@@ -2,13 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
-using KSP;
 
 namespace ProceduralWings
 {
     using Utility;
+
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class StaticWingGlobals : MonoBehaviour
     {
@@ -29,6 +28,7 @@ namespace ProceduralWings
 
         // User settings
         public static Rect uiRectWindowEditor = new Rect();
+
         public static KeyCode keyTranslation;
         public static KeyCode keyTipScale;
         public static KeyCode keyRootScale;
@@ -98,18 +98,22 @@ namespace ProceduralWings
                             UI_FuelPanel = objects[i] as GameObject;
                             Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
+
                         case "MainEditorPanel":
                             UI_WindowPrefab = objects[i] as GameObject;
                             Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
+
                         case "PropertyGroup":
                             UI_PropertyGroupPrefab = objects[i] as GameObject;
                             Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
+
                         case "PropertySelector":
                             UI_PropertyPrefab = objects[i] as GameObject;
                             Log($"Prefab \"{objects[i].name}\" loaded");
                             break;
+
                         case "PropertySelector_ValArray":
                             UI_PropertyValArrayPrefab = objects[i] as GameObject;
                             Log($"Prefab \"{objects[i].name}\" loaded");

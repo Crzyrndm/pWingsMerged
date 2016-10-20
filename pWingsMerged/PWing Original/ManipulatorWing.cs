@@ -9,15 +9,19 @@ namespace ProceduralWings.Original
         // PartModule Dimensions
         [KSPField]
         public float modelChordLength = 2f;
+
         [KSPField]
         public float modelThickness = 0.2f;
+
         [KSPField]
         public float modelMinimumSpan = 0.05f;
+
         [KSPField]
         public Vector3 TipSpawnOffset = Vector3.forward;
 
         // Internals
         public Transform Tip;
+
         public Transform Root;
         private Mesh baked;
         public SkinnedMeshRenderer wingSMR;
@@ -99,7 +103,8 @@ namespace ProceduralWings.Original
             TipThickness = RootThickness * (Length / parentWing.Length) * (parentWing.TipThickness - parentWing.RootThickness);
             TipWidth = RootWidth * (Length / parentWing.Length) * (parentWing.TipWidth - parentWing.RootWidth);
         }
-        #endregion
+
+        #endregion Geometry
 
         public override IEnumerator translateTip()
         {
@@ -111,8 +116,8 @@ namespace ProceduralWings.Original
                 diff = UpdateMouseDiff(false);
 
                 TipOffset += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.up) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.up);
-                length.Value += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
-                Length = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
+                Length += diff.x * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.right, part.transform.right) + diff.y * Vector3.Dot(EditorCamera.Instance.GetComponentCached<Camera>(ref editorCam).transform.up, part.transform.right);
+                length.Value = Math.Max(length.Value, minSpan); // Clamp z to minimumSpan to prevent turning the model inside-out
             }
             deformWing = false;
         }

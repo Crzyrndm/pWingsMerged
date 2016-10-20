@@ -1,6 +1,6 @@
-﻿namespace ProceduralWings
+﻿namespace ProceduralWings.UI
 {
-    public class WingProperty :IConfigNode
+    public class WingProperty : IConfigNode
     {
         public string ID { get; }
         public string name;
@@ -10,7 +10,7 @@
         public double max;
         public string tooltip;
 
-        double value;
+        private double value;
         public double Value
         {
             get
@@ -21,7 +21,9 @@
             {
                 this.value = value;
                 if (UI.WindowManager.Window != null)
+                {
                     UI.WindowManager.Window.SetLastModifiedProperty(this);
+                }
             }
         }
 

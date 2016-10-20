@@ -9,9 +9,9 @@ namespace ProceduralWings.UI
     /// </summary>
     public class PropertySlider_ValueArray<T> : PropertySlider
     {
-        T[] displayValues;
+        private T[] displayValues;
 
-        Text text;
+        private Text text;
         public override string Text
         {
             get
@@ -26,26 +26,26 @@ namespace ProceduralWings.UI
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="prefab"></param>
         public PropertySlider_ValueArray(T[] values, WingProperty propRef, Color foreColour, Action<float> onChange)
         {
             propertyInstance = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_PropertyValArrayPrefab);
-            
+
             inputSlider = propertyInstance.GetChild("InputSlider").GetComponent<Slider>();
             inputSlider.fillRect.GetComponent<Image>().color = foreColour;
-            
+
             propertyLabel = inputSlider.gameObject.GetChild("PropertyLabel").GetComponent<Text>();
             propertyLabel.text = propRef.name;
             input = null;
             text = inputSlider.gameObject.GetChild("Text").GetComponent<Text>();
-            
+
             displayValues = values;
             AsInt = true;
-            
+
             Refresh(propRef);
-            
+
             inputSlider.onValueChanged.AddListener(SliderValueChanged);
             onValueChanged += onChange;
         }

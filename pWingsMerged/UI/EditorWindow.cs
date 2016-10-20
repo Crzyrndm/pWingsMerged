@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-
 namespace ProceduralWings.UI
 {
     /// <summary>
@@ -11,7 +10,7 @@ namespace ProceduralWings.UI
     /// </summary>
     public class EditorWindow
     {
-        bool visible;
+        private bool visible;
         public bool Visible
         {
             get
@@ -33,65 +32,66 @@ namespace ProceduralWings.UI
             }
         }
 
-
         public Base_ProceduralWing wing;
 
         /// <summary>
         /// window position
         /// </summary>
-        RectTransform windowPosition;
+        private RectTransform windowPosition;
 
         /// <summary>
         /// the canvas
         /// </summary>
-        Canvas canvas;
+        private Canvas canvas;
 
         /// <summary>
         /// The window backing all other elements
         /// </summary>
-        GameObject mainPanel;
+        private GameObject mainPanel;
 
         /// <summary>
         /// The green header label that displays the type of the selected panel
         /// </summary>
-        Text wingType;
+        private Text wingType;
 
         /// <summary>
         /// display for last modified property label
         /// </summary>
-        Text lastModifiedProperty;
+        private Text lastModifiedProperty;
 
         /// <summary>
         /// and a tooltip with a bit of explanation about that property
         /// </summary>
-        Text lastModifiedPropertyTooltip;
+        private Text lastModifiedPropertyTooltip;
 
         /// <summary>
         /// it hides the window...
         /// </summary>
-        Button closeButton;
+        private Button closeButton;
 
         /// <summary>
         /// a list of the propertyGroups that this window is using
         /// </summary>
-        List<PropertyGroup> propertyGroupList = new List<PropertyGroup>();
+        private List<PropertyGroup> propertyGroupList = new List<PropertyGroup>();
 
         // can do lookups by property ID into this when the edited property changes
-        Dictionary<string, PropertySlider> propertiesDict = new Dictionary<string, PropertySlider>();
-        // store the last edited property for quick reference when continuously updating
-        PropertySlider lastEditedPropertyRef;
+        private Dictionary<string, PropertySlider> propertiesDict = new Dictionary<string, PropertySlider>();
 
-        GameObject go;
+        // store the last edited property for quick reference when continuously updating
+        private PropertySlider lastEditedPropertyRef;
+
+        private GameObject go;
+
         /// <summary>
         /// Constructor
         /// </summary>
         public EditorWindow()
         {
             // get references to all useful components
-            go = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_WindowPrefab);
+            go = Object.Instantiate(StaticWingGlobals.UI_WindowPrefab);
             go.transform.SetParent(KSP.UI.UIMasterController.Instance.appCanvas.transform, false);
             canvas = go.GetComponent<Canvas>();
-            
+
             mainPanel = canvas.gameObject.GetChild("MainPanel");
             windowPosition = mainPanel.GetComponent<RectTransform>();
             GameObject headerPanel = mainPanel.GetChild("HeaderPanel");
@@ -99,7 +99,7 @@ namespace ProceduralWings.UI
             lastModifiedProperty = headerPanel.GetChild("LastModifiedProperty").GetComponent<Text>();
             lastModifiedPropertyTooltip = headerPanel.GetChild("LastModifiedPropertyToolTip").GetComponent<Text>();
             closeButton = headerPanel.GetChild("CloseButton").GetComponent<Button>();
-            
+
             // window position drag event
             EventTrigger.Entry entry = new EventTrigger.Entry();
             entry.eventID = EventTriggerType.Drag;
@@ -144,7 +144,8 @@ namespace ProceduralWings.UI
             wing.FuelTankTypeChanged();
         }
 
-        #endregion
+        #endregion Event callbacks
+
         public PropertyGroup AddPropertyGroup(string name, Color groupColour)
         {
             PropertyGroup newGroup = FindPropertyGroup(name);
@@ -172,20 +173,16 @@ namespace ProceduralWings.UI
 
         public void UpdateProperty(WingProperty wp)
         {
-            if (lastEditedPropertyRef.propertyRef.ID == wp.ID)
-            {
-                lastEditedPropertyRef.Refresh(wp);
-            }
-            else
+            if (lastEditedPropertyRef.propertyRef.ID != wp.ID)
             {
                 PropertySlider slider;
                 if (propertiesDict.TryGetValue(wp.ID, out slider))
                 {
                     lastEditedPropertyRef = slider;
-                    lastEditedPropertyRef.Refresh(wp);
                     SetLastModifiedProperty(wp);
                 }
             }
+            lastEditedPropertyRef.Refresh(wp);
         }
 
         public void SetLastModifiedProperty(WingProperty wp)
@@ -203,6 +200,7 @@ namespace ProceduralWings.UI
         }
 
         #region Properties
+
         public string WindowTitle
         {
             get
@@ -215,6 +213,6 @@ namespace ProceduralWings.UI
             }
         }
 
-        #endregion
+        #endregion Properties
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProceduralWings.Original
 {
-    class ManipulatorControl : ManipulatorWing
+    internal class ManipulatorControl : ManipulatorWing
     {
         public override bool IsCtrlSrf
         {
@@ -42,6 +41,7 @@ namespace ProceduralWings.Original
 
         [KSPField]
         public bool symmetricMovement = true;
+
         [KSPField(isPersistant = true)]
         public Vector3 rootPosition = Vector3.zero;
 

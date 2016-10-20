@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ProceduralWings
 {
-    class ProceduralWing_VesselModule : VesselModule
+    internal class ProceduralWing_VesselModule : VesselModule
     {
         public override Activation GetActivation()
         {

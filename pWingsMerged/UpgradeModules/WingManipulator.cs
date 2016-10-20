@@ -2,19 +2,20 @@
 
 namespace ProceduralWings.UpgradeModules
 {
-    using Original;
-
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingManipulator : PartModule, IDeprecatedWingModule
+    internal class WingManipulator : PartModule, IDeprecatedWingModule
     {
         [KSPField]
         public float modelChordLength = 2f;
+
         [KSPField]
         public float modelThickness = 0.2f;
+
         [KSPField]
         public float modelMinimumSpan = 0.05f;
+
         [KSPField]
         public Vector3 TipSpawnOffset = Vector3.forward;
 

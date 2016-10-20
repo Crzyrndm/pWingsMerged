@@ -4,9 +4,10 @@ using UnityEngine;
 
 namespace ProceduralWings.B9PWing
 {
-    using Utility;
     using UI;
-    class B9_ProceduralControl : B9_ProceduralWing
+    using Utility;
+
+    internal class B9_ProceduralControl : B9_ProceduralWing
     {
         public override bool IsCtrlSrf
         {
@@ -14,6 +15,7 @@ namespace ProceduralWings.B9PWing
         }
 
         #region physical dimensions
+
         [KSPField]
         public float ctrlFraction = 1f;
 
@@ -26,11 +28,12 @@ namespace ProceduralWings.B9PWing
                 rootOffset.Value = value;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
-
         }
-        #endregion
+
+        #endregion physical dimensions
 
         #region entry points
+
         public override void OnSave(ConfigNode node)
         {
             base.OnSave(node);
@@ -42,9 +45,10 @@ namespace ProceduralWings.B9PWing
             { }
         }
 
-        #endregion
+        #endregion entry points
 
         #region setting up
+
         public override void SetupProperties()
         {
             if (length != null)
@@ -123,15 +127,17 @@ namespace ProceduralWings.B9PWing
                 case nameof(rootOffset):
                     rootOffset.Load(n);
                     break;
+
                 default:
                     base.LoadWingProperty(n);
                     break;
             }
         }
 
-        #endregion
+        #endregion setting up
 
         #region Geometry
+
         public override void UpdateGeometry(bool updateAerodynamics)
         {
             float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, rootOffset.min, rootOffset.max);
@@ -392,9 +398,10 @@ namespace ProceduralWings.B9PWing
                 CalculateAerodynamicValues();
         }
 
-        #endregion
+        #endregion Geometry
 
         #region Mesh
+
         public override int meshTypeCountEdgeWing
         {
             get { return 3; }
@@ -428,12 +435,13 @@ namespace ProceduralWings.B9PWing
                     MeshReference meshReferenceCtrlEdge = FillMeshRefererence(meshFiltersWingEdgeTrailing[i]);
                     meshReferencesCtrlEdge.Add(meshReferenceCtrlEdge);
                 }
-
             }
         }
-        #endregion
+
+        #endregion Mesh
 
         #region Materials
+
         public override void UpdateMaterials()
         {
             if (materialLayeredSurface == null || materialLayeredEdge == null)
@@ -476,9 +484,10 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        #endregion
+        #endregion Materials
 
         #region fuel
+
         public override bool CanBeFueled
         {
             get
@@ -487,7 +496,7 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        #endregion
+        #endregion fuel
 
         #region Aero
 
@@ -524,7 +533,6 @@ namespace ProceduralWings.B9PWing
             GatherChildrenCl();
             connectionForce = Math.Round(Utils.Clamp(Math.Sqrt(Cl + ChildrenCl) * (double)connectionFactor, (double)connectionMinimum, double.MaxValue));
 
-
             // Shared parameters
             updateCost();
             part.CoMOffset = new Vector3(0f, -(float)(sharedWidthRootSum + sharedWidthTipSum) / 4f, 0f);
@@ -557,18 +565,19 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-
-        #endregion
+        #endregion Aero
 
         #region stock interfacing
+
         public override float updateCost()
         {
             return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (Base_ProceduralWing.costDensity * (1f - ctrlFraction) + costDensity * ctrlFraction), 1);
         }
 
-        #endregion
+        #endregion stock interfacing
 
         #region UI stuff
+
         public override string WindowTitle
         {
             get
@@ -596,7 +605,7 @@ namespace ProceduralWings.B9PWing
             UI.EditorWindow window = new EditorWindow();
             window.WindowTitle = WindowTitle;
             window.wing = this;
-            
+
             PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
             basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
             basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
@@ -639,6 +648,6 @@ namespace ProceduralWings.B9PWing
             return window;
         }
 
-        #endregion
+        #endregion UI stuff
     }
 }

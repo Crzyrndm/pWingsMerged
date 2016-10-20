@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace ProceduralWings.Original
 {
-    class ManipulatorAllMoving : ManipulatorWing
+    internal class ManipulatorAllMoving : ManipulatorWing
     {
         public override bool IsCtrlSrf
         {
@@ -30,7 +27,6 @@ namespace ProceduralWings.Original
         {
             return (float)Math.Round(wingMass * (1f + ArSweepScale / 4f) * (costDensity * (1f - ctrlFraction) + costDensityControl * ctrlFraction), 1);
         }
-
 
         public override void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {

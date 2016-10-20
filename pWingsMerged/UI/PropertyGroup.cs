@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ProceduralWings.UI
@@ -17,36 +16,36 @@ namespace ProceduralWings.UI
         public GameObject groupInstance;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
-        Color groupColour;
+        private Color groupColour;
 
         /// <summary>
         /// OnClick toggles the visibility of the propertiesList
         /// </summary>
-        Button groupButton;
+        private Button groupButton;
 
         /// <summary>
         /// Toggle enabled to toggle visibility of properties
         /// </summary>
-        GameObject propertiesListGroup;
+        private GameObject propertiesListGroup;
 
         /// <summary>
         /// the window this group is attached to
         /// </summary>
-        EditorWindow myWindow;
+        private EditorWindow myWindow;
 
         /// <summary>
         /// true if the properties in the list are visible
         /// </summary>
-        bool propertiesVisible;
+        private bool propertiesVisible;
 
         /// <summary>
         /// List of all properties added to this group
         /// </summary>
-        List<PropertySlider> properties = new List<PropertySlider>();
+        private List<PropertySlider> properties = new List<PropertySlider>();
 
-        string name;
+        private string name;
 
         /// <summary>
         /// constructor
@@ -78,12 +77,20 @@ namespace ProceduralWings.UI
             propertiesListGroup.SetActive(propertiesVisible);
         }
 
-        public PropertySlider AddProperty(WingProperty propertyRef, Action<float> onChanged)
+        // need to change how these are created so it's not duplicating code for every option
+        public PropertySlider AddProperty(WingProperty propertyRef, Action<float> onChanged, bool geometric = false)
         {
             PropertySlider slider = properties.Find(sl => sl.propertyRef.ID == propertyRef.ID);
             if (slider == null) // prevent adding duplicate properties for some reason
             {
-                slider = new PropertySlider(propertyRef, groupColour, onChanged);
+                if (geometric)
+                {
+                    slider = new PropertySlider_GeometryScaled(propertyRef, groupColour, onChanged);
+                }
+                else
+                {
+                    slider = new PropertySlider(propertyRef, groupColour, onChanged);
+                }
                 slider.propertyInstance.transform.SetParent(propertiesListGroup.transform, false);
                 properties.Add(slider);
                 myWindow.GroupAddProperty(slider);

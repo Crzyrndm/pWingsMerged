@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ProceduralWings.UpgradeModules
 {
@@ -11,7 +7,7 @@ namespace ProceduralWings.UpgradeModules
     /// <summary>
     /// A stub class that takes the saved values from old saves and recreates the new module as appropriate to upgrade vessels
     /// </summary>
-    class WingProcedural : PartModule, IDeprecatedWingModule
+    internal class WingProcedural : PartModule, IDeprecatedWingModule
     {
         [KSPField(isPersistant = true)]
         public float sharedBaseLength = 4f;
@@ -144,21 +140,11 @@ namespace ProceduralWings.UpgradeModules
             newModule_B9.SurfTopSat = sharedColorSTSaturation;
             newModule_B9.SurfTopBright = sharedColorSTBrightness;
 
-
             newModule_B9.SurfBottomMat = (int)sharedMaterialSB;
             newModule_B9.SurfBottomOpacity = sharedColorSBOpacity;
             newModule_B9.SurfBottomHue = sharedColorSBHue;
             newModule_B9.SurfBottomSat = sharedColorSBSaturation;
             newModule_B9.SurfBottomBright = sharedColorSBBrightness;
-
-            if (!(newModule_B9 is B9_ProceduralControl))
-            {
-                newModule_B9.SurfLeadMat = (int)sharedMaterialEL;
-                newModule_B9.SurfLeadOpacity = sharedColorELOpacity;
-                newModule_B9.SurfLeadHue = sharedColorELHue;
-                newModule_B9.SurfLeadSat = sharedColorELSaturation;
-                newModule_B9.SurfLeadBright = sharedColorELBrightness;
-            }
 
             newModule_B9.SurfTrailMat = (int)sharedMaterialET;
             newModule_B9.SurfTrailOpacity = sharedColorETOpacity;
@@ -171,6 +157,14 @@ namespace ProceduralWings.UpgradeModules
             if (newModule_B9 is B9_ProceduralControl)
             {
                 ((B9_ProceduralControl)newModule_B9).RootOffset = sharedBaseOffsetRoot;
+            }
+            else
+            {
+                newModule_B9.SurfLeadMat = (int)sharedMaterialEL;
+                newModule_B9.SurfLeadOpacity = sharedColorELOpacity;
+                newModule_B9.SurfLeadHue = sharedColorELHue;
+                newModule_B9.SurfLeadSat = sharedColorELSaturation;
+                newModule_B9.SurfLeadBright = sharedColorELBrightness;
             }
         }
     }

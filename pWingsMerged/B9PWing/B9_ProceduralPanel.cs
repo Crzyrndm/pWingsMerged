@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ProceduralWings.B9PWing
+﻿namespace ProceduralWings.B9PWing
 {
-    class B9_ProceduralPanel : B9_ProceduralWing
+    internal class B9_ProceduralPanel : B9_ProceduralWing
     {
         /// <summary>
         /// Panels are not lifting surfaces

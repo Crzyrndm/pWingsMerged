@@ -4,9 +4,9 @@ using UnityEngine;
 namespace ProceduralWings.UI
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    class WindowManager : MonoBehaviour
+    internal class WindowManager : MonoBehaviour
     {
-        static Dictionary<int, EditorWindow> wingWindows = new Dictionary<int, EditorWindow>();
+        private static Dictionary<int, EditorWindow> wingWindows = new Dictionary<int, EditorWindow>();
 
         public static EditorWindow Window;
         public static EditorWindow GetWindow(Base_ProceduralWing forWing)
@@ -16,9 +16,13 @@ namespace ProceduralWings.UI
             if (!wingWindows.TryGetValue(forWing.ClassID, out Window))
             {
                 Window = forWing.CreateWindow();
+                if (forWing.CanBeFueled)
+                {
+                    Window.AddFuelPanel();
+                }
                 wingWindows.Add(forWing.ClassID, Window);
             }
-            
+
             return Window;
         }
 

@@ -4,15 +4,15 @@ namespace ProceduralWings.Utility
 {
     public static class UIUtility
     {
-        public static Rect ClampToScreen (Rect window)
+        public static Rect ClampToScreen(Rect window)
         {
-            window.x = Mathf.Clamp (window.x, -window.width + 20, Screen.width - 20);
-            window.y = Mathf.Clamp (window.y, -window.height + 20, Screen.height - 20);
+            window.x = Mathf.Clamp(window.x, -window.width + 20, Screen.width - 20);
+            window.y = Mathf.Clamp(window.y, -window.height + 20, Screen.height - 20);
 
             return window;
         }
 
-        public static Rect SetToScreenCenter (this Rect r)
+        public static Rect SetToScreenCenter(this Rect r)
         {
             if (r.width > 0 && r.height > 0)
             {
@@ -29,7 +29,7 @@ namespace ProceduralWings.Utility
             return r;
         }
 
-        public static Vector3 GetMousePos ()
+        public static Vector3 GetMousePos()
         {
             Vector3 mousePos = Input.mousePosition;
             mousePos.y = Screen.height - mousePos.y;
@@ -42,66 +42,6 @@ namespace ProceduralWings.Utility
             mousepos.x -= windowRect.x;
             mousepos.y -= windowRect.y;
             return mousepos;
-        }
-
-        public static string GetValueTranslation (double value, int type)
-        {
-            switch (type)
-            { 
-                case 1:
-                {
-                    type = (int)value;
-                    switch (type)
-                    {
-                        case 0:
-                            return "Uniform";
-                        case 1:
-                            return "Standard";
-                        case 2:
-                            return "Reinforced";
-                        case 3:
-                            return "LRSI";
-                        case 4:
-                            return "HRSI";
-                        default:
-                            return "Unknown material";
-                    }
-                }
-                case 2:
-                {
-                    type = (int)value;
-                    switch (type)
-                    {
-                        case 1:
-                            return "Standard";
-                        case 2:
-                            return "Rounded";
-                        case 3:
-                            return "Biconvex";
-                        case 4:
-                            return "Triangular";
-                        default:
-                            return "Unknown";
-                    }
-                }
-                case 3:
-                {
-                    type = (int)value;
-                    switch (type)
-                    {
-                        case 1:
-                            return "Rounded";
-                        case 2:
-                            return "Biconvex";
-                        case 3:
-                            return "Triangular";
-                        default:
-                            return "Unknown";
-                    }
-                }
-                default:
-                    return value.ToString ("0.000");
-            }
         }
 
         public static Color ColorHSBToRGB(Vector4 hsbColor)

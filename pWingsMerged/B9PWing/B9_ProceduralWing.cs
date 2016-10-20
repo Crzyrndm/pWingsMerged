@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProceduralWings.B9PWing
 {
     using UI;
     using Utility;
+
     public class B9_ProceduralWing : Base_ProceduralWing
     {
         #region physical dimensions
+
         public bool isMirrored;
 
         public override double MAC
@@ -36,10 +38,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty rootLeadingEdge;
         public double RootLeadingEdge
         {
-            get { return LeadingEdgeType != 0 ? rootLeadingEdge.Value : 0; }
+            get { return LeadingEdgeType != 0 ? rootLeadingEdge.Value * Scale : 0; }
             set
             {
-                rootLeadingEdge.Value = value;
+                rootLeadingEdge.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -47,14 +49,15 @@ namespace ProceduralWings.B9PWing
         protected WingProperty tipLeadingEdge;
         public double TipLeadingEdge
         {
-            get { return LeadingEdgeType != 0 ? tipLeadingEdge.Value : 0; }
+            get { return LeadingEdgeType != 0 ? tipLeadingEdge.Value * Scale : 0; }
             set
             {
-                tipLeadingEdge.Value = value;
+                tipLeadingEdge.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
-        #endregion
+
+        #endregion Shared properties / Edge / Leading
 
         #region Shared properties / Edge / Trailing
 
@@ -72,10 +75,10 @@ namespace ProceduralWings.B9PWing
         protected WingProperty rootTrailingEdge;
         public double RootTrailingEdge
         {
-            get { return TrailingEdgeType != 0 ? rootTrailingEdge.Value : 0; }
+            get { return TrailingEdgeType != 0 ? rootTrailingEdge.Value * Scale : 0; }
             set
             {
-                rootTrailingEdge.Value = value;
+                rootTrailingEdge.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
@@ -83,15 +86,15 @@ namespace ProceduralWings.B9PWing
         protected WingProperty tipTrailingEdge;
         public double TipTrailingEdge
         {
-            get { return TrailingEdgeType != 0 ? tipTrailingEdge.Value : 0; }
+            get { return TrailingEdgeType != 0 ? tipTrailingEdge.Value * Scale : 0; }
             set
             {
-                tipTrailingEdge.Value = value;
+                tipTrailingEdge.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
-        #endregion
+        #endregion Shared properties / Edge / Trailing
 
         #region Shared properties / Surface / Top
 
@@ -150,9 +153,10 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        #endregion
+        #endregion Shared properties / Surface / Top
 
         #region Shared properties / Surface / bottom
+
         protected WingProperty surfBottomMat;
         public int SurfBottomMat
         {
@@ -206,7 +210,8 @@ namespace ProceduralWings.B9PWing
                 StartCoroutine(UpdateSymmetricAppearance());
             }
         }
-        #endregion
+
+        #endregion Shared properties / Surface / bottom
 
         #region Shared properties / Surface / trailing edge
 
@@ -265,9 +270,10 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        #endregion
+        #endregion Shared properties / Surface / trailing edge
 
         #region Shared properties / Surface / leading edge
+
         protected WingProperty surfLeadMat;
         public int SurfLeadMat
         {
@@ -323,9 +329,9 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        #endregion
+        #endregion Shared properties / Surface / leading edge
 
-        #endregion
+        #endregion physical dimensions
 
         #region Unity stuff and Callbacks/events
 
@@ -375,23 +381,17 @@ namespace ProceduralWings.B9PWing
             node.TryGetValue("mirrorTexturing", ref isMirrored);
         }
 
-        #endregion
+        #endregion Unity stuff and Callbacks/events
 
         #region Setting up
 
         public override void SetupProperties()
         {
-            if (length != null)
+            base.SetupProperties();
+            if (leadingEdgeType != null)
                 return;
-            if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralWing>().length == null)
+            if (part.symmetryCounterparts.Count == 0 || part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralWing>().leadingEdgeType == null)
             {
-                length = new WingProperty("Length", nameof(length), 4, 2, 0.05, 16, "Lateral measurement of the wing, \nalso referred to as semispan");
-                tipOffset = new WingProperty("Offset (tip)", nameof(tipOffset), 0, 2, -8, 8, "Distance between midpoints of the cross \nsections on the longitudinal axis");
-                rootWidth = new WingProperty("Width (root)", nameof(rootWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the root cross section");
-                tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the tip cross section");
-                rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.24, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
-                tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.24, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
-
                 leadingEdgeType = new WingProperty("Shape", nameof(leadingEdgeType), 2, 0, 1, 4, "Shape of the leading edge cross \nsection (round/biconvex/sharp)");
                 rootLeadingEdge = new WingProperty("Width (root)", nameof(rootLeadingEdge), 0.24, 2, 0.01, 1.0, "Longitudinal measurement of the leading \nedge cross section at wing root");
                 tipLeadingEdge = new WingProperty("Width (tip)", nameof(tipLeadingEdge), 0.24, 2, 0.01, 1.0, "Longitudinal measurement of the leading \nedge cross section at with tip");
@@ -427,13 +427,6 @@ namespace ProceduralWings.B9PWing
             else
             {
                 B9_ProceduralWing pw = part.symmetryCounterparts[0].Modules.GetModule<B9_ProceduralWing>(); // all properties for symmetry will be the same object. Yay for no need to update values :D
-
-                length = pw.length;
-                tipOffset = pw.tipOffset;
-                rootWidth = pw.rootWidth;
-                tipWidth = pw.tipWidth;
-                rootThickness = pw.rootThickness;
-                tipThickness = pw.tipThickness;
 
                 leadingEdgeType = pw.leadingEdgeType;
                 rootLeadingEdge = pw.rootLeadingEdge;
@@ -483,92 +476,120 @@ namespace ProceduralWings.B9PWing
                 case nameof(leadingEdgeType):
                     leadingEdgeType.Load(n);
                     break;
+
                 case nameof(rootLeadingEdge):
                     rootLeadingEdge.Load(n);
                     break;
+
                 case nameof(tipLeadingEdge):
                     tipLeadingEdge.Load(n);
                     break;
+
                 case nameof(trailingEdgeType):
                     trailingEdgeType.Load(n);
                     break;
+
                 case nameof(rootTrailingEdge):
                     rootTrailingEdge.Load(n);
                     break;
+
                 case nameof(tipTrailingEdge):
                     tipTrailingEdge.Load(n);
                     break;
+
                 case nameof(surfTopMat):
                     surfTopMat.Load(n);
                     break;
+
                 case nameof(surfTopOpacity):
                     surfTopOpacity.Load(n);
                     break;
+
                 case nameof(surfTopHue):
                     surfTopHue.Load(n);
                     break;
+
                 case nameof(surfTopSat):
                     surfTopSat.Load(n);
                     break;
+
                 case nameof(surfTopBright):
                     surfTopBright.Load(n);
                     break;
+
                 case nameof(surfBottomMat):
                     surfBottomMat.Load(n);
                     break;
+
                 case nameof(surfBottomOpacity):
                     surfBottomOpacity.Load(n);
                     break;
+
                 case nameof(surfBottomHue):
                     surfBottomHue.Load(n);
                     break;
+
                 case nameof(surfBottomSat):
                     surfBottomSat.Load(n);
                     break;
+
                 case nameof(surfBottomBright):
                     surfBottomBright.Load(n);
                     break;
+
                 case nameof(surfLeadMat):
                     surfLeadMat.Load(n);
                     break;
+
                 case nameof(surfLeadOpacity):
                     surfLeadOpacity.Load(n);
                     break;
+
                 case nameof(surfLeadHue):
                     surfLeadHue.Load(n);
                     break;
+
                 case nameof(surfLeadSat):
                     surfLeadSat.Load(n);
                     break;
+
                 case nameof(surfLeadBright):
                     surfLeadBright.Load(n);
                     break;
+
                 case nameof(surfTrailMat):
                     surfTrailMat.Load(n);
                     break;
+
                 case nameof(surfTrailOpacity):
                     surfTrailOpacity.Load(n);
                     break;
+
                 case nameof(surfTrailHue):
                     surfTrailHue.Load(n);
                     break;
+
                 case nameof(surfTrailSat):
                     surfTrailSat.Load(n);
                     break;
+
                 case nameof(surfTrailBright):
                     surfTrailBright.Load(n);
                     break;
+
                 default:
                     base.LoadWingProperty(n);
                     break;
             }
         }
 
-        #endregion
+        #endregion Setting up
 
         #region Inheritance
+
         public bool inheritancePossibleOnShape = false;
         public bool inheritancePossibleOnMaterials = false;
+
         public virtual void InheritanceStatusUpdate()
         {
             if (this.part.parent == null)
@@ -596,12 +617,15 @@ namespace ProceduralWings.B9PWing
                 case 0:
                     inheritShape(parentModule);
                     break;
+
                 case 1:
                     inheritBase(parentModule);
                     break;
+
                 case 2:
                     inheritEdges(parentModule);
                     break;
+
                 case 3:
                     inheritColours(parentModule);
                     break;
@@ -688,15 +712,15 @@ namespace ProceduralWings.B9PWing
             SurfLeadBright = wing.SurfLeadBright;
         }
 
-        #endregion
+        #endregion Inheritance
 
         #region Geometry
 
         // Attachment handling
         public override void OnAttach()
         {
-            base.OnAttach();
             isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
+            base.OnAttach();
         }
 
         public void UpdateOnEditorDetach()
@@ -712,7 +736,8 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        bool appearanceLock;
+        private bool appearanceLock;
+
         public virtual IEnumerator UpdateSymmetricAppearance()
         {
             if (!isStarted || appearanceLock)
@@ -721,9 +746,9 @@ namespace ProceduralWings.B9PWing
 
             yield return null;
             UpdateGeometry(false);
-            for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
+            foreach (Part p in part.symmetryCounterparts)
             {
-                part.symmetryCounterparts[i].Modules.GetModule<B9_ProceduralWing>().UpdateGeometry(false);
+                p.Modules.GetModule<B9_ProceduralWing>().UpdateGeometry(false);
             }
             appearanceLock = false;
         }
@@ -735,7 +760,6 @@ namespace ProceduralWings.B9PWing
 
         public virtual void UpdateGeometry(bool updateAerodynamics)
         {
-            isMirrored = Vector3.Dot(HighLogic.LoadedSceneIsEditor ? EditorLogic.SortedShipList[0].transform.forward : vessel.rootPart.transform.forward, part.transform.forward) < 0;
             float wingThicknessDeviationRoot = (float)RootThickness / 0.24f;
             float wingThicknessDeviationTip = (float)TipThickness / 0.24f;
             float wingWidthTipBasedOffsetTrailing = (float)TipWidth / 2f + (float)TipOffset;
@@ -891,7 +915,7 @@ namespace ProceduralWings.B9PWing
             float wingEdgeWidthTrailingTipDeviation = (float)TipTrailingEdge / 0.24f;
 
             // Next, we fetch appropriate mesh reference and mesh filter for the edges and modify the meshes
-            // Geometry is split into groups through simple vertex normal filtering 
+            // Geometry is split into groups through simple vertex normal filtering
 
             if (meshFiltersWingEdgeTrailing[wingEdgeTypeTrailingInt] != null)
             {
@@ -974,9 +998,10 @@ namespace ProceduralWings.B9PWing
             return source?.mesh?.vertices;
         }
 
-        #endregion
+        #endregion Geometry
 
         #region Fuel
+
         public override void FuelUpdateVolume()
         {
             if (!HighLogic.LoadedSceneIsEditor)
@@ -994,15 +1019,15 @@ namespace ProceduralWings.B9PWing
                 PartResource res = part.Resources[i];
                 double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
 
-
                 res.maxAmount = 1000 * wtc.resources[res.resourceName].fraction * fuelVolume / wtc.resources[res.resourceName].resource.volume;
                 res.amount = res.maxAmount * fillPct;
             }
         }
-        #endregion
+
+        #endregion Fuel
 
         #region Mesh
-        [System.Serializable]
+
         public class MeshReference
         {
             public Vector3[] vp;
@@ -1053,7 +1078,12 @@ namespace ProceduralWings.B9PWing
 
         // Reference fetching
         public virtual MeshFilter CheckMeshFilter(string name) { return CheckMeshFilter(null, name, false); }
-        public virtual MeshFilter CheckMeshFilter(MeshFilter reference, string name) { return CheckMeshFilter(reference, name, false); }
+
+        public virtual MeshFilter CheckMeshFilter(MeshFilter reference, string name)
+        {
+            return CheckMeshFilter(reference, name, false);
+        }
+
         public virtual MeshFilter CheckMeshFilter(MeshFilter reference, string name, bool disable)
         {
             if (reference == null)
@@ -1091,9 +1121,11 @@ namespace ProceduralWings.B9PWing
             }
             return null;
         }
-        #endregion
+
+        #endregion Mesh
 
         #region Materials
+
         public static Material materialLayeredSurface;
         public static Texture materialLayeredSurfaceTextureMain;
         public static Texture materialLayeredSurfaceTextureMask;
@@ -1184,10 +1216,10 @@ namespace ProceduralWings.B9PWing
                 return new Vector2((selectedLayer - 1f) / 3f, 0f);
         }
 
-        #endregion
+        #endregion Materials
 
         #region Aero
-        
+
         public override void CalculateAerodynamicValues()
         {
             double sharedWidthTipSum = TipWidth;
@@ -1248,10 +1280,11 @@ namespace ProceduralWings.B9PWing
             {
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffset);
             }
-            
+
             StartCoroutine(updateAeroDelayed());
         }
-        #endregion
+
+        #endregion Aero
 
         #region UI Stuff
 
@@ -1268,7 +1301,6 @@ namespace ProceduralWings.B9PWing
         public static Vector4 sharedBaseOffsetTipDefaults = new Vector4(0f, 0f, 0f, 0f);
         public static Vector4 sharedBaseThicknessRootDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
         public static Vector4 sharedBaseThicknessTipDefaults = new Vector4(0.24f, 0.24f, 0.24f, 0.24f);
-
 
         public static Color uiColorSliderEdgeL = new Color(0.36f, 0.4f, 0.2f, 1);
         public static Color uiColorSliderEdgeT = new Color(0.4f, 0.38f, 0.2f, 1);
@@ -1331,17 +1363,7 @@ namespace ProceduralWings.B9PWing
 
         public override UI.EditorWindow CreateWindow()
         {
-            EditorWindow window = new EditorWindow();
-            window.WindowTitle = WindowTitle;
-            window.wing = this;
-
-            PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
-            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x);
-            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x);
-            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x);
-            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x);
-            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x);
-            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x);
+            EditorWindow window = base.CreateWindow();
 
             UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", uiColorSliderEdgeL);
             leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
@@ -1387,11 +1409,9 @@ namespace ProceduralWings.B9PWing
             surfRGroup.AddProperty(new WingProperty(surfTrailSat), x => ((B9_ProceduralWing)window.wing).SurfTrailSat = x);
             surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
 
-            WindowAddFuel(window);
-
             return window;
         }
 
-        #endregion
+        #endregion UI Stuff
     }
 }
