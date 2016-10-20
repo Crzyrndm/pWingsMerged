@@ -52,6 +52,7 @@ namespace ProceduralWings.Original
 
         public override void UpdateGeometry()
         {
+            base.UpdateGeometry();
             Root.localScale = new Vector3(0, (float)RootWidth / modelChordLength, (float)RootThickness / modelThickness);
             Tip.localScale = new Vector3(0, (float)TipWidth / modelChordLength, (float)TipThickness / modelThickness);
             Tip.localPosition = new Vector3((float)TipOffset + TipSpawnOffset.x, 0, (float)Length - TipSpawnOffset.z);

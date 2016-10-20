@@ -136,7 +136,10 @@ namespace ProceduralWings.UI
                 }
             }
             SetText(value);
-            onValueChanged?.Invoke(value);
+            if (!refreshing)
+            {
+                onValueChanged?.Invoke(value);
+            }
         }
 
         public virtual void SetText(double d)
@@ -149,17 +152,19 @@ namespace ProceduralWings.UI
             inputSlider.fillRect.GetComponent<Image>().color = c;
         }
 
+        private bool refreshing;
         public void Refresh(WingProperty p)
         {
             if (p == null)
                 return;
-
+            refreshing = true;
             propertyRef = p;
             AsInt = p.decPlaces == 0; // 0 dec places => integer values only
             Min = p.min;
             Max = p.max;
             Value = p.Value;
             SetText(Value);
+            refreshing = false;
         }
     }
 }

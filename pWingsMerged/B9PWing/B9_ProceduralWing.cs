@@ -755,6 +755,7 @@ namespace ProceduralWings.B9PWing
 
         public override void UpdateGeometry()
         {
+            base.UpdateGeometry();
             UpdateGeometry(true);
         }
 

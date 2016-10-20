@@ -22,7 +22,7 @@ namespace ProceduralWings.UI
                 }
                 wingWindows.Add(forWing.ClassID, Window);
             }
-
+            Window.wing = forWing;
             return Window;
         }
 

@@ -102,15 +102,6 @@ namespace ProceduralWings
         /// </summary>
         protected virtual void OnScaleModified()
         {
-            foreach (Part p in part.children)
-            {
-                Base_ProceduralWing childWing = p.Modules.GetModule<Base_ProceduralWing>();
-                if (childWing != null)
-                {
-                    childWing.transform.position = part.transform.position + childWing.parentWingOffset * (float)Scale;
-                    childWing.Scale = Scale;
-                }
-            }
             if (WindowManager.Window.wing == this)
             {
                 WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness); //, scale, trailingAngle, leadingAngle);
@@ -129,6 +120,10 @@ namespace ProceduralWings
             {
                 length.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
+                // force updates
+                double dummy = LeadingAngle;
+                dummy = TrailingAngle;
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -145,6 +140,10 @@ namespace ProceduralWings
             {
                 tipWidth.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
+                // force updates
+                double dummy = LeadingAngle;
+                dummy = TrailingAngle;
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -173,6 +172,10 @@ namespace ProceduralWings
             {
                 tipOffset.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
+                // force updates
+                double dummy = LeadingAngle;
+                dummy = TrailingAngle;
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -187,6 +190,10 @@ namespace ProceduralWings
             {
                 rootWidth.Value = value / Scale;
                 StartCoroutine(UpdateSymmetricGeometry());
+                // force updates
+                double dummy = LeadingAngle;
+                dummy = TrailingAngle;
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -239,15 +246,21 @@ namespace ProceduralWings
         {
             get
             {
-                return Math.Atan2(TipOffset + (TipWidth - RootWidth) / 2, Length) * Utils.Rad2Deg;
-                //return Math.Atan(Length / ((TipWidth - RootWidth) / 2 + TipOffset)) * Utils.Rad2Deg;
+                leadingAngle.Value = Math.Atan2(TipOffset + (RootWidth - TipWidth) / 2, Length) * Utils.Rad2Deg;
+                return leadingAngle.Value;
             }
             set
             {
-                //double leadInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
-                //double trailInv = 1 / Math.Tan(Utils.Deg2Rad * TrailingAngle) * Length;
-                //TipWidth = RootWidth - leadInv + trailInv;
-                //TipOffset = leadInv + 0.5 * trailInv;
+                leadingAngle.Value = value;
+
+                double currentTrailingOffset = TipOffset + TipWidth / 2;
+                double newWidth = RootWidth / 2 + currentTrailingOffset - Length * Math.Tan(value * Utils.Deg2Rad);
+                tipWidth.Value = Math.Max(0, newWidth) / Scale;
+                tipOffset.Value = (currentTrailingOffset - TipWidth / 2 - Math.Min(newWidth, 0)) / Scale;
+                trailingAngle.Value = TrailingAngle;
+
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(trailingAngle, tipOffset, tipWidth);
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -258,14 +271,20 @@ namespace ProceduralWings
         {
             get
             {
-                return Math.Atan2((RootWidth - TipWidth) / 2 + TipOffset, Length) * Utils.Rad2Deg;
+                trailingAngle.Value = Math.Atan2(TipOffset - (RootWidth - TipWidth) / 2, Length) * Utils.Rad2Deg;
+                return trailingAngle.Value;
             }
             set
             {
-                //double leadInv = 1 / Math.Tan(Utils.Deg2Rad * LeadingAngle) * Length;
-                //double trailInv = 1 / Math.Tan(Utils.Deg2Rad * value) * Length;
-                //TipWidth = RootWidth - leadInv + trailInv;
-                //TipOffset = leadInv + 0.5 * trailInv;
+                trailingAngle.Value = value;
+                double currentLeadingOffset = TipOffset - TipWidth / 2;
+                double newWidth = RootWidth / 2 - currentLeadingOffset + Length * Math.Tan(value * Utils.Deg2Rad);
+                tipWidth.Value = Math.Max(0, newWidth);
+                tipOffset.Value = currentLeadingOffset + TipWidth / 2 + Math.Min(newWidth, 0);
+                leadingAngle.Value = LeadingAngle;
+
+                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, tipOffset, tipWidth);
+                StartCoroutine(UpdateSymmetricGeometry());
             }
         }
 
@@ -320,6 +339,7 @@ namespace ProceduralWings
             try
             {
                 SetupProperties();
+                CheckAndUpgradeVersion();
 
                 foreach (ConfigNode n in node.GetNodes("WING_PROPERTY"))
                 {
@@ -405,8 +425,6 @@ namespace ProceduralWings
         {
             SetupProperties();
             SetupGeometryAndAppearance();
-
-            CheckAndUpgradeVersion();
 
             UpdateGeometry();
 
@@ -528,7 +546,18 @@ namespace ProceduralWings
         /// <summary>
         /// makes all the neccesary geometry alterations and then updates the aerodynamics to match
         /// </summary>
-        public abstract void UpdateGeometry();
+        public virtual void UpdateGeometry()
+        {
+            foreach (Part p in part.children)
+            {
+                Base_ProceduralWing childWing = p.Modules.GetModule<Base_ProceduralWing>();
+                if (childWing != null)
+                {
+                    childWing.transform.position = part.transform.position + childWing.parentWingOffset * (float)Scale;
+                    childWing.Scale = Scale;
+                }
+            }
+        }
 
         private Vector3 parentWingOffset;
         /// <summary>
@@ -1087,7 +1116,7 @@ namespace ProceduralWings
 
         #region UI stuff
 
-        public static Vector4 uiColorSliderBase = new Vector4(0.25f, 0.5f, 0.4f, 1f);
+        public static Color uiColorSliderBase = new Color(0.30f, 0.40f, 0.2f, 1f);
 
         public virtual void ShowEditorUI()
         {
@@ -1101,9 +1130,8 @@ namespace ProceduralWings
         {
             EditorWindow window = new EditorWindow();
             window.WindowTitle = WindowTitle;
-            window.wing = this;
 
-            PropertyGroup basegroup = window.AddPropertyGroup("Base", UIUtility.ColorHSBToRGB(uiColorSliderBase));
+            PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
             basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x); // always have scale first since other methods depend on it
             basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
             basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
