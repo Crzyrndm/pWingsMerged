@@ -500,8 +500,8 @@ namespace ProceduralWings
                 tipWidth = new WingProperty("Width (tip)", nameof(tipWidth), 4, 2, 0.05, 16, "Longitudinal measurement of the wing \nat the tip cross section");
                 rootThickness = new WingProperty("Thickness (root)", nameof(rootThickness), 0.2, 2, 0.01, 1, "Thickness at the root cross section \nUsually kept proportional to edge width");
                 tipThickness = new WingProperty("Thickness (tip)", nameof(tipThickness), 0.2, 2, 0.01, 1, "Thickness at the tip cross section \nUsually kept proportional to edge width");
-                leadingAngle = new WingProperty("Leading Edge Angle", nameof(leadingAngle), 0, 2, -90, 90, "");
-                trailingAngle = new WingProperty("Trailing Edge Angle", nameof(trailingAngle), 0, 2, -90, 90, "");
+                leadingAngle = new WingProperty("Leading Edge Angle", nameof(leadingAngle), 0, 2, -85, 85, "");
+                trailingAngle = new WingProperty("Trailing Edge Angle", nameof(trailingAngle), 0, 2, -85, 85, "");
             }
             else
             {
@@ -783,8 +783,6 @@ namespace ProceduralWings
             double aspectRatio = 2.0 * Length / MAC;
             ArSweepScale = (2.0 * Math.PI) / (2.0 + Math.Sqrt(Math.Pow(aspectRatio / Math.Cos(Utils.Deg2Rad * midChordSweep), 2.0) + 4.0)) * aspectRatio;
 
-            wingMass = Math.Max(0.01, massFudgeNumber * MAC * Length * ((ArSweepScale * 2.0) / (3.0 + ArSweepScale)) * ((1.0 + taperRatio) / 2));
-
             Cd = dragBaseValue * dragMultiplier / ArSweepScale;
             Cl = liftFudgeNumber * MAC * Length * ArSweepScale;
             GatherChildrenCl();
@@ -803,7 +801,9 @@ namespace ProceduralWings
             if (!StaticWingGlobals.FARactive)
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
             else
+            {
                 SetStockModuleParams();
+            }
 
             StartCoroutine(updateAeroDelayed());
         }
@@ -858,9 +858,8 @@ namespace ProceduralWings
         public virtual void SetStockModuleParams()
         {
             // numbers for lift from: http://forum.kerbalspaceprogram.com/threads/118839-Updating-Parts-to-1-0?p=1896409&viewfull=1#post1896409
-            float stockLiftCoefficient = (float)(Length * MAC / 3.52);
-            part.Modules.GetModule<ModuleLiftingSurface>().deflectionLiftCoeff = stockLiftCoefficient;
-            part.mass = stockLiftCoefficient * 0.1f;
+            part.Modules.GetModule<ModuleLiftingSurface>().deflectionLiftCoeff = (float)(Length * MAC / 3.52);
+            wingMass = Length * MAC / 30.52; // 100kg per 0.2481m2
         }
 
         private float updateTimeDelay = 0;
@@ -1055,7 +1054,7 @@ namespace ProceduralWings
             return ModifierChangeWhen.FIXED;
         }
 
-        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        public virtual float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             if (StaticWingGlobals.FARactive)
                 return 0;
@@ -1067,7 +1066,7 @@ namespace ProceduralWings
             return ModifierChangeWhen.FIXED;
         }
 
-        public Vector3 GetModuleSize(Vector3 defaultSize, ModifierStagingSituation sit)
+        public virtual Vector3 GetModuleSize(Vector3 defaultSize, ModifierStagingSituation sit)
         {
             // todo : implement size interface...
             return Vector3.zero;

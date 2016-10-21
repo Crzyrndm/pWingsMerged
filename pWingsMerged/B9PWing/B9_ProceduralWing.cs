@@ -1029,6 +1029,7 @@ namespace ProceduralWings.B9PWing
 
         #region Mesh
 
+        [System.Serializable]
         public class MeshReference
         {
             public Vector3[] vp;
@@ -1322,7 +1323,9 @@ namespace ProceduralWings.B9PWing
         {
             get
             {
-                return UIUtility.ColorHSBToRGB(new Vector4((float)SurfTopHue, (float)SurfTopSat, (float)SurfTopBright, (float)SurfTopOpacity));
+                Color c = Color.HSVToRGB((float)SurfTopHue, (float)SurfTopSat, (float)SurfTopBright);
+                c.a = (float)SurfTopOpacity;
+                return c;
             }
         }
 
@@ -1330,7 +1333,9 @@ namespace ProceduralWings.B9PWing
         {
             get
             {
-                return UIUtility.ColorHSBToRGB(new Vector4((float)SurfBottomHue, (float)SurfBottomSat, (float)SurfBottomBright, (float)SurfBottomOpacity));
+                Color c = Color.HSVToRGB((float)SurfBottomHue, (float)SurfBottomSat, (float)SurfBottomBright);
+                c.a = (float)SurfBottomOpacity;
+                return c;
             }
         }
 
@@ -1338,7 +1343,9 @@ namespace ProceduralWings.B9PWing
         {
             get
             {
-                return UIUtility.ColorHSBToRGB(new Vector4((float)SurfTrailHue, (float)SurfTrailSat, (float)SurfTrailBright, (float)SurfTrailOpacity));
+                Color c = Color.HSVToRGB((float)SurfTrailHue, (float)SurfTrailSat, (float)SurfTrailBright);
+                c.a = (float)SurfTrailOpacity;
+                return c;
             }
         }
 
@@ -1346,7 +1353,9 @@ namespace ProceduralWings.B9PWing
         {
             get
             {
-                return UIUtility.ColorHSBToRGB(new Vector4((float)SurfLeadHue, (float)SurfLeadSat, (float)SurfLeadBright, (float)SurfLeadOpacity));
+                Color c = Color.HSVToRGB((float)SurfLeadHue, (float)SurfLeadSat, (float)SurfLeadBright);
+                c.a = (float)SurfLeadOpacity;
+                return c;
             }
         }
 
@@ -1359,7 +1368,6 @@ namespace ProceduralWings.B9PWing
             WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
             WindowManager.Window.FindPropertyGroup("Surface (leading edge)").UpdatePropertyValues(surfLeadMat, surfLeadOpacity, surfLeadHue, surfLeadSat, surfLeadBright);
             WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
-            WindowManager.Window.Visible = true;
         }
 
         public override UI.EditorWindow CreateWindow()

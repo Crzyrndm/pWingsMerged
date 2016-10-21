@@ -7,6 +7,9 @@ namespace ProceduralWings.B9PWing
     /// </summary>
     internal class B9_ProceduralControlAllMoving : B9_ProceduralWing
     {
+        [KSPField]
+        public float ctrlFraction = 1f;
+
         public override string WindowTitle
         {
             get
@@ -31,12 +34,18 @@ namespace ProceduralWings.B9PWing
             }
         }
 
+        public override void SetStockModuleParams()
+        {
+            base.SetStockModuleParams();
+            wingMass *= 1 + ctrlFraction;
+        }
+
         public override void setFARModuleParams(double midChordSweep, double taperRatio, Vector3 midChordOffset)
         {
             base.setFARModuleParams(midChordSweep, taperRatio, midChordOffset);
             if (aeroFARFieldInfoControlSurfaceFraction != null)
             {
-                aeroFARFieldInfoControlSurfaceFraction.SetValue(aeroFARModuleReference, 1);
+                aeroFARFieldInfoControlSurfaceFraction.SetValue(aeroFARModuleReference, ctrlFraction);
                 aeroFARMethodInfoUsed.Invoke(aeroFARModuleReference, null);
             }
         }

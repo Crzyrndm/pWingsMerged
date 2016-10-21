@@ -187,6 +187,9 @@ namespace ProceduralWings.UI
 
         public void SetLastModifiedProperty(WingProperty wp)
         {
+            if (wp.ID == "scale")
+                return;
+
             lastModifiedPropertyTooltip.text = wp.tooltip;
             lastModifiedProperty.text = wp.name;
         }
