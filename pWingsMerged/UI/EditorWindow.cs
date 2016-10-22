@@ -28,7 +28,7 @@ namespace ProceduralWings.UI
                 {
                     windowPosition.position = StaticWingGlobals.uiRectWindowEditor.position;
                 }
-                canvas.enabled = true;
+                canvas.enabled = visible;
             }
         }
 

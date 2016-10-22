@@ -62,6 +62,9 @@ namespace ProceduralWings.B9PWing
                 length.Value = 1;
                 tipWidth.Value = 0.5;
                 rootWidth.Value = 0.5;
+
+                leadingEdgeType.max = 3;
+                trailingEdgeType.max = 3;
             }
             else
             {
@@ -88,21 +91,25 @@ namespace ProceduralWings.B9PWing
 
         #region Geometry
 
-        public override void UpdateGeometry()
+        public override void OnAttach()
         {
-            UpdateGeometry(true);
+            base.OnAttach();
+            Log(Vector3.Dot(EditorLogic.SortedShipList[0].transform.right, part.transform.position - EditorLogic.SortedShipList[0].transform.position));
+            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.right, part.transform.position - EditorLogic.SortedShipList[0].transform.position) < 0;
         }
 
         public override void UpdateGeometry(bool updateAerodynamics)
         {
-            float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, rootOffset.min, rootOffset.max);
-            float ctrlOffsetTipClamped = (float)Utils.Clamp(TipOffset, Math.Max(tipOffset.min, ctrlOffsetRootClamped - Length), tipOffset.max);
+            Log(isMirrored);
+            float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, -Length / 2, Length / 2);
+            float ctrlOffsetTipClamped = (float)Utils.Clamp(TipOffset, -Length / 2, Length / 2);
 
             float ctrlThicknessDeviationRoot = (float)RootThickness / 0.24f;
             float ctrlThicknessDeviationTip = (float)TipThickness / 0.24f;
 
             float ctrlEdgeWidthDeviationRoot = (float)RootTrailingEdge / 0.24f;
             float ctrlEdgeWidthDeviationTip = (float)TipTrailingEdge / 0.24f;
+
             if (meshFilterWingSection != null)
             {
                 int length = meshReferenceCtrlFrame.vp.Length;
@@ -117,8 +124,10 @@ namespace ProceduralWings.B9PWing
                 for (int i = 0; i < vp.Length; ++i)
                 {
                     // Thickness correction (X), edge width correction (Y) and span-based offset (Z)
-                    if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x * ctrlThicknessDeviationTip, vp[i].y, vp[i].z + 0.5f - (float)Length / 2f);
-                    else vp[i] = new Vector3(vp[i].x * ctrlThicknessDeviationRoot, vp[i].y, vp[i].z - 0.5f + (float)Length / 2f);
+                    if (vp[i].z < 0f)
+                        vp[i] = new Vector3(vp[i].x * ctrlThicknessDeviationTip, vp[i].y, vp[i].z + 0.5f - (float)Length / 2f);
+                    else
+                        vp[i] = new Vector3(vp[i].x * ctrlThicknessDeviationRoot, vp[i].y, vp[i].z - 0.5f + (float)Length / 2f);
 
                     // Left/right sides
                     if (nm[i] == new Vector3(0f, 0f, 1f) || nm[i] == new Vector3(0f, 0f, -1f))
@@ -167,7 +176,6 @@ namespace ProceduralWings.B9PWing
                         vp[i] = new Vector3(vp[i].x, vp[i].y, vp[i].z + vp[i].y * ctrlOffsetRootClamped);
                         if (nm[i] != new Vector3(0f, 0f, 1f) && nm[i] != new Vector3(0f, 0f, -1f)) uv[i] = new Vector2(uv[i].x - (vp[i].y * ctrlOffsetRootClamped) / 4f, uv[i].y);
                     }
-
                     // Just blanks
                     cl[i] = new Color(0f, 0f, 0f, 0f);
                     uv2[i] = Vector2.zero;
@@ -188,15 +196,11 @@ namespace ProceduralWings.B9PWing
 
             // Next, time for edge types
             // Before modifying geometry, we have to show the correct objects for the current selection
-            // As UI only works with floats, we have to cast selections into ints too
 
             int ctrlEdgeTypeInt = Mathf.RoundToInt(TrailingEdgeType - 1);
             for (int i = 0; i < meshTypeCountEdgeWing; ++i)
             {
-                if (i != ctrlEdgeTypeInt)
-                    meshFiltersWingEdgeTrailing[i].gameObject.SetActive(false);
-                else
-                    meshFiltersWingEdgeTrailing[i].gameObject.SetActive(true);
+                meshFiltersWingEdgeTrailing[i].gameObject.SetActive(i == ctrlEdgeTypeInt);
             }
 
             // Now we can modify geometry
@@ -270,7 +274,7 @@ namespace ProceduralWings.B9PWing
                 meshFiltersWingEdgeTrailing[ctrlEdgeTypeInt].mesh.RecalculateBounds();
             }
 
-            // Finally, simple top/bottom surface changes
+            //Finally, simple top/ bottom surface changes
 
             if (meshFilterWingSurface != null)
             {
@@ -362,6 +366,7 @@ namespace ProceduralWings.B9PWing
         }
 
         public static MeshReference meshReferenceCtrlFrame;
+
         public static MeshReference meshReferenceCtrlSurface;
         public static List<MeshReference> meshReferencesCtrlEdge = new List<MeshReference>();
 
@@ -379,8 +384,8 @@ namespace ProceduralWings.B9PWing
         public override void SetupMeshReferences()
         {
             if (meshReferenceCtrlFrame == null || meshReferenceCtrlFrame.vp.Length == 0
-                || meshReferenceCtrlSurface != null || meshReferenceCtrlSurface.vp.Length > 0
-                || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1] != null || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1].vp.Length > 0)
+                || meshReferenceCtrlSurface == null || meshReferenceCtrlSurface.vp.Length == 0
+                || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1] == null || meshReferencesCtrlEdge[meshTypeCountEdgeWing - 1].vp.Length == 0)
             {
                 meshReferenceCtrlFrame = FillMeshRefererence(meshFilterWingSection);
                 meshReferenceCtrlSurface = FillMeshRefererence(meshFilterWingSurface);
@@ -561,19 +566,19 @@ namespace ProceduralWings.B9PWing
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
             basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x);
-            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x, true);
-            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x, true);
-            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x, true);
-            basegroup.AddProperty(new WingProperty(rootOffset), x => ((B9_ProceduralControl)window.wing).RootOffset = x, true);
-            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x, true);
-            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x, true);
-            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x, true);
+            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(rootOffset), x => ((B9_ProceduralControl)window.wing).RootOffset = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
+            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
 
             UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", uiColorSliderEdgeT);
             trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x,
                                         new string[] { "Rounded", "Biconvex", "Triangular" });
-            trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x, true);
-            trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x, true);
+            trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x * window.wing.Scale, true);
+            trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x * window.wing.Scale, true);
 
             UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", uiColorSliderColorsST);
             surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x,
