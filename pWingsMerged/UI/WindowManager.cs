@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace ProceduralWings.UI
 {
@@ -33,8 +35,7 @@ namespace ProceduralWings.UI
 
         public void OnDestroy()
         {
-            Window = null;
-            wingWindows.Clear(); // window canvas gets deleted on scene load so the windows this is holding cant actually be used...
+            Window.Visible = false;
 
             StaticWingGlobals.SaveConfigs();
         }
