@@ -48,6 +48,11 @@ namespace ProceduralWings.UI
         private GameObject mainPanel;
 
         /// <summary>
+        /// The window backing all other elements
+        /// </summary>
+        private GameObject clickHider;
+
+        /// <summary>
         /// The green header label that displays the type of the selected panel
         /// </summary>
         private Text wingType;
@@ -104,13 +109,6 @@ namespace ProceduralWings.UI
             dragEntry.callback = new EventTrigger.TriggerEvent();
             dragEntry.callback.AddListener((x) => windowDrag(x));
             mainPanel.GetComponent<EventTrigger>().triggers.Add(dragEntry);
-
-            // click outside window event
-            EventTrigger.Entry clickEntry = new EventTrigger.Entry();
-            clickEntry.eventID = EventTriggerType.Deselect;
-            clickEntry.callback = new EventTrigger.TriggerEvent();
-            clickEntry.callback.AddListener((x) => closeWindow());
-            mainPanel.GetComponent<EventTrigger>().triggers.Add(clickEntry);
 
             // close button click hides the window
             closeButton.onClick.AddListener(closeWindow);
