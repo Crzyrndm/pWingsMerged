@@ -91,24 +91,19 @@ namespace ProceduralWings.B9PWing
 
         #region Geometry
 
-        public override void OnAttach()
-        {
-            base.OnAttach();
-            Log(Vector3.Dot(EditorLogic.SortedShipList[0].transform.right, part.transform.position - EditorLogic.SortedShipList[0].transform.position));
-            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.right, part.transform.position - EditorLogic.SortedShipList[0].transform.position) < 0;
-        }
-
         public override void UpdateGeometry(bool updateAerodynamics)
         {
-            Log(isMirrored);
-            float ctrlOffsetRootClamped = (float)Utils.Clamp(RootOffset, -Length / 2, Length / 2);
-            float ctrlOffsetTipClamped = (float)Utils.Clamp(TipOffset, -Length / 2, Length / 2);
+            float ctrlOffsetRootClamped = (float)Utils.Clamp(isMirrored ? -RootOffset : TipOffset, -Length / 2, Length / 2);
+            float ctrlOffsetTipClamped = (float)Utils.Clamp(isMirrored ? -TipOffset : RootOffset, -Length / 2, Length / 2);
 
-            float ctrlThicknessDeviationRoot = (float)RootThickness / 0.24f;
-            float ctrlThicknessDeviationTip = (float)TipThickness / 0.24f;
+            float ctrlThicknessDeviationRoot = (float)(isMirrored ? RootThickness : TipThickness) / 0.24f;
+            float ctrlThicknessDeviationTip = (float)(isMirrored ? TipThickness : RootThickness) / 0.24f;
 
-            float ctrlEdgeWidthDeviationRoot = (float)RootTrailingEdge / 0.24f;
-            float ctrlEdgeWidthDeviationTip = (float)TipTrailingEdge / 0.24f;
+            float ctrlEdgeWidthDeviationRoot = (float)(isMirrored ? RootTrailingEdge : TipTrailingEdge) / 0.24f;
+            float ctrlEdgeWidthDeviationTip = (float)(isMirrored ? TipTrailingEdge : RootTrailingEdge) / 0.24f;
+
+            float ctrlTipWidthMir = (float)(isMirrored ? TipWidth : RootWidth);
+            float ctrlRootWidthMir = (float)(isMirrored ? RootWidth : TipWidth);
 
             if (meshFilterWingSection != null)
             {
@@ -140,13 +135,13 @@ namespace ProceduralWings.B9PWing
                             {
                                 if (vp[i].z < 0f)
                                 {
-                                    vp[i] = new Vector3(vp[i].x, -(float)TipWidth, vp[i].z);
-                                    uv[i] = new Vector2((float)TipWidth, uv[i].y);
+                                    vp[i] = new Vector3(vp[i].x, -ctrlTipWidthMir, vp[i].z);
+                                    uv[i] = new Vector2(ctrlTipWidthMir, uv[i].y);
                                 }
                                 else
                                 {
-                                    vp[i] = new Vector3(vp[i].x, -(float)RootWidth, vp[i].z);
-                                    uv[i] = new Vector2((float)RootWidth, uv[i].y);
+                                    vp[i] = new Vector3(vp[i].x, -ctrlRootWidthMir, vp[i].z);
+                                    uv[i] = new Vector2(ctrlRootWidthMir, uv[i].y);
                                 }
                             }
                         }
@@ -160,8 +155,8 @@ namespace ProceduralWings.B9PWing
                         // Filtering out root neighbours
                         if (vp[i].y < -0.1f)
                         {
-                            if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)TipWidth, vp[i].z);
-                            else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)RootWidth, vp[i].z);
+                            if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlTipWidthMir, vp[i].z);
+                            else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlRootWidthMir, vp[i].z);
                         }
                     }
 
@@ -228,8 +223,8 @@ namespace ProceduralWings.B9PWing
                     // Left/right sides
                     if (nm[i] == new Vector3(0f, 0f, 1f) || nm[i] == new Vector3(0f, 0f, -1f))
                     {
-                        if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)TipWidth, vp[i].z);
-                        else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)RootWidth, vp[i].z);
+                        if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlTipWidthMir, vp[i].z);
+                        else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlRootWidthMir, vp[i].z);
                     }
 
                     // Trailing edge
@@ -238,8 +233,8 @@ namespace ProceduralWings.B9PWing
                         // Filtering out root neighbours
                         if (vp[i].y < -0.1f)
                         {
-                            if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)TipWidth, vp[i].z);
-                            else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)RootWidth, vp[i].z);
+                            if (vp[i].z < 0f) vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlTipWidthMir, vp[i].z);
+                            else vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlRootWidthMir, vp[i].z);
                         }
                     }
 
@@ -305,13 +300,13 @@ namespace ProceduralWings.B9PWing
                     {
                         if (vp[i].z < 0f)
                         {
-                            vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)TipWidth, vp[i].z);
-                            uv[i] = new Vector2(uv[i].x, (float)TipWidth / 4f);
+                            vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlTipWidthMir, vp[i].z);
+                            uv[i] = new Vector2(uv[i].x, ctrlTipWidthMir / 4f);
                         }
                         else
                         {
-                            vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - (float)RootWidth, vp[i].z);
-                            uv[i] = new Vector2(uv[i].x, (float)RootWidth / 4f);
+                            vp[i] = new Vector3(vp[i].x, vp[i].y + 0.5f - ctrlRootWidthMir, vp[i].z);
+                            uv[i] = new Vector2(uv[i].x, ctrlRootWidthMir / 4f);
                         }
                     }
                     else uv[i] = new Vector2(uv[i].x, 0f);

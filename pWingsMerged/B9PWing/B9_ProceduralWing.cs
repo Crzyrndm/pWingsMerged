@@ -719,8 +719,20 @@ namespace ProceduralWings.B9PWing
         // Attachment handling
         public override void OnAttach()
         {
-            isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.forward, part.transform.forward) < 0;
+            CheckMirrored();
             base.OnAttach();
+        }
+
+        public void CheckMirrored()
+        {
+            if (part.symMethod == SymmetryMethod.Mirror)
+            {
+                isMirrored = Vector3.Dot(EditorLogic.SortedShipList[0].transform.right, part.transform.position - EditorLogic.SortedShipList[0].transform.position) < 0;
+            }
+            else
+            {
+                isMirrored = false;
+            }
         }
 
         public void UpdateOnEditorDetach()

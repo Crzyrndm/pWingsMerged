@@ -434,6 +434,8 @@ namespace ProceduralWings
                 FuelTankTypeChanged();
             }
 
+            WindowManager.GetWindow(this);
+
             isStarted = true;
         }
 
@@ -1075,6 +1077,11 @@ namespace ProceduralWings
         public ModifierChangeWhen GetModuleSizeChangeWhen()
         {
             return ModifierChangeWhen.FIXED;
+        }
+
+        public override string GetInfo()
+        {
+            return "override required";
         }
 
         public virtual string GetModuleTitle()

@@ -10,17 +10,16 @@ namespace ProceduralWings.UI
     /// </summary>
     public class EditorWindow
     {
-        private bool visible;
         public bool Visible
         {
             get
             {
-                return visible;
+                return canvas.enabled;
             }
             set
             {
-                visible = value;
-                if (!visible)
+                canvas.enabled = value;
+                if (!canvas.enabled)
                 {
                     wing = null;
                 }
@@ -28,7 +27,6 @@ namespace ProceduralWings.UI
                 {
                     windowPosition.position = StaticWingGlobals.uiRectWindowEditor.position;
                 }
-                canvas.enabled = visible;
             }
         }
 
@@ -101,14 +99,22 @@ namespace ProceduralWings.UI
             closeButton = headerPanel.GetChild("CloseButton").GetComponent<Button>();
 
             // window position drag event
-            EventTrigger.Entry entry = new EventTrigger.Entry();
-            entry.eventID = EventTriggerType.Drag;
-            entry.callback = new EventTrigger.TriggerEvent();
-            entry.callback.AddListener((x) => windowDrag(x));
-            mainPanel.GetComponent<EventTrigger>().triggers.Add(entry);
+            EventTrigger.Entry dragEntry = new EventTrigger.Entry();
+            dragEntry.eventID = EventTriggerType.Drag;
+            dragEntry.callback = new EventTrigger.TriggerEvent();
+            dragEntry.callback.AddListener((x) => windowDrag(x));
+            mainPanel.GetComponent<EventTrigger>().triggers.Add(dragEntry);
+
+            // click outside window event
+            EventTrigger.Entry clickEntry = new EventTrigger.Entry();
+            clickEntry.eventID = EventTriggerType.Deselect;
+            clickEntry.callback = new EventTrigger.TriggerEvent();
+            clickEntry.callback.AddListener((x) => closeWindow());
+            mainPanel.GetComponent<EventTrigger>().triggers.Add(clickEntry);
 
             // close button click hides the window
             closeButton.onClick.AddListener(closeWindow);
+            Visible = false;
         }
 
         public void AddFuelPanel()
