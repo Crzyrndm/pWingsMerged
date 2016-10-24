@@ -25,6 +25,7 @@ namespace ProceduralWings
         public static GameObject UI_PropertyPrefab;
         public static GameObject UI_PropertyValArrayPrefab;
         public static GameObject UI_FuelPanel;
+        public static GameObject UI_ButtonPrefab;
 
         // User settings
         public static Rect uiRectWindowEditor = new Rect();
@@ -90,33 +91,38 @@ namespace ProceduralWings
                 }
 
                 GameObject[] objects = bundle.LoadAllAssets<GameObject>();
-                for (int i = 0; i < objects.Length; ++i)
+                foreach (GameObject go in objects)
                 {
-                    switch (objects[i].name)
+                    switch (go.name)
                     {
                         case "FuelPanelPrefab":
-                            UI_FuelPanel = objects[i] as GameObject;
-                            Log($"Prefab \"{objects[i].name}\" loaded");
+                            UI_FuelPanel = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
                             break;
 
                         case "MainEditorPanel":
-                            UI_WindowPrefab = objects[i] as GameObject;
-                            Log($"Prefab \"{objects[i].name}\" loaded");
+                            UI_WindowPrefab = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
                             break;
 
                         case "PropertyGroup":
-                            UI_PropertyGroupPrefab = objects[i] as GameObject;
-                            Log($"Prefab \"{objects[i].name}\" loaded");
+                            UI_PropertyGroupPrefab = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
                             break;
 
                         case "PropertySelector":
-                            UI_PropertyPrefab = objects[i] as GameObject;
-                            Log($"Prefab \"{objects[i].name}\" loaded");
+                            UI_PropertyPrefab = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
                             break;
 
                         case "PropertySelector_ValArray":
-                            UI_PropertyValArrayPrefab = objects[i] as GameObject;
-                            Log($"Prefab \"{objects[i].name}\" loaded");
+                            UI_PropertyValArrayPrefab = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
+                            break;
+
+                        case "ButtonPrefab":
+                            UI_ButtonPrefab = go as GameObject;
+                            Log($"Prefab \"{go.name}\" loaded");
                             break;
                     }
                 }

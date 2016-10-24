@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace ProceduralWings.UI
 {
@@ -17,7 +17,9 @@ namespace ProceduralWings.UI
                 Window.closeWindow();
             if (!wingWindows.TryGetValue(forWing.ClassID, out Window))
             {
-                Window = forWing.CreateWindow();
+                Window = forWing.CreateMainWindow();
+                Window.wing = forWing;
+                forWing.AddMatchingButtons(Window);
                 if (forWing.CanBeFueled)
                 {
                     Window.AddFuelPanel();
@@ -41,6 +43,19 @@ namespace ProceduralWings.UI
             }
 
             StaticWingGlobals.SaveConfigs();
+        }
+
+        public static void AddButtonComponentToUI(GameObject parent, string buttonText, UnityAction onClick)
+        {
+            GameObject buttonGO = Instantiate(StaticWingGlobals.UI_ButtonPrefab);
+            buttonGO.transform.SetParent(parent.transform, false);
+
+            Button button = buttonGO.GetComponent<Button>();
+            button.onClick.AddListener(onClick);
+
+            Text tx = button.GetComponentInChildren<Text>();
+            tx.text = buttonText;
+            tx.resizeTextForBestFit = true;
         }
     }
 }

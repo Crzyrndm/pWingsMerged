@@ -554,7 +554,7 @@ namespace ProceduralWings.B9PWing
             WindowManager.Window.Visible = true;
         }
 
-        public override UI.EditorWindow CreateWindow()
+        public override UI.EditorWindow CreateMainWindow()
         {
             UI.EditorWindow window = new EditorWindow();
             window.WindowTitle = WindowTitle;

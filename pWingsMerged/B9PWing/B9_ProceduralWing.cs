@@ -587,54 +587,12 @@ namespace ProceduralWings.B9PWing
 
         #region Inheritance
 
-        public bool inheritancePossibleOnShape = false;
-        public bool inheritancePossibleOnMaterials = false;
-
-        public virtual void InheritanceStatusUpdate()
+        public override void inheritShape()
         {
-            if (this.part.parent == null)
-                return;
-
-            Base_ProceduralWing parentModule = part.parent.Modules.GetModule<Base_ProceduralWing>();
-            if (parentModule != null)
-            {
-                inheritancePossibleOnMaterials = true;
-                inheritancePossibleOnShape = true;
-            }
-        }
-
-        public virtual void InheritParentValues(int mode)
-        {
-            if (this.part.parent == null)
-                return;
-
-            Base_ProceduralWing parentModule = part.parent.Modules.GetModule<Base_ProceduralWing>();
+            base.inheritShape();
+            B9_ProceduralWing parentModule = part.parent.Modules.GetModule<B9_ProceduralWing>();
             if (parentModule == null)
                 return;
-
-            switch (mode)
-            {
-                case 0:
-                    inheritShape(parentModule);
-                    break;
-
-                case 1:
-                    inheritBase(parentModule);
-                    break;
-
-                case 2:
-                    inheritEdges(parentModule);
-                    break;
-
-                case 3:
-                    inheritColours(parentModule);
-                    break;
-            }
-        }
-
-        public override void inheritShape(Base_ProceduralWing parent)
-        {
-            base.inheritShape(parent);
 
             if (TipWidth < tipWidth.min)
                 Length *= (RootWidth - tipWidth.min) / (RootWidth - TipWidth);
@@ -649,67 +607,67 @@ namespace ProceduralWings.B9PWing
             Length = Utils.Clamp(Length, length.min, length.max);
             TipWidth = Utils.Clamp(TipWidth, tipWidth.min, tipWidth.max);
             TipOffset = Utils.Clamp(TipOffset, tipOffset.min, tipOffset.max);
-            TipThickness = Utils.Clamp(RootThickness + Length / parent.Length * (parent.TipThickness - parent.RootThickness), tipThickness.min, tipThickness.max);
+            TipThickness = Utils.Clamp(RootThickness + Length / parentModule.Length * (parentModule.TipThickness - parentModule.RootThickness), tipThickness.min, tipThickness.max);
         }
 
-        public override void inheritBase(Base_ProceduralWing parent)
+        public override void inheritBase()
         {
-            base.inheritBase(parent);
-
-            B9_ProceduralWing wing = parent as B9_ProceduralWing;
-            if (wing == null)
+            base.inheritBase();
+            B9_ProceduralWing parentModule = part.parent.Modules.GetModule<B9_ProceduralWing>();
+            if (parentModule == null)
                 return;
-            LeadingEdgeType = wing.LeadingEdgeType;
-            RootLeadingEdge = wing.TipLeadingEdge;
 
-            TrailingEdgeType = wing.TrailingEdgeType;
-            RootTrailingEdge = wing.TipTrailingEdge;
+            LeadingEdgeType = parentModule.LeadingEdgeType;
+            RootLeadingEdge = parentModule.TipLeadingEdge;
+
+            TrailingEdgeType = parentModule.TrailingEdgeType;
+            RootTrailingEdge = parentModule.TipTrailingEdge;
         }
 
-        public virtual void inheritEdges(Base_ProceduralWing parent)
+        public virtual void inheritEdges()
         {
-            B9_ProceduralWing wing = parent as B9_ProceduralWing;
-            if (wing == null)
+            B9_ProceduralWing parentModule = part.parent.Modules.GetModule<B9_ProceduralWing>();
+            if (parentModule == null)
                 return;
 
-            LeadingEdgeType = wing.LeadingEdgeType;
-            RootLeadingEdge = wing.TipLeadingEdge;
-            TipLeadingEdge = Utils.Clamp(RootLeadingEdge + ((wing.TipLeadingEdge - wing.RootLeadingEdge) / wing.Length) * Length, tipLeadingEdge.min, tipLeadingEdge.max);
+            LeadingEdgeType = parentModule.LeadingEdgeType;
+            RootLeadingEdge = parentModule.TipLeadingEdge;
+            TipLeadingEdge = Utils.Clamp(RootLeadingEdge + ((parentModule.TipLeadingEdge - parentModule.RootLeadingEdge) / parentModule.Length) * Length, tipLeadingEdge.min, tipLeadingEdge.max);
 
-            TrailingEdgeType = wing.TrailingEdgeType;
-            RootTrailingEdge = wing.TipTrailingEdge;
-            TipTrailingEdge = Utils.Clamp(RootTrailingEdge + ((wing.TipTrailingEdge - wing.RootTrailingEdge) / wing.Length) * Length, tipTrailingEdge.min, tipTrailingEdge.max);
+            TrailingEdgeType = parentModule.TrailingEdgeType;
+            RootTrailingEdge = parentModule.TipTrailingEdge;
+            TipTrailingEdge = Utils.Clamp(RootTrailingEdge + ((parentModule.TipTrailingEdge - parentModule.RootTrailingEdge) / parentModule.Length) * Length, tipTrailingEdge.min, tipTrailingEdge.max);
         }
 
-        public virtual void inheritColours(Base_ProceduralWing parent)
+        public virtual void inheritColours()
         {
-            B9_ProceduralWing wing = parent as B9_ProceduralWing;
-            if (wing == null)
+            B9_ProceduralWing parentModule = part.parent.Modules.GetModule<B9_ProceduralWing>();
+            if (parentModule == null)
                 return;
 
-            SurfTopMat = wing.SurfTopMat;
-            SurfTopOpacity = wing.SurfTopOpacity;
-            SurfTopHue = wing.SurfTopHue;
-            SurfTopSat = wing.SurfTopSat;
-            SurfTopBright = wing.SurfTopBright;
+            SurfTopMat = parentModule.SurfTopMat;
+            SurfTopOpacity = parentModule.SurfTopOpacity;
+            SurfTopHue = parentModule.SurfTopHue;
+            SurfTopSat = parentModule.SurfTopSat;
+            SurfTopBright = parentModule.SurfTopBright;
 
-            SurfBottomMat = wing.SurfBottomMat;
-            SurfBottomOpacity = wing.SurfBottomOpacity;
-            SurfBottomHue = wing.SurfBottomHue;
-            SurfBottomSat = wing.SurfBottomSat;
-            SurfBottomBright = wing.SurfBottomBright;
+            SurfBottomMat = parentModule.SurfBottomMat;
+            SurfBottomOpacity = parentModule.SurfBottomOpacity;
+            SurfBottomHue = parentModule.SurfBottomHue;
+            SurfBottomSat = parentModule.SurfBottomSat;
+            SurfBottomBright = parentModule.SurfBottomBright;
 
-            SurfTrailMat = wing.SurfTrailMat;
-            SurfTrailOpacity = wing.SurfTrailOpacity;
-            SurfTrailHue = wing.SurfTrailHue;
-            SurfTrailSat = wing.SurfTrailSat;
-            SurfTrailBright = wing.SurfTrailBright;
+            SurfTrailMat = parentModule.SurfTrailMat;
+            SurfTrailOpacity = parentModule.SurfTrailOpacity;
+            SurfTrailHue = parentModule.SurfTrailHue;
+            SurfTrailSat = parentModule.SurfTrailSat;
+            SurfTrailBright = parentModule.SurfTrailBright;
 
-            SurfLeadMat = wing.SurfLeadMat;
-            SurfLeadOpacity = wing.SurfLeadOpacity;
-            SurfLeadHue = wing.SurfLeadHue;
-            SurfLeadSat = wing.SurfLeadSat;
-            SurfLeadBright = wing.SurfLeadBright;
+            SurfLeadMat = parentModule.SurfLeadMat;
+            SurfLeadOpacity = parentModule.SurfLeadOpacity;
+            SurfLeadHue = parentModule.SurfLeadHue;
+            SurfLeadSat = parentModule.SurfLeadSat;
+            SurfLeadBright = parentModule.SurfLeadBright;
         }
 
         #endregion Inheritance
@@ -1382,9 +1340,9 @@ namespace ProceduralWings.B9PWing
             WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
         }
 
-        public override UI.EditorWindow CreateWindow()
+        public override UI.EditorWindow CreateMainWindow()
         {
-            EditorWindow window = base.CreateWindow();
+            EditorWindow window = base.CreateMainWindow();
 
             UI.PropertyGroup leadgroup = window.AddPropertyGroup("Edge (leading)", uiColorSliderEdgeL);
             leadgroup.AddProperty(new WingProperty(leadingEdgeType), x => ((B9_ProceduralWing)window.wing).LeadingEdgeType = (int)x,
@@ -1431,6 +1389,14 @@ namespace ProceduralWings.B9PWing
             surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
 
             return window;
+        }
+
+        public override GameObject AddMatchingButtons(EditorWindow window)
+        {
+            GameObject go = base.AddMatchingButtons(window);
+            WindowManager.AddButtonComponentToUI(go, "Match Edge", () => ((B9_ProceduralWing)WindowManager.Window.wing).inheritEdges());
+            WindowManager.AddButtonComponentToUI(go, "Match Colour", () => ((B9_ProceduralWing)WindowManager.Window.wing).inheritColours());
+            return go;
         }
 
         #endregion UI Stuff

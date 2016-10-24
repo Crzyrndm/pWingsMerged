@@ -69,6 +69,10 @@ namespace ProceduralWings
             set
             {
                 scale.Value = value;
+                if (part.parent?.Modules != null && part.parent.Modules.Contains<Base_ProceduralWing>())
+                {
+                    part.parent.Modules.GetModule<Base_ProceduralWing>().Scale = value;
+                }
                 StartCoroutine(updateScaleLimited());
             }
         }
@@ -530,6 +534,8 @@ namespace ProceduralWings
         /// </summary>
         private bool geometryUpdateLock;
 
+        private UIPartActionWindow partWindow;
+
         public virtual IEnumerator UpdateSymmetricGeometry()
         {
             if (!isStarted || geometryUpdateLock)
@@ -538,6 +544,15 @@ namespace ProceduralWings
             yield return null;
 
             UpdateGeometry();
+            if (partWindow == null)
+            {
+                partWindow = part.GetComponent<UIPartActionWindow>();
+            }
+            if (partWindow != null)
+            {
+                partWindow.displayDirty = true;
+            }
+
             for (int i = part.symmetryCounterparts.Count - 1; i >= 0; --i)
             {
                 part.symmetryCounterparts[i].Modules.GetModule<Base_ProceduralWing>().UpdateGeometry();
@@ -1104,19 +1119,26 @@ namespace ProceduralWings
 
         #region Parent matching
 
-        public virtual void inheritShape(Base_ProceduralWing parent)
+        public virtual void inheritShape()
         {
-            inheritBase(parent);
-
-            TipWidth = RootWidth + ((parent.TipWidth - parent.RootWidth) / (parent.Length)) * Length;
-            TipOffset = Length / parent.Length * parent.TipOffset;
-            TipThickness = RootThickness + ((parent.TipThickness - parent.RootThickness) / parent.Length) * Length;
+            inheritBase();
+            Base_ProceduralWing parent = part.parent.Modules.GetModule<Base_ProceduralWing>();
+            if (parent != null)
+            {
+                TipWidth = RootWidth + ((parent.TipWidth - parent.RootWidth) / (parent.Length)) * Length;
+                TipOffset = Length / parent.Length * parent.TipOffset;
+                TipThickness = RootThickness + ((parent.TipThickness - parent.RootThickness) / parent.Length) * Length;
+            }
         }
 
-        public virtual void inheritBase(Base_ProceduralWing parent)
+        public virtual void inheritBase()
         {
-            RootWidth = parent.TipWidth;
-            RootThickness = parent.TipThickness;
+            Base_ProceduralWing parent = part.parent.Modules.GetModule<Base_ProceduralWing>();
+            if (parent != null)
+            {
+                RootWidth = parent.TipWidth;
+                RootThickness = parent.TipThickness;
+            }
         }
 
         #endregion Parent matching
@@ -1133,7 +1155,7 @@ namespace ProceduralWings
             WindowManager.Window.Visible = true;
         }
 
-        public virtual EditorWindow CreateWindow()
+        public virtual EditorWindow CreateMainWindow()
         {
             EditorWindow window = new EditorWindow();
             window.WindowTitle = WindowTitle;
@@ -1150,6 +1172,23 @@ namespace ProceduralWings
             basegroup.AddProperty(new WingProperty(trailingAngle), x => window.wing.TrailingAngle = x);
 
             return window;
+        }
+
+        public virtual GameObject AddMatchingButtons(EditorWindow window)
+        {
+            GameObject go = new GameObject();
+            go.transform.SetParent(window.mainPanel.transform, false);
+            UnityEngine.UI.LayoutElement layout = go.AddComponent<UnityEngine.UI.LayoutElement>();
+            layout.minWidth = layout.preferredWidth = 330;
+            layout.minHeight = layout.preferredHeight = 20;
+
+            UnityEngine.UI.HorizontalLayoutGroup hrzt = go.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+            hrzt.spacing = 5;
+            hrzt.padding = new RectOffset(10, 10, 0, 0);
+
+            WindowManager.AddButtonComponentToUI(go, "Match Base", () => WindowManager.Window.wing.inheritBase());
+            WindowManager.AddButtonComponentToUI(go, "Match Shape", () => WindowManager.Window.wing.inheritShape());
+            return go;
         }
 
         #endregion UI stuff

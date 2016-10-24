@@ -45,7 +45,7 @@ namespace ProceduralWings.UI
         /// <summary>
         /// The window backing all other elements
         /// </summary>
-        private GameObject mainPanel;
+        public GameObject mainPanel;
 
         /// <summary>
         /// The green header label that displays the type of the selected panel
