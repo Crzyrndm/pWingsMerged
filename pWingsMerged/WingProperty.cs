@@ -1,9 +1,11 @@
-﻿namespace ProceduralWings.UI
+﻿using UnityEngine;
+
+namespace ProceduralWings.UI
 {
     public class WingProperty : IConfigNode
     {
         public string ID { get; }
-        public string name;
+        public string name { get; }
         public double defaultValue;
         public int decPlaces;
         public double min;
@@ -11,6 +13,7 @@
         public string tooltip;
 
         private double value;
+
         public double Value
         {
             get
@@ -41,12 +44,12 @@
         public WingProperty(WingProperty prop)
         {
             ID = prop.ID;
-            Update(prop);
+            name = prop.name;
+            UpdateValues(prop);
         }
 
-        public void Update(WingProperty prop)
+        public void UpdateValues(WingProperty prop)
         {
-            name = prop.name;
             value = prop.Value;
             defaultValue = prop.defaultValue;
             decPlaces = prop.decPlaces;

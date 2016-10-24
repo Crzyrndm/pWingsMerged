@@ -59,7 +59,7 @@ namespace ProceduralWings
 
         #region physical dimensions
 
-        protected WingProperty scale;
+        public WingProperty scale;
         public virtual double Scale // scale all parameters of this part AND any children attached to it.
         {
             get
@@ -572,6 +572,7 @@ namespace ProceduralWings
             Base_ProceduralWing parentWing = part.parent.Modules.GetModule<Base_ProceduralWing>();
             if (parentWing != null)
             {
+                Scale = parentWing.Scale;
                 parentWingOffset = (part.transform.position - part.parent.transform.position) / (float)parentWing.Scale;
             }
         }
@@ -792,7 +793,7 @@ namespace ProceduralWings
             connectionForce = Math.Round(Math.Max(Math.Sqrt(Cl + ChildrenCl) * connectionFactor, connectionMinimum), 0);
 
             updateCost();
-            //part.CoMOffset = part.CoLOffset = part.CoPOffset = (tipPos - rootPos) / 2;
+            part.CoMOffset = part.CoLOffset = part.CoPOffset = (tipPos - rootPos) / 2;
 
             // should really do something about the joint torque here, not just its limits
             part.breakingForce = Mathf.Round((float)connectionForce);

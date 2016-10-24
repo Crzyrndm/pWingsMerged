@@ -74,7 +74,7 @@ namespace ProceduralWings.Original
             if (mCtrlSrf != null)
             {
                 mCtrlSrf.deflectionLiftCoeff = (float)(Length * MAC / 3.52);
-                part.mass = mCtrlSrf.deflectionLiftCoeff * 0.1f * (1 + ctrlFraction);
+                wingMass = mCtrlSrf.deflectionLiftCoeff * 0.1f * (1 + ctrlFraction);
                 mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
             }
         }

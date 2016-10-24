@@ -501,7 +501,7 @@ namespace ProceduralWings.B9PWing
                 ModuleControlSurface mCtrlSrf = part.Modules.GetModule<ModuleControlSurface>();
                 mCtrlSrf.deflectionLiftCoeff = (float)Math.Round(stockLiftCoefficient, 2);
                 mCtrlSrf.ctrlSurfaceArea = ctrlFraction;
-                part.mass = stockLiftCoefficient * (1 + mCtrlSrf.ctrlSurfaceArea) * 0.1f;
+                wingMass = stockLiftCoefficient * (1 + mCtrlSrf.ctrlSurfaceArea) * 0.1f;
             }
             else
                 setFARModuleParams(midChordSweep, taperRatio, midChordOffsetFromOrigin);
@@ -545,7 +545,7 @@ namespace ProceduralWings.B9PWing
             WindowManager.GetWindow(this);
             WindowManager.Window.wing = this;
 
-            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset);
+            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset, scale);
             WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
             WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
             WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);

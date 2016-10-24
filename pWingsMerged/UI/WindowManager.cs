@@ -35,7 +35,10 @@ namespace ProceduralWings.UI
 
         public void OnDestroy()
         {
-            Window.Visible = false;
+            if (Window != null)
+            {
+                Window.Visible = false;
+            }
 
             StaticWingGlobals.SaveConfigs();
         }
