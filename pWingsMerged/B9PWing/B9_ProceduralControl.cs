@@ -556,8 +556,7 @@ namespace ProceduralWings.B9PWing
 
         public override UI.EditorWindow CreateMainWindow()
         {
-            UI.EditorWindow window = new EditorWindow();
-            window.WindowTitle = WindowTitle;
+            UI.EditorWindow window = new EditorWindow(WindowTitle);
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
             basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x);

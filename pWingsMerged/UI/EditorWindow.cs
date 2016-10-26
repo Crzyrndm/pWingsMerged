@@ -83,7 +83,7 @@ namespace ProceduralWings.UI
         /// <summary>
         /// Constructor
         /// </summary>
-        public EditorWindow()
+        public EditorWindow(string title)
         {
             // get references to all useful components
             go = Object.Instantiate(StaticWingGlobals.UI_WindowPrefab);
@@ -108,11 +108,13 @@ namespace ProceduralWings.UI
             // close button click hides the window
             closeButton.onClick.AddListener(closeWindow);
             Visible = false;
+
+            WindowTitle = title;
         }
 
         public void AddFuelPanel()
         {
-            GameObject fuelPanel = UnityEngine.Object.Instantiate(StaticWingGlobals.UI_FuelPanel);
+            GameObject fuelPanel = Object.Instantiate(StaticWingGlobals.UI_FuelPanel);
             fuelPanel.transform.SetParent(mainPanel.transform, false); // parented onto the window
 
             Dropdown drop = fuelPanel.GetChild("Dropdown").GetComponent<Dropdown>();

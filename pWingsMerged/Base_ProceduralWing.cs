@@ -427,6 +427,8 @@ namespace ProceduralWings
         /// </summary>
         public virtual void Setup()
         {
+            useGUILayout = false; // no use of GUILayout.xx or GUI.Window, no need for legacy layout
+
             SetupProperties();
             SetupGeometryAndAppearance();
 
@@ -660,7 +662,7 @@ namespace ProceduralWings
             {
                 PartResource res = part.Resources[i];
                 WingTankResource wres;
-                if (wtc.resources.TryGetValue(part.Resources[i].resourceName, out wres))
+                if (wtc.resources.TryGetValue(res.resourceName, out wres))
                 {
                     double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
 
@@ -1157,8 +1159,7 @@ namespace ProceduralWings
 
         public virtual EditorWindow CreateMainWindow()
         {
-            EditorWindow window = new EditorWindow();
-            window.WindowTitle = WindowTitle;
+            EditorWindow window = new EditorWindow(WindowTitle);
 
             PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
             basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x); // always have scale first since other methods depend on it
