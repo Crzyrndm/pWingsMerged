@@ -13,20 +13,20 @@ namespace ProceduralWings.UI
         public static EditorWindow Window;
         public static EditorWindow GetWindow(Base_ProceduralWing forWing)
         {
-            if (Window != null)
-                Window.closeWindow();
-            if (!wingWindows.TryGetValue(forWing.ClassID, out Window))
-            {
-                Window = forWing.CreateMainWindow();
-                Window.wing = forWing;
-                forWing.AddMatchingButtons(Window);
-                if (forWing.CanBeFueled)
-                {
-                    Window.AddFuelPanel();
-                }
-                wingWindows.Add(forWing.ClassID, Window);
-            }
-            Window.wing = forWing;
+            //if (Window != null)
+            //    Window.closeWindow();
+            //if (!wingWindows.TryGetValue(forWing.ClassID, out Window))
+            //{
+            //    //Window = forWing.CreateMainWindow();
+            //    //Window.wing = forWing;
+            //    //forWing.AddMatchingButtons(Window);
+            //    if (forWing.CanBeFueled)
+            //    {
+            //        Window.AddFuelPanel();
+            //    }
+            //    wingWindows.Add(forWing.ClassID, Window);
+            //}
+            //Window.wing = forWing;
             return Window;
         }
 

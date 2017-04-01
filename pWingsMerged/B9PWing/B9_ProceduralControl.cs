@@ -540,66 +540,66 @@ namespace ProceduralWings.B9PWing
             }
         }
 
-        public override void ShowEditorUI()
-        {
-            WindowManager.GetWindow(this);
-            WindowManager.Window.wing = this;
+        //public override void ShowEditorUI()
+        //{
+        //    WindowManager.GetWindow(this);
+        //    WindowManager.Window.wing = this;
 
-            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset, scale);
-            WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
-            WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
-            WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
-            WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
+        //    WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, rootOffset, scale);
+        //    WindowManager.Window.FindPropertyGroup("Edge (trailing)").UpdatePropertyValues(trailingEdgeType, rootTrailingEdge, tipTrailingEdge);
+        //    WindowManager.Window.FindPropertyGroup("Surface (top)").UpdatePropertyValues(surfTopMat, surfTopOpacity, surfTopHue, surfTopSat, surfTopBright);
+        //    WindowManager.Window.FindPropertyGroup("Surface (bottom)").UpdatePropertyValues(surfBottomMat, surfBottomOpacity, surfBottomHue, surfBottomSat, surfBottomBright);
+        //    WindowManager.Window.FindPropertyGroup("Surface (trailing edge)").UpdatePropertyValues(surfTrailMat, surfTrailOpacity, surfTrailHue, surfTrailSat, surfTrailBright);
 
-            WindowManager.Window.Visible = true;
-        }
+        //    WindowManager.Window.Visible = true;
+        //}
 
-        public override UI.EditorWindow CreateMainWindow()
-        {
-            UI.EditorWindow window = new EditorWindow(WindowTitle);
+        //public override UI.EditorWindow CreateMainWindow()
+        //{
+        //    UI.EditorWindow window = new EditorWindow(WindowTitle);
 
-            PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
-            basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x);
-            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(rootOffset), x => ((B9_ProceduralControl)window.wing).RootOffset = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
+        //    PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
+        //    basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x);
+        //    basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(rootOffset), x => ((B9_ProceduralControl)window.wing).RootOffset = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
 
-            UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", uiColorSliderEdgeT);
-            trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x,
-                                        new string[] { "Rounded", "Biconvex", "Triangular" });
-            trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x * window.wing.Scale, true);
-            trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x * window.wing.Scale, true);
+        //    UI.PropertyGroup trailGroup = window.AddPropertyGroup("Edge (trailing)", uiColorSliderEdgeT);
+        //    trailGroup.AddProperty(new WingProperty(trailingEdgeType), x => ((B9_ProceduralWing)window.wing).TrailingEdgeType = (int)x,
+        //                                new string[] { "Rounded", "Biconvex", "Triangular" });
+        //    trailGroup.AddProperty(new WingProperty(rootTrailingEdge), x => ((B9_ProceduralWing)window.wing).RootTrailingEdge = x * window.wing.Scale, true);
+        //    trailGroup.AddProperty(new WingProperty(tipTrailingEdge), x => ((B9_ProceduralWing)window.wing).TipTrailingEdge = x * window.wing.Scale, true);
 
-            UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", uiColorSliderColorsST);
-            surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x,
-                                        new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
-            surfTGroup.AddProperty(new WingProperty(surfTopOpacity), x => ((B9_ProceduralWing)window.wing).SurfTopOpacity = x);
-            surfTGroup.AddProperty(new WingProperty(surfTopHue), x => ((B9_ProceduralWing)window.wing).SurfTopHue = x);
-            surfTGroup.AddProperty(new WingProperty(surfTopSat), x => ((B9_ProceduralWing)window.wing).SurfTopSat = x);
-            surfTGroup.AddProperty(new WingProperty(surfTopBright), x => ((B9_ProceduralWing)window.wing).SurfTopBright = x);
+        //    UI.PropertyGroup surfTGroup = window.AddPropertyGroup("Surface (top)", uiColorSliderColorsST);
+        //    surfTGroup.AddProperty(new WingProperty(surfTopMat), x => ((B9_ProceduralWing)window.wing).SurfTopMat = (int)x,
+        //                                new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
+        //    surfTGroup.AddProperty(new WingProperty(surfTopOpacity), x => ((B9_ProceduralWing)window.wing).SurfTopOpacity = x);
+        //    surfTGroup.AddProperty(new WingProperty(surfTopHue), x => ((B9_ProceduralWing)window.wing).SurfTopHue = x);
+        //    surfTGroup.AddProperty(new WingProperty(surfTopSat), x => ((B9_ProceduralWing)window.wing).SurfTopSat = x);
+        //    surfTGroup.AddProperty(new WingProperty(surfTopBright), x => ((B9_ProceduralWing)window.wing).SurfTopBright = x);
 
-            UI.PropertyGroup surfBGroup = window.AddPropertyGroup("Surface (bottom)", uiColorSliderColorsSB);
-            surfBGroup.AddProperty(new WingProperty(surfBottomMat), x => ((B9_ProceduralWing)window.wing).SurfBottomMat = (int)x,
-                                        new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
-            surfBGroup.AddProperty(new WingProperty(surfBottomOpacity), x => ((B9_ProceduralWing)window.wing).SurfBottomOpacity = x);
-            surfBGroup.AddProperty(new WingProperty(surfBottomHue), x => ((B9_ProceduralWing)window.wing).SurfBottomHue = x);
-            surfBGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfBottomSat = x);
-            surfBGroup.AddProperty(new WingProperty(surfBottomBright), x => ((B9_ProceduralWing)window.wing).SurfBottomBright = x);
+        //    UI.PropertyGroup surfBGroup = window.AddPropertyGroup("Surface (bottom)", uiColorSliderColorsSB);
+        //    surfBGroup.AddProperty(new WingProperty(surfBottomMat), x => ((B9_ProceduralWing)window.wing).SurfBottomMat = (int)x,
+        //                                new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
+        //    surfBGroup.AddProperty(new WingProperty(surfBottomOpacity), x => ((B9_ProceduralWing)window.wing).SurfBottomOpacity = x);
+        //    surfBGroup.AddProperty(new WingProperty(surfBottomHue), x => ((B9_ProceduralWing)window.wing).SurfBottomHue = x);
+        //    surfBGroup.AddProperty(new WingProperty(surfBottomSat), x => ((B9_ProceduralWing)window.wing).SurfBottomSat = x);
+        //    surfBGroup.AddProperty(new WingProperty(surfBottomBright), x => ((B9_ProceduralWing)window.wing).SurfBottomBright = x);
 
-            UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", uiColorSliderColorsET);
-            surfRGroup.AddProperty(new WingProperty(surfTrailMat), x => ((B9_ProceduralWing)window.wing).SurfTrailMat = (int)x,
-                                        new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
-            surfRGroup.AddProperty(new WingProperty(surfTrailOpacity), x => ((B9_ProceduralWing)window.wing).SurfTrailOpacity = x);
-            surfRGroup.AddProperty(new WingProperty(surfTrailHue), x => ((B9_ProceduralWing)window.wing).SurfTrailHue = x);
-            surfRGroup.AddProperty(new WingProperty(surfTrailSat), x => ((B9_ProceduralWing)window.wing).SurfTrailSat = x);
-            surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
+        //    UI.PropertyGroup surfRGroup = window.AddPropertyGroup("Surface (trailing edge)", uiColorSliderColorsET);
+        //    surfRGroup.AddProperty(new WingProperty(surfTrailMat), x => ((B9_ProceduralWing)window.wing).SurfTrailMat = (int)x,
+        //                                new string[] { "Uniform", "Standard", "Reinforced", "LRSI", "HRSI" });
+        //    surfRGroup.AddProperty(new WingProperty(surfTrailOpacity), x => ((B9_ProceduralWing)window.wing).SurfTrailOpacity = x);
+        //    surfRGroup.AddProperty(new WingProperty(surfTrailHue), x => ((B9_ProceduralWing)window.wing).SurfTrailHue = x);
+        //    surfRGroup.AddProperty(new WingProperty(surfTrailSat), x => ((B9_ProceduralWing)window.wing).SurfTrailSat = x);
+        //    surfRGroup.AddProperty(new WingProperty(surfTrailBright), x => ((B9_ProceduralWing)window.wing).SurfTrailBright = x);
 
-            return window;
-        }
+        //    return window;
+        //}
 
         #endregion UI stuff
     }

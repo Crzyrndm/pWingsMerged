@@ -106,10 +106,10 @@ namespace ProceduralWings
         /// </summary>
         protected virtual void OnScaleModified()
         {
-            if (WindowManager.Window.wing == this)
-            {
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness); //, scale, trailingAngle, leadingAngle);
-            }
+            //if (WindowManager.Window.wing == this)
+            //{
+            //    //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness); //, scale, trailingAngle, leadingAngle);
+            //}
             StartCoroutine(UpdateSymmetricGeometry());
         }
 
@@ -122,12 +122,15 @@ namespace ProceduralWings
             }
             set
             {
-                length.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
+                if (Length != value)
+                {
+                    length.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
                 // force updates
-                double dummy = LeadingAngle;
-                dummy = TrailingAngle;
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                //double dummy = LeadingAngle;
+                //dummy = TrailingAngle;
+                //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -142,12 +145,15 @@ namespace ProceduralWings
             }
             set
             {
-                tipWidth.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
+                if (TipWidth != value)
+                {
+                    tipWidth.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
                 // force updates
-                double dummy = LeadingAngle;
-                dummy = TrailingAngle;
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                //double dummy = LeadingAngle;
+                //dummy = TrailingAngle;
+                //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
             }
         }
 
@@ -160,8 +166,11 @@ namespace ProceduralWings
             }
             set
             {
-                tipThickness.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
+                if (TipThickness != value)
+                {
+                    tipThickness.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
             }
         }
 
@@ -174,12 +183,15 @@ namespace ProceduralWings
             }
             set
             {
-                tipOffset.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
-                // force updates
-                double dummy = LeadingAngle;
-                dummy = TrailingAngle;
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                if (TipOffset != value)
+                {
+                    tipOffset.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                    // force updates
+                    double dummy = LeadingAngle;
+                    dummy = TrailingAngle;
+                    //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                }
             }
         }
 
@@ -192,12 +204,15 @@ namespace ProceduralWings
             }
             set
             {
-                rootWidth.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
-                // force updates
-                double dummy = LeadingAngle;
-                dummy = TrailingAngle;
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                if (RootWidth != value)
+                {
+                    rootWidth.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                    // force updates
+                    double dummy = LeadingAngle;
+                    dummy = TrailingAngle;
+                    //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, trailingAngle);
+                }
             }
         }
 
@@ -210,8 +225,11 @@ namespace ProceduralWings
             }
             set
             {
-                rootThickness.Value = value / Scale;
-                StartCoroutine(UpdateSymmetricGeometry());
+                if (RootThickness != value)
+                {
+                    rootThickness.Value = value / Scale;
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
             }
         }
 
@@ -255,16 +273,19 @@ namespace ProceduralWings
             }
             set
             {
-                leadingAngle.Value = value;
+                if (LeadingAngle != value)
+                {
+                    leadingAngle.Value = value;
 
-                double currentTrailingOffset = TipOffset + TipWidth / 2;
-                double newWidth = RootWidth / 2 + currentTrailingOffset - Length * Math.Tan(value * Utils.Deg2Rad);
-                tipWidth.Value = Math.Max(0, newWidth) / Scale;
-                tipOffset.Value = (currentTrailingOffset - TipWidth / 2 - Math.Min(newWidth, 0)) / Scale;
-                trailingAngle.Value = TrailingAngle;
+                    double currentTrailingOffset = TipOffset + TipWidth / 2;
+                    double newWidth = RootWidth / 2 + currentTrailingOffset - Length * Math.Tan(value * Utils.Deg2Rad);
+                    tipWidth.Value = Math.Max(0, newWidth) / Scale;
+                    tipOffset.Value = (currentTrailingOffset - TipWidth / 2 - Math.Min(newWidth, 0)) / Scale;
+                    trailingAngle.Value = TrailingAngle;
 
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(trailingAngle, tipOffset, tipWidth);
-                StartCoroutine(UpdateSymmetricGeometry());
+                    //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(trailingAngle, tipOffset, tipWidth);
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
             }
         }
 
@@ -280,15 +301,18 @@ namespace ProceduralWings
             }
             set
             {
-                trailingAngle.Value = value;
-                double currentLeadingOffset = TipOffset - TipWidth / 2;
-                double newWidth = RootWidth / 2 - currentLeadingOffset + Length * Math.Tan(value * Utils.Deg2Rad);
-                tipWidth.Value = Math.Max(0, newWidth);
-                tipOffset.Value = currentLeadingOffset + TipWidth / 2 + Math.Min(newWidth, 0);
-                leadingAngle.Value = LeadingAngle;
+                if (TrailingAngle != value)
+                {
+                    trailingAngle.Value = value;
+                    double currentLeadingOffset = TipOffset - TipWidth / 2;
+                    double newWidth = RootWidth / 2 - currentLeadingOffset + Length * Math.Tan(value * Utils.Deg2Rad);
+                    tipWidth.Value = Math.Max(0, newWidth);
+                    tipOffset.Value = currentLeadingOffset + TipWidth / 2 + Math.Min(newWidth, 0);
+                    leadingAngle.Value = LeadingAngle;
 
-                WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, tipOffset, tipWidth);
-                StartCoroutine(UpdateSymmetricGeometry());
+                    //WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(leadingAngle, tipOffset, tipWidth);
+                    StartCoroutine(UpdateSymmetricGeometry());
+                }
             }
         }
 
@@ -410,8 +434,7 @@ namespace ProceduralWings
             {
                 for (int i = part.Modules.Count - 1; i >= 0; --i)
                 {
-                    UpgradeModules.IDeprecatedWingModule dw = part.Modules[i] as UpgradeModules.IDeprecatedWingModule;
-                    if (dw != null)
+                    if (part.Modules[i] is UpgradeModules.IDeprecatedWingModule dw)
                     {
                         dw.UpgradeModule(this);
                         break;
@@ -427,7 +450,7 @@ namespace ProceduralWings
         /// </summary>
         public virtual void Setup()
         {
-            useGUILayout = false; // no use of GUILayout.xx or GUI.Window, no need for legacy layout
+            //useGUILayout = false; // no use of GUILayout.xx or GUI.Window, no need for legacy layout
 
             SetupProperties();
             SetupGeometryAndAppearance();
@@ -661,8 +684,7 @@ namespace ProceduralWings
             for (int i = part.Resources.Count - 1; i >= 0; --i)
             {
                 PartResource res = part.Resources[i];
-                WingTankResource wres;
-                if (wtc.resources.TryGetValue(res.resourceName, out wres))
+                if (wtc.resources.TryGetValue(res.resourceName, out WingTankResource wres))
                 {
                     double fillPct = res.maxAmount > 0 ? res.amount / res.maxAmount : 1.0;
 
@@ -958,10 +980,9 @@ namespace ProceduralWings
         {
             if (!(HighLogic.LoadedSceneIsEditor && isAttached))
                 return;
-
             if (Input.GetKeyDown(StaticWingGlobals.uiKeyCodeEdit))
             {
-                ShowEditorUI();
+                window.Show(this);
             }
 
             if (!deformWing)
@@ -1147,50 +1168,65 @@ namespace ProceduralWings
 
         #region UI stuff
 
-        public static Color uiColorSliderBase = new Color(0.30f, 0.40f, 0.2f, 1f);
-
-        public virtual void ShowEditorUI()
+        static OnGUI_Window window; // = new OnGUI_Window();
+        public void OnGUI()
         {
-            WindowManager.GetWindow(this);
-
-            WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, scale, leadingAngle, trailingAngle);
-            WindowManager.Window.Visible = true;
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                Debug.Log(window);
+                if (window == null)
+                {
+                    Debug.Log("new window");
+                    window = new OnGUI_Window();
+                }
+                window.GUI(this);
+            }
         }
 
-        public virtual EditorWindow CreateMainWindow()
-        {
-            EditorWindow window = new EditorWindow(WindowTitle);
+        //public static Color uiColorSliderBase = new Color(0.30f, 0.40f, 0.2f, 1f);
 
-            PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
-            basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x); // always have scale first since other methods depend on it
-            basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
-            basegroup.AddProperty(new WingProperty(leadingAngle), x => window.wing.LeadingAngle = x);
-            basegroup.AddProperty(new WingProperty(trailingAngle), x => window.wing.TrailingAngle = x);
+        //public virtual void ShowEditorUI()
+        //{
+        //    WindowManager.GetWindow(this);
 
-            return window;
-        }
+        //    WindowManager.Window.FindPropertyGroup("Base").UpdatePropertyValues(length, rootWidth, tipWidth, tipOffset, rootThickness, tipThickness, scale, leadingAngle, trailingAngle);
+        //    WindowManager.Window.Visible = true;
+        //}
 
-        public virtual GameObject AddMatchingButtons(EditorWindow window)
-        {
-            GameObject go = new GameObject();
-            go.transform.SetParent(window.mainPanel.transform, false);
-            UnityEngine.UI.LayoutElement layout = go.AddComponent<UnityEngine.UI.LayoutElement>();
-            layout.minWidth = layout.preferredWidth = 330;
-            layout.minHeight = layout.preferredHeight = 20;
+        //public virtual EditorWindow CreateMainWindow()
+        //{
+        //    EditorWindow window = new EditorWindow(WindowTitle);
 
-            UnityEngine.UI.HorizontalLayoutGroup hrzt = go.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>();
-            hrzt.spacing = 5;
-            hrzt.padding = new RectOffset(10, 10, 0, 0);
+        //    PropertyGroup basegroup = window.AddPropertyGroup("Base", uiColorSliderBase);
+        //    basegroup.AddProperty(new WingProperty(scale), x => window.wing.Scale = x); // always have scale first since other methods depend on it
+        //    basegroup.AddProperty(new WingProperty(length), x => window.wing.Length = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(rootWidth), x => window.wing.RootWidth = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipWidth), x => window.wing.TipWidth = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipOffset), x => window.wing.TipOffset = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(rootThickness), x => window.wing.RootThickness = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(tipThickness), x => window.wing.TipThickness = x * window.wing.Scale, true);
+        //    basegroup.AddProperty(new WingProperty(leadingAngle), x => window.wing.LeadingAngle = x);
+        //    basegroup.AddProperty(new WingProperty(trailingAngle), x => window.wing.TrailingAngle = x);
 
-            WindowManager.AddButtonComponentToUI(go, "Match Base", () => WindowManager.Window.wing.inheritBase());
-            WindowManager.AddButtonComponentToUI(go, "Match Shape", () => WindowManager.Window.wing.inheritShape());
-            return go;
-        }
+        //    return window;
+        //}
+
+        //public virtual GameObject AddMatchingButtons(EditorWindow window)
+        //{
+        //    GameObject go = new GameObject();
+        //    go.transform.SetParent(window.mainPanel.transform, false);
+        //    UnityEngine.UI.LayoutElement layout = go.AddComponent<UnityEngine.UI.LayoutElement>();
+        //    layout.minWidth = layout.preferredWidth = 330;
+        //    layout.minHeight = layout.preferredHeight = 20;
+
+        //    UnityEngine.UI.HorizontalLayoutGroup hrzt = go.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+        //    hrzt.spacing = 5;
+        //    hrzt.padding = new RectOffset(10, 10, 0, 0);
+
+        //    WindowManager.AddButtonComponentToUI(go, "Match Base", () => WindowManager.Window.wing.inheritBase());
+        //    WindowManager.AddButtonComponentToUI(go, "Match Shape", () => WindowManager.Window.wing.inheritShape());
+        //    return go;
+        //}
 
         #endregion UI stuff
 
